@@ -10,6 +10,7 @@ public class CompoundKey {
   private String stringVal = null;
 
   public CompoundKey (String[] k) {
+    keys = new String[k.length];
     System.arraycopy(k, 0, keys, 0, k.length);
     makeStringVal();
   }
