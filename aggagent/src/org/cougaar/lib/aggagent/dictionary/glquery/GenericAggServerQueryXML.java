@@ -68,7 +68,9 @@ public class GenericAggServerQueryXML  extends GenericQueryXML
      }
 
      public void init( Object key, Map params) {
-          super.init(key,params);
+         // super.init(key,params);
+         myKey = key;
+         preConfiguredParameters = params;
      }
 
      //

@@ -5,8 +5,7 @@ import java.net.*;
 
 
 /** Webservices "Gauging" is modeled with respect to URLs vs. Connections.
-  *  The URL is the "proxy" to the WebService whereas Connections are
-  *  "transactions"
+  *  The URL is the "proxy" to the WebService 
   **/
 public interface URLConnexionProbe
 {

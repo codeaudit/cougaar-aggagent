@@ -52,6 +52,11 @@ public class SimpleTransformerPlugin extends SimplifiedPlugIn
     public long INITIAL_WAKE_UP_INTERVAL = 10000;
     public long POLL_INTERVAL = 15000; // miliseconds
 
+    // Don't GC if time since last GC is less than this....
+    private long GC_MIN_INTERVAL = 30000;
+
+
+
     private IncrementalSubscription mySubscription;
     private UnaryPredicate myPredicate;
     //
@@ -81,6 +86,9 @@ public class SimpleTransformerPlugin extends SimplifiedPlugIn
         }
     }
 
+    // Keep track last time did a GC
+    private long timeStampLastGC = 0;
+
     public void execute() {
 
        Enumeration en = mySubscription.getAddedList();
@@ -91,12 +99,17 @@ public class SimpleTransformerPlugin extends SimplifiedPlugIn
             if( removeObjectsImmediately ) {
                 this.numberRemovedObjects++;
                 mySubscription.remove(obj);
+                long currTime= System.currentTimeMillis();
+                if( (currTime - timeStampLastGC) >  GC_MIN_INTERVAL )
+                {
+                    System.gc();
+                    timeStampLastGC =  currTime;
+                }
             }
             else {
                 watchedBlackboardObjects.add(obj);
             }
         }
-
         printStatus( System.out);
         this.wakeAfter(POLL_INTERVAL);
     }
@@ -108,7 +121,13 @@ public class SimpleTransformerPlugin extends SimplifiedPlugIn
          pw.println("! SimpleTransformer status");
          pw.println("! num watched objects (blackboard)=" + watchedBlackboardObjects.size() );
          pw.println("! num removed objects (blackboard)=" + this.numberRemovedObjects );
-         pw.println("! VM free memory=" + Runtime.getRuntime().freeMemory() );
+         long free = Runtime.getRuntime().freeMemory();
+         long total = Runtime.getRuntime().totalMemory();
+         long used = total-free;
+         pw.println("! VM free memory =" + free );
+         pw.println("! VM total memory=" + total);
+         pw.println("! -------------------------");
+         pw.println("! used            " + used  );
          pw.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
          pw.flush();
     }

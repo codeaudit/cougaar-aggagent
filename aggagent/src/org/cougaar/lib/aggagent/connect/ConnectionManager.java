@@ -82,8 +82,6 @@ public class ConnectionManager
          }
     }
 
-
-
     private void parseXMLConfigFile( Document doc, NameService myNameServiceProvider)
     {
         NodeList nl = doc.getElementsByTagName("source");
@@ -103,7 +101,6 @@ public class ConnectionManager
                  // ie <source ... ignore="true">
                  parseXMLConfigNode(n, myNameServiceProvider);
             }
-
         }
     }
     private void parseXMLConfigNode(Node n, NameService myNameServiceProvider)
@@ -246,9 +243,9 @@ public class ConnectionManager
     public List cycleAllAsynchronousConnections(boolean recycle)
     {
          List returnData = null;
-         returnData = Collections.synchronizedList(new ArrayList(dataPool));;
          synchronized( dataPool )
          {
+            returnData = new ArrayList(dataPool);
             //System.out.println("[ConnectionManager] dataPool size=" + dataPool.size() + ", " + returnData.size());
             dataPool.clear();
          }

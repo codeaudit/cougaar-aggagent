@@ -82,7 +82,6 @@ public class AggregatorPlugin extends SimplifiedPlugIn
                POLL_INTERVAL = value;
            }
 
-
           //
           // Cant do this here, apparently hookup to society (nameserver) not ready
           //
@@ -93,14 +92,13 @@ public class AggregatorPlugin extends SimplifiedPlugIn
           // force execute and initialize connection manager.
           this.wakeAfter(INITIAL_WAKE_UP_INTERVAL);
 
-
         } catch (Exception ex ) {
            ex.printStackTrace();
         }
     }
 
     private boolean first_time = true;
-    private DOMParser domp = new DOMParser();
+    private DOMParser myDOMParser = new DOMParser();   // reuse parser instance...
 
 
     public void execute() {
@@ -147,11 +145,17 @@ public class AggregatorPlugin extends SimplifiedPlugIn
                 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                 processDataFromConnection_asHTML(str_buf);
             }
-            else {
+            if( isXML(str_buf) ) {
                 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                // ASSUME XML - GO TO IT!
+                // XML! - GO TO IT!
                 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                 processDataFromConnection_asXML(str_buf.toString());
+            }
+            else {
+                // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                // LAST TRY ASSUME HTML - GO TO IT!
+                // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                processDataFromConnection_asHTML(str_buf);
             }
 
             /**
@@ -230,6 +234,20 @@ public class AggregatorPlugin extends SimplifiedPlugIn
         }
         return false;
     }
+    private boolean isXML(StringBuffer data){
+        if( data != null) {
+             if( data.length() >= 10 ){
+                  int dst_len = 10;
+                  char[] dst = new char[dst_len];
+                  data.getChars(0,dst_len,dst,0);
+                  String str = new String(dst);
+                  if( str.toLowerCase().trim().indexOf("xml") >= 0)
+                       return true;
+             }
+        }
+        return false;
+    }
+
     private void processDataFromConnection_asHTML(StringBuffer strbuffer)
     {
             HTMLPlanObject hp = new HTMLPlanObject(strbuffer);
@@ -248,8 +266,9 @@ public class AggregatorPlugin extends SimplifiedPlugIn
                     //FileReader freader = new FileReader("task.xml");
                     //InputSource is = new InputSource(freader);
 
-                    DOMParser domp = new DOMParser();
-                    domp.setErrorHandler(new ErrorHandler(){
+                    //myDOMParser = new DOMParser();
+
+                    myDOMParser.setErrorHandler(new ErrorHandler(){
                           public void error(SAXParseException exception) {
                              System.err.println("[ErrorHandler.error]: " + exception);
                            }
@@ -262,8 +281,9 @@ public class AggregatorPlugin extends SimplifiedPlugIn
                         }
                     );
 
-                    domp.parse(is);
-                    Document doc = domp.getDocument();
+                    myDOMParser.parse(is);
+                    Document doc = myDOMParser.getDocument();
+                    myDOMParser.reset();
 
                     System.out.println("Is XML");
 

@@ -18,7 +18,6 @@ import  org.cougaar.lib.aggagent.bsax.*;
 
 public class ConnexionParserByDelimiter implements ConnexionParser
 {
-    private BContentHandler myContentHandler = new BContentHandler_Stack();
     private SAXParser mySaxParser = new SAXParser();
 
     public ConnexionParserByDelimiter() {

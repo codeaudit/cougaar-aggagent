@@ -80,6 +80,7 @@ public class GenericQueryXML  implements GenericQuery
          myKey = key;
          preConfiguredParameters = params;
 
+         // don't need the XML SERVICE at the AGG AGENT
          if( params.get(this.paramkey_XML_SERVICE) == null) {
                //
                // Install Default XML Service
