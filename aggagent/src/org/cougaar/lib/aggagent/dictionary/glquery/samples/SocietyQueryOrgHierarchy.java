@@ -81,6 +81,7 @@ public class SocietyQueryOrgHierarchy extends CustomQueryBaseAdapter
                  Organization org = (Organization)asst;
 
                  String orgName = org.getItemIdentificationPG().getNomenclature();
+
                  RelationshipSchedule schedule = org.getRelationshipSchedule();
 
                  Object[] rsobjs = schedule.toArray();
