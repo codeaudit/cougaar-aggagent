@@ -358,7 +358,7 @@ public abstract class AggregationServletInterface
       blackboard.openTransaction();
       blackboard.publishAdd(o);
     } finally {
-      blackboard.closeTransaction(false);
+      blackboard.closeTransactionDontReset();
     }
   }
 
@@ -368,7 +368,7 @@ public abstract class AggregationServletInterface
       blackboard.openTransaction();
       blackboard.publishChange(o);
     } finally {
-      blackboard.closeTransaction(false);
+      blackboard.closeTransactionDontReset();
     }
   }
 
@@ -378,7 +378,7 @@ public abstract class AggregationServletInterface
       blackboard.openTransaction();
       blackboard.publishRemove(o);
     } finally {
-      blackboard.closeTransaction(false);
+      blackboard.closeTransactionDontReset();
     }
   }
 
@@ -388,7 +388,7 @@ public abstract class AggregationServletInterface
       blackboard.openTransaction();
       blackboard.unsubscribe(subscription);
     } finally {
-      blackboard.closeTransaction(false);
+      blackboard.closeTransactionDontReset();
     }
   }
 }

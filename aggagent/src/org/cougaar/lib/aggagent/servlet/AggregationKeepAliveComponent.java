@@ -182,7 +182,7 @@ public class AggregationKeepAliveComponent extends BlackboardServletComponent {
       } catch (Exception e) {
         e.printStackTrace();
       } finally {
-        blackboard.closeTransaction(false);
+        blackboard.closeTransactionDontReset();
       }
     }
 
@@ -228,7 +228,7 @@ public class AggregationKeepAliveComponent extends BlackboardServletComponent {
       } catch (Exception e) {
         e.printStackTrace();
       } finally {
-        blackboard.closeTransaction(false);
+        blackboard.closeTransactionDontReset();
       }
     }
   }
