@@ -201,17 +201,67 @@ public class BElement {
        }
   }
 
-
-
+  //
+  //  Text whitespaces NOT used
   public void print( PrintWriter pw )
   {
-      _print(pw, this, "");
+      _print(pw, this);
   }
 
   //
-  // recursively applied -- pretty print object tree
+  //  Text whitespaces used
+  public void prettyprint( PrintWriter pw )
+  {
+      _pprint(pw, this, "");
+  }
+
+ //
+  // recursively applied --print tree w/out whitespaces and carriage returns
   //
-  private static void _print(PrintWriter pw, BElement obj, String prefix )
+  private static void _print(PrintWriter pw, BElement obj )
+  {
+       // String of all attributes
+       String all_attribs = (String)attributesAsString(obj.myAttributes );
+       //
+       // data_character:  <foo>data</foo>
+       // may be null if no data (eg. only attributes or subelements)
+       //
+       String data_character = obj.getMyData();
+       int num_subelems = obj.getMySubElements().size();
+
+       //
+       // We represent element within single tag "<foo/>" IFF
+       // there are no sub-elements or data.  Assume existance of
+       // sub-elemetns and data are mutually exclusive
+       //
+
+       // CASE: SUB-ELEMENTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+       if( (num_subelems > 0) ) {
+             pw.print("<" + obj.myLocalName + " " + all_attribs + ">" );
+             Iterator it = obj.mySubElements.iterator();
+             while(it.hasNext()){
+                 _print(pw,((BElement)it.next()));
+             }
+             pw.print("</" + obj.myLocalName + ">");
+       }
+       // CASE: DATA %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+       else if((data_character!=null) ) {
+             pw.print("<" + obj.myLocalName + " " + all_attribs + ">" );
+             pw.print(data_character.trim());
+             pw.print("</" + obj.myLocalName + ">");
+       }
+       // CASE: fit everything into single TAG %%%%%%%%
+       else {
+             pw.print("<" + obj.myLocalName + " " + all_attribs + "/>" );
+       }
+       pw.flush();
+  }
+
+
+  //
+  // recursively applied -- pretty print object tree.
+  //
+  private static void _pprint(PrintWriter pw, BElement obj, String prefix )
   {
        // String of all attributes
        String all_attribs = (String)attributesAsString(obj.myAttributes );
@@ -233,7 +283,7 @@ public class BElement {
              pw.println(prefix + "<" + obj.myLocalName + " " + all_attribs + ">" );
              Iterator it = obj.mySubElements.iterator();
              while(it.hasNext()){
-                 _print(pw,((BElement)it.next()),"   " + prefix);
+                 _pprint(pw,((BElement)it.next()),"   " + prefix);
              }
              pw.println(prefix + "</" + obj.myLocalName + ">");
        }
