@@ -25,6 +25,11 @@ public interface URLConnexionProbe
 
      public void setURL( URL u );
 
+     public void setConfig (URLConnexionConfig cfg);
+
+     public URLConnexionConfig getConfig ();
+
+     public boolean isResolved ();
 
      public void setParser( ConnexionParser parser );
 

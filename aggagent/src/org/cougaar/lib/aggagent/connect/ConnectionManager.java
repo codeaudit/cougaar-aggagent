@@ -47,7 +47,9 @@ public class ConnectionManager
     //
     private static Map connectionTimers = Collections.synchronizedMap(new HashMap());
 
-
+    // Keep a reference to the NameService on-hand, in case the first round of
+    // connection lookups isn't entirely successful.
+    private NameService myNameServiceProvider = null;
 
     //private Vector myRawURLs = new Vector(); // Vector = synchronized  , raw URLs
     private ConnectionLogger myConnectionLogger = null;
@@ -78,125 +80,88 @@ public class ConnectionManager
       *                                  NOTE - DOES NOT APPLY TO EXPLICIT URLS in config file
       **/
     public ConnectionManager(ConnectionLogger c, String configXMLFileName,
-                             NameService myNameServiceProvider)
+                             NameService nsp)
     {
          myConnectionLogger = c;
+         myNameServiceProvider = nsp;
 
-         try{
+         try {
              Document doc = ConfigFileFinder.parseXMLConfigFile(configXMLFileName);
              Element root = doc.getDocumentElement();
-             parseXMLConfigFile(doc, myNameServiceProvider);
-             /**
-             InputSource is = new InputSource(new FileInputStream( configXMLFile ));
-             DOMParser domp = new DOMParser();
-             domp.setErrorHandler(new DefaultHandler());
-             domp.parse(is);
-             Document doc = domp.getDocument();
-             **/
-
-         } catch (Exception ex ){
-             ex.printStackTrace();
+             parseXMLConfigFile(doc);
+         }
+         catch (Exception ex) {
+           ex.printStackTrace();
          }
     }
 
-    private void parseXMLConfigFile( Document doc, NameService myNameServiceProvider)
-    {
-        NodeList nl = doc.getElementsByTagName("source");
-        int size = nl.getLength();
-        int num_ignored=0;
-        for(int i = 0; i< size; i++)
-        {
-            Node n = (Node)nl.item(i);
+    private void parseXMLConfigFile (Document doc) {
+      NodeList nl = doc.getElementsByTagName("source");
+      int size = nl.getLength();
+      for (int i = 0; i < size; i++) {
+        Node n = (Node)nl.item(i);
 
-            String ignored = XMLParseCommon.getAttributeOrChildNodeValue("ignore", n);
-            if( ignored == null) ignored = "";
+        // Only process this Node if not turned off...
+        // ie <source ... ignore="true">
+        String ignored = XMLParseCommon.getAttributeOrChildNodeValue("ignore", n);
+        if (ignored == null || ignored.toLowerCase().indexOf("true") == -1)
+          createConnection(new URLConnexionConfig(n));
+      }
+    }
 
-            if( false==(ignored.toLowerCase().indexOf("true")> -1) )
-            {
-                 // Only process this Node if not turned off...
-                 // ie <source ... ignore="true">
-                 parseXMLConfigNode(n, myNameServiceProvider);
-            } else {
-                 num_ignored++;
-            }
+    private void createConnection (URLConnexionConfig cfg) {
+      // try to ascertain the polling interval
+      long interval = -1;
+      if (cfg.interval != null) {
+        try {
+          interval = Long.parseLong(cfg.interval);
         }
-        String msg = "[ConnectionManager] parseXMLConfigFile()={Number_of_Source_Entries="
-                            + nl.getLength()
-                            + ", Number_of_Ignored_Entries=" + num_ignored
-                            + "}";
-        System.out.println(msg);
-        myConnectionLogger.log("<Font color=red>"
-                                 + msg
-                                 + "</font></UL>");
-    }
-    private void parseXMLConfigNode(Node n, NameService myNameServiceProvider)
-    {
-            String name = XMLParseCommon.getAttributeOrChildNodeValue("name", n);
-            URL cluster_url = null;
-            URL url = null;
-            URL base_url =  null;
-            base_url = myNameServiceProvider.lookupURL(name);
-            if( base_url != null ){
-               try{
-                  cluster_url = new URL( base_url.toExternalForm() ); //  + "/$" + name.toUpperCase() + "/");
-                  //System.out.println("+++++++++++++++++++++++++++++++++>" + cluster_url.toExternalForm() );
-               } catch( java.net.MalformedURLException ex ){
-                  ex.printStackTrace();
-               }
-            } else {
-                  System.err.println("[ConnectionManager] base_url=null, lookupURL(name=" + name +")");
-            }
+        catch (NumberFormatException nfe) {
+          System.out.println(
+            "ConnectionManager::createConnection:  bad interval--" + cfg.name);
+        }
+      }
 
-            String pollInterval = XMLParseCommon.getAttributeOrChildNodeValue("pollInterval", n);
-            //System.out.println("[ConnectionManager]   parseXMLConfigNode(), POLL INTERVAL=" + pollInterval);
-            long poll_interval = -1;
-            if( pollInterval != null) poll_interval = Long.valueOf(pollInterval).intValue();
+      URLConnexionProbe p = null;
+      // If a URL is specified, it takes precedence over the name server.
+      // Note:  the pspquery is ignored in this case
+      String resolved_url = null;
+      if (cfg.url != null) {
+        resolved_url = cfg.url;
+      }
+      else if (cfg.name != null) {
+        resolved_url = resolve(cfg);
+        if (resolved_url == null)
+          p = new URLConnexionProbeAdapter(cfg);
+      }
 
-            String pspquery = XMLParseCommon.getAttributeOrChildNodeValue("pspquery", n);
-            if( pspquery == null) pspquery = "";
-
-            // if can't find name, see if <url> field to use explicitly
-            if( cluster_url == null)
-            {
-                String urlpath = XMLParseCommon.getAttributeOrChildNodeValue("url", n);
-                if( urlpath != null) {
-                   try{
-                      url = new URL(urlpath);
-                   } catch (Exception ex){ ex.printStackTrace(); }
-                }
-            } else
-            {
-                try{
-                    url = new URL(cluster_url.toExternalForm() + pspquery );
-                    //System.out.println("+++++++++++++++++++++++++++++++++>>>" + url.toExternalForm() );
-                } catch (Exception ex ) { ex.printStackTrace(); }
-            }
-
-            String externalform = "null";
-            if( url != null ) {
-                 externalform = url.toExternalForm();
-                 if( poll_interval >-1) this.addURLWithTimer(url,poll_interval);
-                 else this.addURL(url);
-
-                 //
-                 // url is in case of where derived (no url element in config) is derived
-                 // from pspquery
-                 //
-                 System.out.println("\t[ConnectionManager.parseXMLConfigFile()] Soruce name="
-                                 + name + ", url.externalform=["
-                                 + externalform
-                                 + "], pspquery=" + pspquery
-                                 + ", poll_interval=" + poll_interval);
-            } else {
-                 myConnectionLogger.log("<Font color=red>Failed to load URL from configuration file </font>."
-                                 + "<FONT SIZE=-2 COLOR=BLUE><UL><LI>name=" + name + "<LI> url="
-                                 + externalform
-                                 + "</font></UL>");
-                 System.out.println("\t[parseXMLConfigFile] Failed to load URL from configuration file: name=" + name + ", url="
-                                 + externalform + pspquery);
-            }
+      try {
+        if (resolved_url != null)
+          p = new URLConnexionProbeAdapter(new URL(resolved_url));
+        if (p != null) {
+          addURL(p);
+          if (interval > -1)
+            connectionTimers.put(p, new ConnexTimer(interval));
+        }
+        else
+          System.out.println(
+            "ConnectionManager::createConnection:  No resource specified!");
+      }
+      catch (MalformedURLException mfe) {
+        System.out.println(
+          "ConnectionManager::createConnection:  bad URL -- " + resolved_url);
+      }
     }
 
+    private String resolve (URLConnexionConfig cfg) {
+      URL base = myNameServiceProvider.lookupURL(cfg.name);
+      if (base == null)
+        return null;
+      else if (cfg.psp != null)
+        return base.toExternalForm() + cfg.psp;
+      else
+        return base.toExternalForm();
+    }
 
     public String getNamespace(){
         return this.toString();
@@ -264,16 +229,66 @@ public class ConnectionManager
                  Iterator it = space_set.iterator();
                  while(it.hasNext()){
                     URLConnexionProbe u = (URLConnexionProbe)it.next();
-                    //URLConnexionProbe ucg = new URLConnexionProbeAdapter(u);
                     ConnectionListener con =
                          new ConnectionListener(
                              u, myConnectionLogger, getNamespace(),
                              deadConnections, dataPool);
-                    con.start();
-                    //System.out.println("[ConnectionManager.connectAllAsynchronous()] " + con.describeAll());
+                    if (u.isResolved()) {
+                      // if the timer exists, initialize its wait interval
+                      ConnexTimer timer = (ConnexTimer) connectionTimers.get(u);
+                      if (timer != null)
+                        timer.proceed();
+                      con.start();
+                    }
+                    else
+                      deadConnections.add(con);
                  }
              }
          }
+    }
+
+    public List cycleAllAsynchronousConnections (boolean recycle) {
+      // restart dead connections, maybe
+      if (recycle) {
+        try {
+          List copy =
+            Collections.synchronizedList(new ArrayList(deadConnections));
+          for (Iterator i = copy.iterator(); i.hasNext(); ) {
+            ConnectionListener cl = (ConnectionListener) i.next();
+            URLConnexionProbe probe = cl.getConnexionProbe();
+            ConnexTimer timer = (ConnexTimer) connectionTimers.get(probe);
+            if (!probe.isResolved()) {
+              String resolved_url = resolve(probe.getConfig());
+              if (resolved_url != null) {
+                try {
+                  probe.setURL(new URL(resolved_url));
+                }
+                catch (MalformedURLException mfe) {
+                  System.out.println(
+                    "ConnectionManager::cycleAllAsynchronousConnections:  " +
+                    "bad URL -- " + resolved_url);
+                  connectionTimers.remove(probe);
+                  deadConnections.remove(cl);
+                }
+              }
+            }
+            // start the connection if it is ready; else try again later
+            if (probe.isResolved() && (timer == null || timer.proceed()))
+              cl.start();
+          }
+        }
+        catch (Exception ex) {
+          ex.printStackTrace();
+        }
+      }
+
+      // return results
+      List returnData = null;
+      synchronized (dataPool) {
+        returnData = new ArrayList(dataPool);
+        dataPool.clear();
+      }
+      return returnData;
     }
 
     //
@@ -281,6 +296,7 @@ public class ConnectionManager
     //                  NOTE, keep alive connecitons don't die.
     //
     // @return : data harvested from dataPool
+    /*
     public List cycleAllAsynchronousConnections(boolean recycle)
     {
          List returnData = null;
@@ -326,44 +342,11 @@ public class ConnectionManager
         }
         return returnData;
     }
-
+   */
 
    public static void main(String[] args) {
         System.out.println("[ConnectionManager.main() called...]");
         String configXMLFileName = null;
-
-        //NameService myNameServiceProvider = new ProxyMapAdapter( new FDSProxy() );
-        // wont work without node
-        /**
-        ConnectionLogger logger = new ConnectionLogger();
-        ConnectionManager cm = new ConnectionManager(logger, "aggregator.configs.xml", null);
-
-        try{
-           cm.addURL( new URL("http://www.bbn.com") );
-           cm.addURL( new URL("http://www.yahoo.com") );
-           cm.addURL( new URL("http://www.lycos.com") );
-           cm.connectAllAsynchronous();
-        } catch (Exception ex ){
-           ex.printStackTrace();
-        }
-        while( cm.numLiveConnections() > 0)
-        {
-           try{
-              Thread.sleep(3000);
-           } catch (Exception ex )
-           {
-              ex.printStackTrace();
-           }
-           List data = cm.cycleAllAsynchronousConnections(false);
-           Iterator it = data.iterator();
-           while( it.hasNext() ){
-               String s = (String)it.next();
-               System.out.println("###############" + s.substring(0,80));
-           }
-        }
-
-        cm.flush();
-        **/
     }
 
     private synchronized void addURL(URLConnexionProbe u) {
@@ -382,8 +365,4 @@ public class ConnectionManager
         List space_set = (List)urlSpaces.get(this);
         space_set.clear();
     }
-    //private synchronized Iterator iterateURLs() {
-    //    List space_set = (List)urlSpaces.get(this);
-    //    return space_set.iterator();
-    //}
 }

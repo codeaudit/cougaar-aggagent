@@ -21,9 +21,15 @@ import java.io.*;
   **/
 public class URLConnexionProbeAdapter implements URLConnexionProbe
 {
+     private URLConnexionConfig myConfig = null;
      private URL myURL;
      private ConnexionParser myParser;
      private BufferedReader myInputDataStream;
+
+     public URLConnexionProbeAdapter (URLConnexionConfig cfg) {
+       setConfig(cfg);
+       setParser(new ConnexionParserByDelimiter());
+     }
 
      public URLConnexionProbeAdapter(URL u ){
          setURL(u);
@@ -34,6 +40,18 @@ public class URLConnexionProbeAdapter implements URLConnexionProbe
      }
      public void setURL( URL u ) {
          myURL = u;
+     }
+
+     public void setConfig (URLConnexionConfig cfg) {
+       myConfig = cfg;
+     }
+
+     public URLConnexionConfig getConfig () {
+       return myConfig;
+     }
+
+     public boolean isResolved () {
+       return myURL != null;
      }
 
      public void setParser( ConnexionParser parser ){

@@ -77,7 +77,7 @@ public class AggregatorPlugin extends SimplifiedPlugIn
            /**
                NO SUBSCRIPTIONS FOR NOW
 
-           Class klass = Class.forName("org.cougaar.ui.aggserver.ldm.Task");
+           Class klass = Class.forName("alp.ui.aggserver.ldm.Task");
            myPredicate = this.getInstanceOfPredicate(klass);
            mySubscription = (IncrementalSubscription)subscribe(myPredicate);
            **/
@@ -204,13 +204,29 @@ public class AggregatorPlugin extends SimplifiedPlugIn
         return false;
     }
 
-    private void processDataFromConnection_asHTML(StringBuffer strbuffer)
+    /**
+     *  Handle a complete response from one of the connections, presuming the
+     *  contents to be formatted as an HTML document.  In this implementation,
+     *  an HTMLPlanObject is created to house the HTML text and is then
+     *  published to the logplan.
+     *
+     *  @param strbuffer a StringBuffer containing the HTML text
+     */
+    protected void processDataFromConnection_asHTML(StringBuffer strbuffer)
     {
             HTMLPlanObject hp = new HTMLPlanObject(strbuffer);
             publishAdd(hp);
     }
 
-    private void processDataFromConnection_asXML(String str)
+    /**
+     *  Handle a complete response from one of the connections, presuming the
+     *  contents to be formatted as an XML document.  In this implementation,
+     *  the XML is parsed to form a DOM, which is then encapsulated with a
+     *  PlanObject instance and published on the logplan.
+     *
+     *  @param str a String containing the XML document
+     */
+    protected void processDataFromConnection_asXML(String str)
     {
             try{
                     //ByteArrayInputStream bais = new ByteArrayInputStream(str.getBytes());
