@@ -1,3 +1,16 @@
+/////////////////////////////////////////////////////////////////////////////////////////////
+// 2-20-01 (natec)
+//
+
+Now multiple conneciton log files may be generated - one per Agg Agent running in same working directory.
+
+If only one Agg Agent running in working directory, the connection log file now embeds the AggAgent Cluster name:
+
+Example, case of two AggAgents running in single workfing directory:
+
+connxionAGG1.html
+connxionAGG2.html
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 // 2-16-01 (natec)
