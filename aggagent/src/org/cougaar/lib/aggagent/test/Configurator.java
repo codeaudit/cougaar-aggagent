@@ -284,8 +284,10 @@ public class Configurator {
     textFile = new File(dir, pspFile);
     writePspFile(textFile, psps);
 
-    textFile = new File(dir, "run.bat");
-    writeDosRunScript(textFile, name);
+    if (config.windows) {
+      textFile = new File(dir, "run.bat");
+      writeDosRunScript(textFile, name);
+    }
 
     textFile = new File(dir, name + ".ini");
     writeNode(textFile, clusters);
