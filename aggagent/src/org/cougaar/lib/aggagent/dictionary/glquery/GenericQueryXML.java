@@ -32,7 +32,6 @@ import org.cougaar.domain.planning.ldm.plan.Plan;
 import org.cougaar.lib.planserver.HttpInput;
 import org.cougaar.core.util.XMLObjectProvider;
 
-import com.ibm.xml.parser.TXDocument;
 import org.apache.xalan.xslt.XSLTInputSource;
 import org.apache.xalan.xslt.XSLTProcessor;
 import org.apache.xalan.xslt.XSLTInputSource;
@@ -45,6 +44,8 @@ import org.xml.sax.*;
 import org.xml.sax.helpers.*;
 import org.apache.xerces.parsers.SAXParser;
 import org.xml.sax.InputSource;
+import org.apache.xml.serialize.XMLSerializer;
+import org.apache.xml.serialize.OutputFormat;
 
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
@@ -388,16 +389,18 @@ public class GenericQueryXML  implements GenericQuery
                                    BContentHandler myContentHandler, SAXParser mySaxParser, OutputStream out,
                                    final String collectionType){
        try{
-           TXDocument doc = null;
+           Document doc = null;
            synchronized( myObjectProvider) {
                      Object odoc= getDocument(myObjectProvider);
-                     if( odoc instanceof TXDocument) doc = (TXDocument)odoc;
+                     if( odoc instanceof Document) doc = (Document)odoc;
            }
            if( ( doc != null) )
            {
                     StringWriter sw = new StringWriter();
                     try{
-                        doc.print(sw);
+		      XMLSerializer serializer = 
+                           new XMLSerializer(sw, new OutputFormat());
+		      serializer.serialize(doc);
                     } catch( IOException ex ) {
                         ex.printStackTrace();
                     }
@@ -443,12 +446,12 @@ public class GenericQueryXML  implements GenericQuery
                                    XSLTInputSource  myXSL, OutputStream out,
                                    final String collectionType )
   {
-       TXDocument doc = null;
+       Document doc = null;
        try{
              synchronized( myObjectProvider)
              {
                      Object odoc= getDocument(myObjectProvider);
-                     if( odoc instanceof TXDocument) doc = (TXDocument)odoc;
+                     if( odoc instanceof Document) doc = (Document)odoc;
                      if( doc != null)
                      {
                          //Element ce = doc.createElement("Container");
@@ -484,7 +487,9 @@ public class GenericQueryXML  implements GenericQuery
              if( (myXSL != null) && ( doc != null) )
              {
                     StringWriter sw = new StringWriter();
-                    doc.print(sw);
+		    XMLSerializer serializer = 
+                       new XMLSerializer(sw, new OutputFormat());
+		    serializer.serialize(doc);
                     StringBuffer sb = sw.getBuffer();
                     //System.err.println("returnVal, sb.toSTring()=" + sb.toString().substring(0,120));
                     //System.err.println("returnVal, sbuf.toString()=" + sbuf.toString());
@@ -495,8 +500,11 @@ public class GenericQueryXML  implements GenericQuery
                     //doc.print(new PrintWriter(System.out));
                     //
 
-             } else if( (doc != null)  )
-                           doc.print(new PrintWriter(out));
+             } else if( (doc != null)  ) {
+	       XMLSerializer serializer = 
+		 new XMLSerializer(new PrintWriter(out), new OutputFormat());
+	       serializer.serialize(doc);
+	     }
        } catch (Exception ex ) {
            ex.printStackTrace();
        }
