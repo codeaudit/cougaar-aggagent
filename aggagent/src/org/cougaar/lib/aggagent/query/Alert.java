@@ -1,6 +1,9 @@
 
 package org.cougaar.lib.aggagent.query;
 
+import org.cougaar.lib.aggagent.session.XmlTransferable;
+import org.cougaar.lib.aggagent.util.XmlUtils;
+
 /**
  *  The Alert class is the abstract superclass of all result set monitors.
  *  Each implementation is responsible for maintaining its own status regarding
@@ -16,7 +19,12 @@ package org.cougaar.lib.aggagent.query;
  *  At present there is no additional support for Alert activities, so all
  *  necessary work must be done in the Alert implementations.
  */
-public abstract class Alert {
+public abstract class Alert implements XmlTransferable {
+  public static String ALERT_TAG = "alert";
+  public static String NAME_ATT = "name";
+  public static String QUERY_ATT = "query_id";
+  public static String ALERTED_ATT = "alerted";
+
   private boolean alerted = false;
   private QueryResultAdapter query = null;
   private String name = null;
@@ -45,6 +53,15 @@ public abstract class Alert {
    */
   public QueryResultAdapter getQueryAdapter () {
     return query;
+  }
+
+  /**
+   *  Provide access to the query ID associated with this alert.  The default
+   *  implementation is to obtain this from the resident query, but subclasses
+   *  may have different behavior.
+   */
+  public String getQueryId () {
+    return query.getID();
   }
 
   /**
@@ -82,6 +99,27 @@ public abstract class Alert {
     boolean oldAlerted = isAlerted();
     handleUpdate();
     return oldAlerted != isAlerted();
+  }
+
+  /**
+   *  Convert this Alert to an XML format for transfer to clients.
+   */
+  public String toXml () {
+    StringBuffer s = new StringBuffer("<");
+    s.append(ALERT_TAG);
+    XmlUtils.appendAttribute(NAME_ATT, getName(), s);
+    XmlUtils.appendAttribute(QUERY_ATT, getQueryId(), s);
+    XmlUtils.appendAttribute(ALERTED_ATT, String.valueOf(isAlerted()), s);
+    s.append(">\n");
+
+    insertXmlBody(s);
+
+    s.append("</alert>\n");
+
+    return s.toString();
+  }
+
+  protected void insertXmlBody (StringBuffer buf) {
   }
 
   /**

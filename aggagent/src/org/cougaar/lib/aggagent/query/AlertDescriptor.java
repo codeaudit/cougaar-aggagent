@@ -99,29 +99,9 @@ public class AlertDescriptor extends Alert
     // never actually used as a functional alert
   }
 
-  public String toXML()
-  {
-    return toXML("");
-  }
-
-  private String toXML(String additionalAttributes)
-  {
-    StringBuffer s = new StringBuffer("<alert ");
-    s.append(additionalAttributes);
-    s.append(" name=\"");
-    s.append(getName());
-    s.append("\" query_id=\"");
-    s.append(queryId);
-    s.append("\" alerted=\"");
-    s.append(new Boolean(isAlerted()).toString());
-    s.append("\">\n");
-
+  protected void insertXmlBody (StringBuffer buf) {
     if (alertSpec != null)
-      s.append(alertSpec.toXml());
-
-    s.append("</alert>\n");
-
-    return s.toString();
+      buf.append(alertSpec.toXml());
   }
 
   /**
