@@ -1,4 +1,4 @@
-@echo off
+@echo OFF
 
 REM "<copyright>"
 REM " Copyright 2003 BBNT Solutions, LLC"
@@ -20,40 +20,26 @@ REM " PERFORMANCE OF THE COUGAAR SOFTWARE."
 REM "</copyright>"
 
 
-setlocal
+if "%COUGAAR_INSTALL_PATH%"=="" goto AIP_ERROR
 
-set NODE=PushNode
+set LIBPATHS=%COUGAAR_INSTALL_PATH%\lib\bootstrap.jar
 
-set DEVPATH=c:\alp\aggagent\classes
+REM pass in "NodeName" to run a specific named Node
 
-set BASELIB=%COUGAAR_INSTALL_PATH%\lib
-set SYSLIB=%COUGAAR_INSTALL_PATH%\sys
-set EXECLASS=org.cougaar.core.node.Node
-rem set FLAGS=-Dorg.cougaar.class.path=%BASELIB%\*.jar
-set FLAGS=-Dorg.cougaar.useBootstrapper=false
-set FLAGS=%FLAGS% -Dorg.cougaar.core.servlet.enable=true
-set FLAGS=%FLAGS% -Dorg.cougaar.core.logging.config.filename=logconf.lcf
-set FLAGS=%FLAGS% -Dorg.cougaar.lib.web.https.port=-1
-set FLAGS=%FLAGS% -Dorg.cougaar.install.path=%COUGAAR_INSTALL_PATH%
-set NODEARGS=-c -n %NODE%
+set MYPROPERTIES= -Dorg.cougaar.system.path=%COUGAAR_INSTALL_PATH%\sys -Dorg.cougaar.install.path=%COUGAAR_INSTALL_PATH% -Dorg.cougaar.core.servlet.enable=true -Dorg.cougaar.lib.web.scanRange=100 -Dorg.cougaar.lib.web.http.port=8800 -Dorg.cougaar.lib.web.https.port=-1 -Dorg.cougaar.lib.web.https.clientAuth=true -Xbootclasspath/p:%COUGAAR_INSTALL_PATH%\lib\javaiopatch.jar -Dorg.cougaar.core.logging.config.filename=logconf.lcf
 
-set CPATH=
-set CPATH=%CPATH%;%DEVPATH%
-set CPATH=%CPATH%;%BASELIB%\bootstrap.jar
-set CPATH=%CPATH%;%BASELIB%\util.jar
-set CPATH=%CPATH%;%BASELIB%\core.jar
-set CPATH=%CPATH%;%BASELIB%\glm.jar
-set CPATH=%CPATH%;%BASELIB%\webserver.jar
-set CPATH=%CPATH%;%BASELIB%\webtomcat.jar
-set CPATH=%CPATH%;%SYSLIB%\servlet.jar
-set CPATH=%CPATH%;%SYSLIB%\tomcat_40.jar
-set CPATH=%CPATH%;%SYSLIB%\log4j.jar
-set CPATH=%CPATH%;%SYSLIB%\jsse.jar
-set CPATH=%CPATH%;%SYSLIB%\xerces.jar
-set CPATH=%CPATH%;%SYSLIB%\silk.jar
-set CPATH=%CPATH%;%SYSLIB%\jpython.jar
+set MYMEMORY=
+set MYCLASSES=org.cougaar.bootstrap.Bootstrapper org.cougaar.core.node.Node
+set MYARGUMENTS= -c -n "PushNode"
 
-@echo on
-java -cp "%CPATH%" %FLAGS% %EXECLASS% %NODEARGS%
 
-@echo on
+@ECHO ON
+
+java.exe %MYPROPERTIES% %MYMEMORY% -classpath %LIBPATHS% %MYCLASSES% %MYARGUMENTS% %2 %3
+goto QUIT
+
+:AIP_ERROR
+echo Please set COUGAAR_INSTALL_PATH
+goto QUIT
+
+:QUIT
