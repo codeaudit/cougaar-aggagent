@@ -40,7 +40,7 @@ public class ConnectionLogger
 
      private void defLogger( File f )
      {
-         System.out.println("Logger opened.");
+         System.out.println("[ConnectionLogger] Logger opened.");
          try{
 
                 FileOutputStream fos = new FileOutputStream(f);

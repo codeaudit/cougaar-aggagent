@@ -120,7 +120,7 @@ public class ConnectionListener implements Runnable
                int len = result.getBuffer().length();
                if( len > 0 ) {
                    synchronized( myDataPool ) {
-                       System.out.println("ADDing result,  buflen=" + len);
+                       System.out.println("[ConnectionListener] run()=ADDing result, sz:" + len);
                        myDataPool.add(result.getBuffer());
                        lastByteCount = len;
                        totalByteCount += len;
