@@ -311,6 +311,12 @@ public class GenericQueryXML  implements GenericQuery
             System.err.println("[XMLService]  Entry=XMLObjectProvider.addObject");
             System.err.println("#####################################################");
             ex.printStackTrace();
+      } catch (Error err){
+            System.err.println("#####################################################");
+            System.err.println("CORE SERVICE FAILED.  Error follows.");
+            System.err.println("[XMLService]  Entry=XMLObjectProvider.addObject");
+            System.err.println("#####################################################");
+            err.printStackTrace();
       }
   }
   private void reset(XMLObjectProvider provider){
@@ -322,6 +328,12 @@ public class GenericQueryXML  implements GenericQuery
             System.err.println("[XMLService]  Entry=XMLObjectProvider.reset");
             System.err.println("#####################################################");
             ex.printStackTrace();
+      } catch (Error err){
+            System.err.println("#####################################################");
+            System.err.println("CORE SERVICE FAILED.  Error follows.");
+            System.err.println("[XMLService]  Entry=XMLObjectProvider.addObject");
+            System.err.println("#####################################################");
+            err.printStackTrace();
       }
   }
   private Document getDocument(XMLObjectProvider provider) {
@@ -333,6 +345,12 @@ public class GenericQueryXML  implements GenericQuery
             System.err.println("[XMLService]  Entry=XMLObjectProvider.getDocumentRef");
             System.err.println("#####################################################");
             ex.printStackTrace();
+      } catch (Error err){
+            System.err.println("#####################################################");
+            System.err.println("CORE SERVICE FAILED.  Error follows.");
+            System.err.println("[XMLService]  Entry=XMLObjectProvider.addObject");
+            System.err.println("#####################################################");
+            err.printStackTrace();
       }
       return null;
   }

@@ -22,6 +22,7 @@ import java.util.HashMap;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Node;
+import org.w3c.dom.Element;
 import org.apache.xalan.xpath.xml.TreeWalker;
 import org.apache.xalan.xpath.xml.FormatterToXML;
 
@@ -190,7 +191,9 @@ public class PSP_BlackBoardViewer extends PSP_BaseAdapter implements PlanService
           out.println("<TABLE align=center border=1 cellPadding=1 cellSpacing=1");
           out.println("width=100%>");
           Object obj = objs[i];
-          display( obj, out, "");
+          synchronized( obj ) {
+             display( obj, out, "");
+          }
           out.println("</Table>");
           out.println("</TD></TR>");
        }
@@ -289,21 +292,33 @@ public class PSP_BlackBoardViewer extends PSP_BaseAdapter implements PlanService
   {
      stream.println( "<TR><A HREF=?MODE=RAW_BLACKBOARD?ITEM_ID=" + obj.hashCode() + ">" + prefix + "[" 
                      + "(<font color=blue size=-2>" + obj.toString() + "</font>)"
-                     + "]" + "</A></TR>" );
+                     + "]</A></TR>" );
 
      if( obj instanceof PlanObject ){
          PlanObject p = (PlanObject)obj;
          Document doc = p.getDocument();
          stream.println("<UL>");
-         if( doc == null ) {  stream.println("<LI>doc=NULL");  }
+         if( doc == null ) {  stream.println("<LI>doc=null");  }
          else {
-             stream.println("<LI>doc.root.nodename=" + doc.getDocumentElement().getNodeName());
+             Element elem = doc.getDocumentElement();
+             if( elem != null) {
+                    String name = null;
+                    try{ name = elem.getNodeName(); } catch (NullPointerException ex) {} // SWALLOW NullPointerException
+                    stream.println("<LI>doc.root.nodename=" + name);
+             }
+             else
+                    stream.println("<LI>doc.root=null");
              NodeList nl= doc.getDocumentElement().getChildNodes();
              int size = nl.getLength();
              stream.println("<font color=blue size=-2><UL>");
              for(int i =0; i<size; i++) {
                  Node n = (Node)nl.item(i);
-                 stream.println("<LI>node=" + n.getNodeName() );
+                 if( n != null) {
+                     String name = n.getNodeName();
+                     stream.println("<LI>node=" + name );
+                 } else {
+                     stream.println("<LI>node=null" );
+                 }
              }
              stream.println("</UL></font>");
          }

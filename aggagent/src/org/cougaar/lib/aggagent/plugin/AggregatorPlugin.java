@@ -159,13 +159,8 @@ public class AggregatorPlugin extends SimplifiedPlugIn
             }
 
             System.out.println("[AggregatorPlugin] data len=" + str_buf.length());
+            //System.out.println("[AggregatorPlugin] data=" + str_buf + "\n\n");
         }
-
-        /**
-        for(Enumeration e = mySubscription.getAddedList(); e.hasMoreElements();)
-        {
-        }
-        **/
 
         this.wakeAfter(POLL_INTERVAL);
     }
@@ -230,14 +225,16 @@ public class AggregatorPlugin extends SimplifiedPlugIn
                         }
                     );
 
+                    //myDOMParser.reset();
                     myDOMParser.parse(is);
                     Document doc = myDOMParser.getDocument();
-                    myDOMParser.reset();
 
                     System.out.println("Is XML");
 
                     if( doc != null ) {
                        PlanObject p = new PlanObject(doc);
+                       System.out.println("[Aggregator Plugin] Pub PlanObject, PlanObject Root doc elem="
+                                          + doc.getDocumentElement().getNodeName());
                        publishAdd(p);
                     }
                 } catch ( SAXParseException sax) {
