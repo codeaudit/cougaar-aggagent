@@ -83,7 +83,7 @@ public class QueryResultAdapter
       if (agg != null) {
         List atoms = new LinkedList();
         try {
-          agg.aggregate(rawResultSet, atoms);
+          agg.aggregate(rawResultSet.getAllAtoms(), atoms);
         }
         catch (Exception eek) {
           eek.printStackTrace();

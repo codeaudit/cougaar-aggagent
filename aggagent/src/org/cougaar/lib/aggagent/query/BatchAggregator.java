@@ -30,8 +30,8 @@ public class BatchAggregator implements Aggregator {
   /**
    *  Transform the raw result set into an aggregated result set.
    */
-  public void aggregate (AggregationResultSet rs, List output) {
-    Map batches = collate(rs.getAllAtoms());
+  public void aggregate (Iterator dataAtoms, List output) {
+    Map batches = collate(dataAtoms);
     for (Iterator i = batches.entrySet().iterator(); i.hasNext(); ) {
       Map.Entry e = (Map.Entry) i.next();
       melder.meld(aggIds, (CompoundKey) e.getKey(), (List) e.getValue(), output);

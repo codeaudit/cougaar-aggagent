@@ -1,6 +1,7 @@
 
 package org.cougaar.lib.aggagent.script;
 
+import java.util.Iterator;
 import java.util.List;
 
 import org.python.core.PyFunction;
@@ -9,7 +10,6 @@ import org.python.core.PyObject;
 import org.python.util.PythonInterpreter;
 
 import org.cougaar.lib.aggagent.query.Aggregator;
-import org.cougaar.lib.aggagent.query.AggregationResultSet;
 
 /**
  *  An implementation of Aggregator that derives its functionality from a
@@ -46,8 +46,8 @@ public class PythAggregator implements Aggregator {
       delegateFunction = f;
     }
 
-    public void aggregate (AggregationResultSet rs, List output) {
-      delegateFunction._jcall(new Object[] {rs, output});
+    public void aggregate (Iterator dataAtoms, List output) {
+      delegateFunction._jcall(new Object[] {dataAtoms, output});
     }
   }
 
@@ -68,11 +68,13 @@ public class PythAggregator implements Aggregator {
    *  function is actually delegated to a script-generated implementation,
    *  which is fabricated in the constructor.
    *
-   *  @param ids a list of names for the identifier fields
-   *  @param rs the result set containing the data to be aggregated
+   *  @param atomIterator an iterator that iterates through raw, unaggregated
+   *    data atoms
+   *  @param output a List into which the produced ResultSetDataAtoms should be
+   *    placed
    */
-  public void aggregate (AggregationResultSet rs, List output) {
-    delegate.aggregate(rs, output);
+  public void aggregate (Iterator dataAtoms, List output) {
+    delegate.aggregate(dataAtoms, output);
   }
 
   /**

@@ -1,6 +1,7 @@
 
 package org.cougaar.lib.aggagent.query;
 
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -16,9 +17,10 @@ public interface Aggregator {
    *  Derive a new set of ResultSetDataAtoms from those contained in the
    *  specified AggregationResultSet.
    *
-   *  @param rs the AggregationResultSet to be transformed
+   *  @param atomIterator an iterator that iterates through raw, unaggregated
+   *    data atoms
    *  @param output a List into which the produced ResultSetDataAtoms should be
    *    placed
    */
-  public void aggregate (AggregationResultSet rs, List output);
+  public void aggregate (Iterator atomIterator, List output);
 }
