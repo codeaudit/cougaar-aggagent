@@ -63,11 +63,13 @@ public class RemoteSubscriptionPlugIn extends AggregationPlugIn implements Messa
    */
   public void receiveMessage(Message message) {
     try {
+      getBlackboardService().openTransaction();
       XMLMessage xmsg = (XMLMessage)message;
       Element root = XmlUtils.parse(xmsg.getText());
       String requestName = root.getNodeName();
 
-System.out.println("RemotePlugin: Got message: "+requestName+":"+root.toString());
+      if (debug)
+        System.out.println("RemotePlugin: Got message: "+requestName+":"+root.toString());
 
       if (requestName.equals("transient_query_request"))
       {
@@ -91,6 +93,8 @@ System.out.println("RemotePlugin: Got message: "+requestName+":"+root.toString()
       }
     } catch (Exception ex) {
       ex.printStackTrace();
+    } finally {
+      getBlackboardService().closeTransaction();
     }
   }
 
@@ -237,7 +241,7 @@ System.out.println("RemotePlugin: Got message: "+requestName+":"+root.toString()
     }
 
     public void pushUpdate () {
-      System.out.println("Updating session to agg: " + getQueryId());
+      if (debug) System.out.println("Updating session to agg: " + getQueryId());
       sendMessage(requester, createUpdateDelta().toXml());
     }
   }
@@ -261,7 +265,7 @@ System.out.println("RemotePlugin: Got message: "+requestName+":"+root.toString()
     }
 
     public void pushUpdate () {
-      System.out.println("Updating session to agg: " + getQueryId());
+      if (debug) System.out.println("Updating session to agg: " + getQueryId());
       rbs.open();
       UpdateDelta del = createUpdateDelta();
       rbs.close();
@@ -326,7 +330,7 @@ System.out.println("RemotePlugin: Got message: "+requestName+":"+root.toString()
 
     new RemotePullSession(
       String.valueOf(idCounter++), queryId, formatter, requester, seeker);
-    System.out.println("Pull session created");
+    if (debug) System.out.println("Pull session created");
   }
 
   private void returnUpdate (Element root) throws Exception {
