@@ -24,6 +24,12 @@ public class ResultSetDataAtom
 
   public ResultSetDataAtom() {}
 
+  public ResultSetDataAtom(ResultSetDataAtom da)
+  {
+    identifiers = (Map)((TreeMap)da.identifiers).clone();
+    values = (Map)((HashMap)da.values).clone();
+  }
+
   private static Map makeIdMap (List l, CompoundKey k) {
     Map ret = new TreeMap();
     Iterator lit = l.iterator();
