@@ -1,6 +1,9 @@
 
 package org.cougaar.lib.aggagent.session;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -39,13 +42,17 @@ public class UpdateDelta {
   private static String CHANGED_TAG = "changed";
   private static String REMOVED_TAG = "removed";
   private static String REPLACEMENT_TAG = "replacement";
+  private static String ERROR_TAG = "error";
 
   public static String UPDATE_TAG = "update";
 
-  // By default, replacementMode is set to true.  The addedList also serves as
-  // the replacementList, and hence should exist in either mode.  Both
+  // for script error reporting
+  private String errorReport = null;
+
+  // By default, replacementMode is set to false.  The addedList also serves as
+  // the replacementList, and hence should be used in either mode.  Both
   // changedList and removedList are used only when replacementMode is false.
-  private boolean replacementMode = true;
+  private boolean replacementMode = false;
   private List addedList = new LinkedList();
   private List changedList = new LinkedList();
   private List removedList = new LinkedList();
@@ -79,16 +86,22 @@ public class UpdateDelta {
     this(root.getAttribute(AGENT_ID), root.getAttribute(QUERY_ID),
       root.getAttribute(SESSION_ID));
 
-    NodeList nl = root.getElementsByTagName(REPLACEMENT_TAG);
+    NodeList nl = root.getElementsByTagName(ERROR_TAG);
     if (nl.getLength() > 0) {
-      setReplacement(true);
-      loadAtoms(addedList, nl);
+      errorReport = XmlUtils.getElementText((Element) nl.item(0));
     }
     else {
-      setReplacement(false);
-      loadAtoms(addedList, root.getElementsByTagName(ADDED_TAG));
-      loadAtoms(changedList, root.getElementsByTagName(CHANGED_TAG));
-      loadAtoms(removedList, root.getElementsByTagName(REMOVED_TAG));
+      nl = root.getElementsByTagName(REPLACEMENT_TAG);
+      if (nl.getLength() > 0) {
+        setReplacement(true);
+        loadAtoms(addedList, nl);
+      }
+      else {
+        setReplacement(false);
+        loadAtoms(addedList, root.getElementsByTagName(ADDED_TAG));
+        loadAtoms(changedList, root.getElementsByTagName(CHANGED_TAG));
+        loadAtoms(removedList, root.getElementsByTagName(REMOVED_TAG));
+      }
     }
   }
 
@@ -129,6 +142,32 @@ public class UpdateDelta {
     return addedList;
   }
 
+  public void clearContents () {
+    addedList.clear();
+    changedList.clear();
+    removedList.clear();
+  }
+
+  public boolean isErrorReport () {
+    return errorReport != null;
+  }
+
+  public String getErrorReport () {
+    return errorReport;
+  }
+
+  public void setErrorReport (Throwable t) {
+    // capture the error as a String
+    StringWriter w = new StringWriter();
+    PrintWriter p = new PrintWriter(w);
+    t.printStackTrace(p);
+    p.flush();
+    errorReport = w.toString();
+
+    // clear out partial data
+    clearContents();
+  }
+
   public boolean isReplacement () {
     return replacementMode;
   }
@@ -155,7 +194,10 @@ public class UpdateDelta {
   public String toXml () {
     StringBuffer buf = new StringBuffer();
     appendHeader(buf);
-    if (isReplacement()) {
+    if (isErrorReport()) {
+      XmlUtils.appendTextElement(ERROR_TAG, errorReport, buf);
+    }
+    else if (isReplacement()) {
       sendBunch(addedList, REPLACEMENT_TAG, buf);
     }
     else {
@@ -194,8 +236,14 @@ public class UpdateDelta {
   private void summarize () {
     System.out.println("UpdateDelta:  (" + cougaarAgentId + ", " + queryId +
       ", " + sessionKey + ")");
+    System.out.println("  - is errorReport:  " + isErrorReport());
     System.out.println("  - is replacement:  " + isReplacement());
-    if (isReplacement()) {
+    if (isErrorReport()) {
+      System.out.println("<<");
+      System.out.println(errorReport);
+      System.out.println(">>");
+    }
+    else if (isReplacement()) {
       summarizeList("replacement", addedList);
     }
     else {
@@ -219,6 +267,7 @@ public class UpdateDelta {
   public static void main (String[] argv) {
     testUpdateDelta(getIncrementalDelta());
     testUpdateDelta(getReplacementDelta());
+    testUpdateDelta(getErrorDelta());
   }
 
   private static void testUpdateDelta (UpdateDelta ud) {
@@ -278,6 +327,12 @@ public class UpdateDelta {
     ud.getReplacementList().add(getRandomAtom());
     ud.getReplacementList().add(getRandomAtom());
 
+    return ud;
+  }
+
+  private static UpdateDelta getErrorDelta () {
+    UpdateDelta ud = new UpdateDelta("bla-agent", "bla-query", "bla-session");
+    ud.setErrorReport(new Exception("bla-error"));
     return ud;
   }
 }
