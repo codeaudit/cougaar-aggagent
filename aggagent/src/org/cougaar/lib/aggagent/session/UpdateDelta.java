@@ -12,9 +12,24 @@ import org.cougaar.lib.aggagent.query.ResultSetDataAtom;
 import org.cougaar.lib.aggagent.util.XmlUtils;
 
 /**
- *  An instance of this class us sent from a society cluster to an aggregation
- *  agent to indicate changes in a RemoteBlackboardSubscription collecting data
- *  on the society cluster.
+ *  The UpdateDelta class represents the communication strategy used for
+ *  transfering data between the society agents and an aggregation agent.
+ *  The typical usage of this class is as a container for ResultSetDataAtoms,
+ *  which are loaded into the UpdateDelta by a society agent.  The delta is
+ *  then transfered as XML to the aggregation agent, where it is reconstituted
+ *  and applied to the appropriate result set.
+ *  <br><br>
+ *  An alternate usage is as a container for more generic XmlTransferable
+ *  objects such as queries and result sets.  Though such an UpdateDelta cannot
+ *  (at this time) be reconstituted automatically, this strategy is used in
+ *  communications between UI clients and the aggregation agent.
+ *  <br><br>
+ *  An UpdateDelta can be used in either of two modes:  increment or
+ *  replacement.  The former reflects the familiar behavior of the
+ *  IncrementalSubscription class (with "added", "changed", and "removed"
+ *  lists), while the latter produces a new result set in its entirety.  The
+ *  mode may be set at any time without losing data, but a good practice is to
+ *  set the mode once before any content elements are added.
  */
 public class UpdateDelta {
   private static String AGENT_ID = "agent_id";
@@ -27,10 +42,13 @@ public class UpdateDelta {
 
   public static String UPDATE_TAG = "update";
 
-  private List addedList = null;
-  private List changedList = null;
-  private List removedList = null;
-  private List replacementList = null;
+  // By default, replacementMode is set to true.  The addedList also serves as
+  // the replacementList, and hence should exist in either mode.  Both
+  // changedList and removedList are used only when replacementMode is false.
+  private boolean replacementMode = true;
+  private List addedList = new LinkedList();
+  private List changedList = new LinkedList();
+  private List removedList = new LinkedList();
 
   private String cougaarAgentId = null;
   private String queryId = null;
@@ -64,7 +82,7 @@ public class UpdateDelta {
     NodeList nl = root.getElementsByTagName(REPLACEMENT_TAG);
     if (nl.getLength() > 0) {
       setReplacement(true);
-      loadAtoms(replacementList, nl);
+      loadAtoms(addedList, nl);
     }
     else {
       setReplacement(false);
@@ -108,11 +126,11 @@ public class UpdateDelta {
   }
 
   public List getReplacementList () {
-    return replacementList;
+    return addedList;
   }
 
   public boolean isReplacement () {
-    return replacementList != null;
+    return replacementMode;
   }
 
   /**
@@ -122,30 +140,23 @@ public class UpdateDelta {
    *  false, the UpdateDelta contains a single list which should be interpreted
    *  as a replacement for all previously collected data elements.  This
    *  distinction is only meaningful for persistent queries.
-   *  <br><br>
-   *  <b>Note:  this method must be called on an UpdateDelta instance before
-   *  attempting to add content to it.</b>
    */
   public void setReplacement (boolean b) {
-    if (b) {
-      addedList = null;
-      changedList = null;
-      removedList = null;
-      replacementList = new LinkedList();
-    }
-    else {
-      addedList = new LinkedList();
-      changedList = new LinkedList();
-      removedList = new LinkedList();
-      replacementList = null;
-    }
+    replacementMode = b;
   }
 
+  /**
+   *  Convert this UpdateDelta to an XML format.  Depending on whether this is
+   *  a replacement or not, this will, respectively, produce a list of elements
+   *  intended to replace an existing result set or a list of modifications to
+   *  be applied to an existing result set.  Data elements must implement the
+   *  XmlTransferable interface.
+   */
   public String toXml () {
     StringBuffer buf = new StringBuffer();
     appendHeader(buf);
     if (isReplacement()) {
-      sendBunch(replacementList, REPLACEMENT_TAG, buf);
+      sendBunch(addedList, REPLACEMENT_TAG, buf);
     }
     else {
       sendBunch(addedList, ADDED_TAG, buf);
@@ -185,7 +196,7 @@ public class UpdateDelta {
       ", " + sessionKey + ")");
     System.out.println("  - is replacement:  " + isReplacement());
     if (isReplacement()) {
-      summarizeList("replacement", replacementList);
+      summarizeList("replacement", addedList);
     }
     else {
       summarizeList("added", addedList);
