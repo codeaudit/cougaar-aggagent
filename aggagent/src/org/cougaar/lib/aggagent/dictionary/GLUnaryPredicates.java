@@ -76,7 +76,7 @@ public class GLUnaryPredicates
                           + "\t  }\n";
                     }
                  };
-         } catch (Exception ex ) {
+         } catch (RuntimeException ex ) {
              ex.printStackTrace();
          }
 
