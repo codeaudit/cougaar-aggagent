@@ -76,7 +76,7 @@ public class AggregationXMLInterface extends AggregationPSPInterface
     out.println("<queries>");
     for (Iterator i = qs.iterator(); i.hasNext();)
     {
-      out.println(((QueryResultAdapter)i.next()).toXML());
+      out.println(((QueryResultAdapter)i.next()).toWholeXml());
     }
     out.println("</queries>");
   }
@@ -93,7 +93,7 @@ public class AggregationXMLInterface extends AggregationPSPInterface
     {
       Alert a = (Alert)i.next();
       AlertDescriptor ad = new AlertDescriptor(a);
-      out.println(ad.toXML());
+      out.println(ad.toXml());
     }
     out.println("</alerts>");
   }
@@ -222,7 +222,7 @@ public class AggregationXMLInterface extends AggregationPSPInterface
     }
     else
     {
-      out.println(qra.getResultSet().toXML());
+      out.println(qra.getResultSet().toXml());
     }
   }
 
@@ -266,6 +266,13 @@ public class AggregationXMLInterface extends AggregationPSPInterface
     man.sendUpdate(sessionId, out);
   }
 
+  private static class TrivialXMLEncoder implements XMLEncoder {
+    public void encode (Object o, Collection c) {
+      c.add(o);
+    }
+  }
+  private static XMLEncoder sharedXMLEncoder = new TrivialXMLEncoder();
+
   /**
    * Used to create unary predicate and xml encoder based on incoming monitor
    * request from client.
@@ -299,15 +306,8 @@ public class AggregationXMLInterface extends AggregationPSPInterface
           unaryPredicate = new QuerySeeker(queries);
         }
 
-        // create xml encoder
-        xmlEncoder = new XMLEncoder() {
-            public void encode(Object o, PrintStream ps)
-            {
-              QueryResultAdapter qra = (QueryResultAdapter)o;
-              String additionalAttributes = "query_id=\"" + qra.getID() + "\"";
-              ps.print(qra.getResultSet().toXML(additionalAttributes));
-            }
-          };
+        // create xml encoder--well, sort of borrow it, actually...
+        xmlEncoder = sharedXMLEncoder;
       }
       else if (type.equals("alert"))
       {
@@ -330,15 +330,8 @@ public class AggregationXMLInterface extends AggregationPSPInterface
           unaryPredicate = new AlertSeeker(alerts);
         }
 
-        // create xml encoder
-        xmlEncoder = new XMLEncoder() {
-            public void encode(Object o, PrintStream ps)
-            {
-              Alert alert = (Alert)o;
-              AlertDescriptor ad = new AlertDescriptor(alert);
-              ps.print(ad.toXML());
-            }
-          };
+        // create xml encoder--well, sort of borrow it, actually...
+        xmlEncoder = sharedXMLEncoder;
       }
     }
   }
