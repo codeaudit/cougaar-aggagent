@@ -104,7 +104,7 @@ public class PSP_GenericReaderWriter_KeepAlive extends PSP_GenericReaderWriter
       GenericQuery queryObj
       ) throws Exception
   {
-      System.out.println("[PSP_GenericReaderWriter.KeepAlive._execute()] ENTER!!!");
+      // System.out.println("[PSP_GenericReaderWriter.KeepAlive._execute()] ENTER!!!");
 
       IncrementalSubscription subscription =
             (IncrementalSubscription)psc.getServerPluginSupport().getDirectDelegate().subscribe(queryObj.getPredicate()); //.subscribe(this, queryObj.getPredicate());
@@ -125,11 +125,11 @@ public class PSP_GenericReaderWriter_KeepAlive extends PSP_GenericReaderWriter
                            myRemoveContainer,
                            queryObj);
 
-             System.out.println("[PSP_GenericReaderWriter.KeepAlive._execute()] SYNCHEXECUTE!!!" +
-                                " myAddContainer.size=" + myAddContainer.size() +
-                                 " myChangeContainer.size=" + myChangeContainer.size() +
-                                 " myRemoveContainer.size=" + myRemoveContainer.size()
-                                );
+             // System.out.println("[PSP_GenericReaderWriter.KeepAlive._execute()] SYNCHEXECUTE!!!" +
+             //                    " myAddContainer.size=" + myAddContainer.size() +
+             //                     " myChangeContainer.size=" + myChangeContainer.size() +
+             //                     " myRemoveContainer.size=" + myRemoveContainer.size()
+             //                    );
             // remove all objects - they have been handled
              myAddContainer.clear();
              myChangeContainer.clear();
@@ -137,7 +137,7 @@ public class PSP_GenericReaderWriter_KeepAlive extends PSP_GenericReaderWriter
 
              out.println(delimiter);
              out.flush();
-             System.out.println("[PSP_GenericReaderWriter.KeepAlive._execute()] FLUSH!!!");
+             // System.out.println("[PSP_GenericReaderWriter.KeepAlive._execute()] FLUSH!!!");
          }
          waitUntilNextItem();  // => waits if nothing to process...
          //container.add(obj);

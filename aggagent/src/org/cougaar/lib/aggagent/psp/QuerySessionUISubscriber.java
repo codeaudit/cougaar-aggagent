@@ -38,8 +38,8 @@ public class QuerySessionUISubscriber implements UISubscriber
   // updates this QuerySession
   //
   public void subscriptionChanged(Subscription subscription) {
-      System.out.println("[QuerySessionUISubscriber] query_session=" + myQuerySessionID
-                          + " {.subscriptionChanged()} called");
+      // System.out.println("[QuerySessionUISubscriber] query_session=" + myQuerySessionID
+      //                     + " {.subscriptionChanged()} called");
       IncrementalSubscription isubscribe = (IncrementalSubscription)subscription;
 
       // ADD --
@@ -85,8 +85,8 @@ public class QuerySessionUISubscriber implements UISubscriber
   //    Updates are with respect to last time this method was called.
   //
   public ArrayList grabAddUpdates(List updates){
-     System.out.println("[QuerySessionUISubscriber] query_session=" + myQuerySessionID
-                        + " {.grabAddUpdates()} called, size=" + myIncomingAddItems.size());
+     // System.out.println("[QuerySessionUISubscriber] query_session=" + myQuerySessionID
+     //                    + " {.grabAddUpdates()} called, size=" + myIncomingAddItems.size());
       ArrayList old =null;
       synchronized( myIncomingAddItems ){
           old= myIncomingAddItems;
@@ -101,8 +101,8 @@ public class QuerySessionUISubscriber implements UISubscriber
   //    Updates are with respect to last time this method was called.
   //
   public ArrayList grabChangeUpdates(List updates){
-     System.out.println("[QuerySessionUISubscriber] query_session=" + myQuerySessionID
-                        + " {.grabChangeUpdates()} called, size=" + myIncomingChangeItems.size());
+     // System.out.println("[QuerySessionUISubscriber] query_session=" + myQuerySessionID
+     //                    + " {.grabChangeUpdates()} called, size=" + myIncomingChangeItems.size());
       ArrayList old =null;
       synchronized( myIncomingChangeItems ){
           old= myIncomingChangeItems;
@@ -116,8 +116,8 @@ public class QuerySessionUISubscriber implements UISubscriber
   //    Updates are with respect to last time this method was called.
   //
   public ArrayList grabRemoveUpdates(List updates){
-     System.out.println("[QuerySessionUISubscriber] query_session=" + myQuerySessionID
-                        + " {.grabRemoveUpdates()} called, size=" + myIncomingRemoveItems.size());
+     // System.out.println("[QuerySessionUISubscriber] query_session=" + myQuerySessionID
+     //                    + " {.grabRemoveUpdates()} called, size=" + myIncomingRemoveItems.size());
       ArrayList old =null;
       synchronized( myIncomingRemoveItems ){
           old= myIncomingRemoveItems;

@@ -197,7 +197,7 @@ public class PSP_GenericReaderWriter extends PSP_BaseAdapter implements PlanServ
      String qsession_id=null;
      if( v != null ){
            qsession_id =(String)v.get(0);
-           System.out.println("QUERYSESSION=" + qsession_id);
+           // System.out.println("QUERYSESSION=" + qsession_id);
       }
       if( qsession_id != null ){
             //
@@ -288,7 +288,7 @@ public class PSP_GenericReaderWriter extends PSP_BaseAdapter implements PlanServ
 
            en = subscription.getRemovedList();
            while( en.hasMoreElements() ) {
-               System.out.println("RECEIVED REMOVE ITEM");
+               // System.out.println("RECEIVED REMOVE ITEM");
                Thread.dumpStack();
                remove_container.add(en.nextElement());
            }
@@ -325,10 +325,10 @@ public class PSP_GenericReaderWriter extends PSP_BaseAdapter implements PlanServ
       boolean tellME =
          (boolean)query_parameters.existsParameter("TELLME");
 
-      System.out.println("[PSP_GenericReaderWriter] +++> start execution @"
-                         + psc.getServerPluginSupport().getClusterIDAsString()
-                         + " useHTML=" + useHTML
-                         );
+      //System.out.println("[PSP_GenericReaderWriter] +++> start execution @"
+      //                   + psc.getServerPluginSupport().getClusterIDAsString()
+      //                   + " useHTML=" + useHTML
+      //                   );
 
 
       if(tellME ){
@@ -349,12 +349,12 @@ public class PSP_GenericReaderWriter extends PSP_BaseAdapter implements PlanServ
           }
           else printOut = out;
 
-          System.out.println("[PSP_GenericReaderWriter] using GenericQuery instance="
-                             + queryObj
-                             + " add_container.size=" + add_container.size()
-                             + " change_container.size=" + change_container.size()
-                             + " remove_container.size=" + remove_container.size()
-                             );
+          // System.out.println("[PSP_GenericReaderWriter] using GenericQuery instance="
+          //                    + queryObj
+          //                    + " add_container.size=" + add_container.size()
+          //                    + " change_container.size=" + change_container.size()
+          //                    + " remove_container.size=" + remove_container.size()
+          //                   );
 
           //Subscription subscription = psc.getServerPluginSupport().subscribe(this, queryObj.getPredicate());
           //Collection container = ((CollectionSubscription)subscription).getCollection();
@@ -395,7 +395,7 @@ public class PSP_GenericReaderWriter extends PSP_BaseAdapter implements PlanServ
          }
       }
       out.flush();
-      System.out.println("[PSP_GenericReaderWriter] <+++ leave execution @" + psc.getServerPluginSupport().getClusterIDAsString() );
+      // System.out.println("[PSP_GenericReaderWriter] <+++ leave execution @" + psc.getServerPluginSupport().getClusterIDAsString() );
   }
 
 
