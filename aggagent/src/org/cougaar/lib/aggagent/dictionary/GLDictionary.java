@@ -99,6 +99,13 @@ public class GLDictionary extends DictionaryBase
       private Map myPredicateEntries =  Collections.synchronizedMap( new HashMap() );
       private GLPrimitives myGLPrimitives = new GLPrimitives();
 
+      //
+      // Modes for searching GenericLogic units.  Right now only Query mode
+      // supported.   Later add Update mode.
+      //
+      public final static int MATCH_MODE_QUERY = 1;
+
+
       
       /////////////////////////////////////////////////////////////////////////////
       public int getNumGLEntries() {
@@ -153,18 +160,16 @@ public class GLDictionary extends DictionaryBase
              ex.printStackTrace();
          }
       }
+      //
+      // this buffer is used in default_load_GQXML()
+      // but
+      // set and deleted in parseXMLConfigFile()
+      //
+      private char[]  temp_loader_char_buf = null;
 
       /**
-
-           // GLPrimitives.GLQ_KEY_QUERY_WILDCARD => always match in Query Mode
-           default_load_GQXML(GLPrimitives.GLQ_KEY_QUERY_SIMPLE_ALL,
-                               "../../gldictionary_entries/all.plan.xsl",
-                               GLUnaryPredicates.getInstanceOfPredicate("java.lang.Object"),
-                               "mil.darpa.log.alpine.ui.psp.xmlservice.GenericQueryXML");
-      **/
-
-
-      /**
+        * Called after parsing XML config file (glprimitives)
+        *
         * @param klass : klass name to instantiate Entry
         **/
       private void default_load_GQXML(Object key, String xsl_file_path,
@@ -184,12 +189,11 @@ public class GLDictionary extends DictionaryBase
                      System.out.println("XSL FILE ATTEMPTED READ:" + xslf.getAbsolutePath() );
                      FileReader fr = new FileReader(xslf);
                      StringBuffer sbuf  = new StringBuffer();
-                     char buf[] = new char[256];
                      int sz=0;
-                     while((sz=fr.read(buf)) > -1 ){
-                         sbuf.append(buf,0,sz);
+                     while((sz=fr.read(temp_loader_char_buf)) > -1 ){
+                         sbuf.append(temp_loader_char_buf,0,sz);
                      }
-                     this.addXSL(key, sbuf);
+                     this.addXSL(key, new StringBuffer(new String(sbuf)));
                  }
 
                   ///////////////////////////////////////////////////////////
@@ -201,19 +205,27 @@ public class GLDictionary extends DictionaryBase
                  ////////////////////////////////////////////////////////////
                  // ADD ENTRY TO DICTIONARY: GenericQuery instance
                  ////////////////////////////////////////////////////////////
+
+                 //
+                 // Create and Load the Params Map - which gets assigned to GenericQuery instance
+                 //
                  ArrayList keys = new ArrayList();
                  keys.add(key);
                  Map params = new HashMap();
                  params.put( "XSL", this.getXSL(key) );
+                 params.put( "XSL_FILE_NAME(if_available)", xsl_file_path);   // INFORMATION PASSED ALONG FOR DIAGNOSTICS
                  params.put( "PREDICATE", this.getPredicate(key));
                  params.put( "SAX", sax_class_name);
 
+                 //
+                 // Create the instance of GenericQuery, initialize it.
+                 //
                  Class klass = Class.forName(klassname);
                  GenericQuery queryObj = (GenericQuery)klass.newInstance();
                  queryObj.init(key, params);
 
                  // Right now append in both cases --
-                 // we allow this fiction as it forces to be explicit
+                 // we allow this fiction (APPEND) as it forces to be explicit
                  // at higher levels which GLs must be at end...
                  //
                  this.addGenericLogic( queryObj, keys, params );
@@ -251,7 +263,7 @@ public class GLDictionary extends DictionaryBase
                 int count=0;
                 while( it.hasNext() ){
                     String k = (String)it.next();
-                    System.out.println("lookup:  k=" + k + ", name=" + name);
+                    System.out.println("[GLDictionary]  lookupXSLByString(), lookup: k=" + k + ", name=" + name);
                     if(k.equals(name) )return (StringBuffer)(myXSLEntries.entrySet().toArray()[count]);
                     count  ++;
                 }
@@ -268,17 +280,16 @@ public class GLDictionary extends DictionaryBase
       }
 
 
-      public final static int MATCH_MODE_QUERY = 1;
-
       /**
        * @param urlinfo :
        * Returns first GenericLogic (Query or Update) which matches
        * URL request.
-       * @param mode :   MATCH_MODE_QUERY = Query
+       *
+       * @param mode :   if mode == MATCH_MODE_QUERY =>> 'Query' mode
        **/
       public GenericLogic match( HttpInput urlinfo,  int mode)
       {
-           //System.out.print(">>>>>>>>>>>...ENTER MATCH");
+           //System.out.print(">>>>>>>>>>>...ENTER MATCHED!");
            Map inputs = parseURLArgs( urlinfo );
            Object [] copy = myGenericLogicUnits.toArray();
 
@@ -322,7 +333,7 @@ public class GLDictionary extends DictionaryBase
               Iterator it = myGenericLogicUnits.iterator();
               while(it.hasNext())
               {
-                  str += "<TR><TD>";
+                  str += "<TR><TD><HR>";
                   GLEntry ge = (GLEntry)it.next();
                   List keys = ge.keywords;
                   Iterator itk = keys.iterator();
@@ -350,6 +361,7 @@ public class GLDictionary extends DictionaryBase
                        str+= "<PRE><BLOCKQUOTE>" + w.getAnnotation()  + "</PRE></BLOCKQUOTE>";
                   }
                   str += "</FONT></P>";
+                  str += "<P>Klass=" + ge.entry.getClass().getName() + "</P>" ;
                   str += "</TD></TR>";
              }
              str += "</TABLE>";
@@ -374,10 +386,13 @@ public class GLDictionary extends DictionaryBase
    //  </xml>
 
    private void parseXMLConfigFile( Document doc, String gl_primitive_type ){
+   
+        // Allocate a temp buffer -
+        temp_loader_char_buf = new char[512];
 
         NodeList nl = doc.getElementsByTagName(gl_primitive_type);
-        System.out.println("glprim_type=" + gl_primitive_type );
-        System.out.println("Number of Source Entries=" + nl.getLength() );
+        System.out.println("[GLDictionary] GL primitive type to be loaded=" + gl_primitive_type
+                           + ", number of XML Entries=" + nl.getLength() );
         int size = nl.getLength();
         for(int i = 0; i< size; i++)
         {
@@ -391,15 +406,26 @@ public class GLDictionary extends DictionaryBase
             String domv   = null;
             String twv   = null;
 
+            //---------------------------------------------------------
             // XSL argument can be NULL!
             // Case:  where user provides non-xsl private GenericLogic
+            //---------------------------------------------------------
 
             if( prednode != null ) {
-                System.out.println("prednode:  haschildren="  + prednode.hasChildNodes()
-                                     + " sibling=" + prednode.getNextSibling().getNodeName());
                 instv = XMLParseCommon.getAttributeOrChildNodeValue("instanceof", prednode);
                 domv = XMLParseCommon.getAttributeOrChildNodeValue("domnode", prednode);
                 twv = XMLParseCommon.getAttributeOrChildNodeValue("taskwverb", prednode);
+
+                // -----------------------------------------------------------------------
+                // If Predicate node IS defined but no children nodes defined:
+                //  <predicate />
+                // Then DEFAULT assign UnaryPredicate which matches on everything!
+                //------------------------------------------------------------------------
+                if( (instv==null) && (domv==null) && (twv==null)) {
+                       instv = "java.lang.Object";
+                }
+                System.out.println("[GLDictionary] Predicate defined:  constraints={instv="   +
+                                   instv + ", domv=" + domv + ", twv=" + twv + "}");
             } else {
                  System.err.println("[GLDictionary] parseXMLConfigFile error:  no predicate element found in XML");
                  System.err.println("\tkeyname=" + keyname + ",\n\tadapter=" + adapter + "\n\txsl="+xsl);
@@ -445,6 +471,8 @@ public class GLDictionary extends DictionaryBase
                               adapter);
 
         }
+        // GC the temp buffer -
+        temp_loader_char_buf = null;
     }
 
 }

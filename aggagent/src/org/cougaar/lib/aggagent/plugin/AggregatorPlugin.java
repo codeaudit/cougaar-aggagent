@@ -108,7 +108,7 @@ public class AggregatorPlugin extends SimplifiedPlugIn
            FDSProxy fds = new FDSProxy();
            NameService myNameServiceProvider = new ProxyMapAdapter( fds );
            myConnectionManager = new ConnectionManager(
-                   new ConnectionLogger(),
+                   new ConnectionLogger("connxion" + this.getClusterIdentifier().cleanToString() + ".html"),
                    ConfigFileName,
                    myNameServiceProvider);
            myConnectionManager.connectAllAsynchronous();

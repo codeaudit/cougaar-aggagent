@@ -93,23 +93,32 @@ public class ConnectionManager
     private void parseXMLConfigFile( Document doc, NameService myNameServiceProvider)
     {
         NodeList nl = doc.getElementsByTagName("source");
-
-        System.out.println("Number of Source Entries=" + nl.getLength() );
         int size = nl.getLength();
+        int num_ignored=0;
         for(int i = 0; i< size; i++)
         {
             Node n = (Node)nl.item(i);
 
             String ignored = XMLParseCommon.getAttributeOrChildNodeValue("ignore", n);
             if( ignored == null) ignored = "";
-            
+
             if( false==(ignored.toLowerCase().indexOf("true")> -1) )
             {
                  // Only process this Node if not turned off...
                  // ie <source ... ignore="true">
                  parseXMLConfigNode(n, myNameServiceProvider);
+            } else {
+                 num_ignored++;
             }
         }
+        String msg = "[ConnectionManager] parseXMLConfigFile()={Number_of_Source_Entries="
+                            + nl.getLength()
+                            + ", Number_of_Ignored_Entries=" + num_ignored
+                            + "}";
+        System.out.println(msg);
+        myConnectionLogger.log("<Font color=red>"
+                                 + msg
+                                 + "</font></UL>");
     }
     private void parseXMLConfigNode(Node n, NameService myNameServiceProvider)
     {
@@ -125,10 +134,12 @@ public class ConnectionManager
                } catch( java.net.MalformedURLException ex ){
                   ex.printStackTrace();
                }
+            } else {
+                  System.err.println("[ConnectionManager] base_url=null, lookupURL(name=" + name +")");
             }
 
             String pollInterval = XMLParseCommon.getAttributeOrChildNodeValue("pollInterval", n);
-            System.out.println("POLL INTERVAL = " + pollInterval);
+            //System.out.println("[ConnectionManager]   parseXMLConfigNode(), POLL INTERVAL=" + pollInterval);
             long poll_interval = -1;
             if( pollInterval != null) poll_interval = Long.valueOf(pollInterval).intValue();
 
@@ -152,16 +163,12 @@ public class ConnectionManager
                 } catch (Exception ex ) { ex.printStackTrace(); }
             }
 
-            String externalform = null;
+            String externalform = "null";
             if( url != null ) {
                  externalform = url.toExternalForm();
                  if( poll_interval >-1) this.addURLWithTimer(url,poll_interval);
                  else this.addURL(url);
-                 /**
-                 myConnectionLogger.log("<Font color=red>SOURCE from configuration file</font>: "
-                                 + name + ", url="
-                                 + externalform + pspquery);
-                 **/
+
                  //
                  // url is in case of where derived (no url element in config) is derived
                  // from pspquery
@@ -172,11 +179,11 @@ public class ConnectionManager
                                  + "], pspquery=" + pspquery
                                  + ", poll_interval=" + poll_interval);
             } else {
-                 myConnectionLogger.log("<Font color=red>SOURCE FAILED TO LOAD from configuration file </font>."
+                 myConnectionLogger.log("<Font color=red>Failed to load URL from configuration file </font>."
                                  + "<FONT SIZE=-2 COLOR=BLUE><UL><LI>name=" + name + "<LI> url="
                                  + externalform
                                  + "</font></UL>");
-                 System.out.println("\t[parseXMLConfigFile] Soruce failed to load: name=" + name + ", url="
+                 System.out.println("\t[parseXMLConfigFile] Failed to load URL from configuration file: name=" + name + ", url="
                                  + externalform + pspquery);
             }
     }
@@ -228,8 +235,6 @@ public class ConnectionManager
     }
 
     //
-    // @param : recycle=true, relaunch any dead connections
-    //                  NOTE, keep alive connecitons don't die.
     // @return : void
     public synchronized void  connectAllAsynchronous(){
 
@@ -238,7 +243,7 @@ public class ConnectionManager
          {
              List space_set = (List)urlSpaces.get(this);
              if( space_set == null ) {
-                 System.err.println("[ConnectionManger.connectAllAsynchronous()] NO URL SPACE found!");
+                 System.err.println("[ConnectionManger.connectAllAsynchronous()] NO URL SPACE found!!");
                  System.err.println("[ConnectionManger.connectAllAsynchronous()] Be sure THERE ARE ACTIVE URLS TO CONNECT");
                  myConnectionLogger.log(
                      "<Font color=red>NO ACTIVE URL SPACE found in ConnectionManager.connectAllAsynchronous().</font>"
@@ -320,7 +325,7 @@ public class ConnectionManager
 
         //NameService myNameServiceProvider = new ProxyMapAdapter( new FDSProxy() );
         // wont work without node
-
+        /**
         ConnectionLogger logger = new ConnectionLogger();
         ConnectionManager cm = new ConnectionManager(logger, "aggregator.configs.xml", null);
 
@@ -349,6 +354,7 @@ public class ConnectionManager
         }
 
         cm.flush();
+        **/
     }
 
     private synchronized void addURL(URLConnexionProbe u) {

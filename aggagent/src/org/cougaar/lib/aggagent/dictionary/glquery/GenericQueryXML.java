@@ -165,11 +165,10 @@ public class GenericQueryXML  implements GenericQuery
           XSLTInputSource xslis = null;
           StringBuffer sbuf_xsl = (StringBuffer)this.getParam(this.paramkey_XSL);
           if( sbuf_xsl != null) {
-               System.out.println("[GenericQueryXML] XSL script read, string length=" + sbuf_xsl.length());
+               System.out.println("[GenericQueryXML] getXSLFromParameter()= Creating XSL Source, sz:" + sbuf_xsl.length());
                xslis =  new XSLTInputSource(new StringReader(sbuf_xsl.toString()));
-          } else
-          {
-               System.out.println("[GenericQueryXML] XSL script read: null");
+          } else {
+               System.out.println("[GenericQueryXML] getXSLFromParameter()= NULL XSL script.");
           }
           return xslis;
      }
@@ -270,52 +269,7 @@ public class GenericQueryXML  implements GenericQuery
                        output = true;
                        processContainerXSL(myObjectProvider, myXSL, out, GenericLogic.collectionType_REMOVE );
                   }
-                 /**
-                 synchronized( myObjectProvider) {
-                     Object odoc= getDocument(myObjectProvider);
-                     if( odoc instanceof TXDocument) doc = (TXDocument)odoc;
-                     if( doc != null)
-                     {
-                         //Element ce = doc.createElement("Container");
-                         //ce.setAttribute("Event", "ADD");
-                         //doc.getFirstChild().appendChild(ce);
 
-                         NodeList children = doc.getFirstChild().getChildNodes();
-                         for(int i=0; i<children.getLength(); i++)
-                         {
-                            Node n= (Node)children.item(i);
-                            Element elem = doc.createElement("Subscription");
-                            elem.setAttribute("Event","ADD");
-                            n.appendChild(elem);
-                         }
-                     }
-                 }
-                 //
-                 // This is BAD.
-                 // TODO:  FIX THIS
-                 // converting TO STRING TO APPLY XSL is v. inefficient.
-                 // When COUGAAR XML parser version is updated, will go away.
-                 //
-                 if( (myXSL != null) && ( doc != null) )
-                 {
-                    StringWriter sw = new StringWriter();
-                    doc.print(sw);
-                    StringBuffer sb = sw.getBuffer();
-                    //System.err.println("returnVal, sb.toSTring()=" + sb.toString().substring(0,120));
-                    //System.err.println("returnVal, sbuf.toString()=" + sbuf.toString());
-                    StringReader sr = new StringReader(sb.toString() );
-                    applyXSL(sr,myXSL, out);
-
-                    // DEBUG
-                    //doc.print(new PrintWriter(System.out));
-                    //
-                 } else if( (doc != null)  ) {
-                     doc.print(new PrintWriter(out));
-                 }
-
-                 // send document to client
-                 //doc.print(new PrintWriter(out));
-                 **/
               } catch (Exception ex ){
                     ex.printStackTrace();
               }
@@ -653,11 +607,14 @@ public class GenericQueryXML  implements GenericQuery
                         new XSLTResultTarget(out));
           }
        } catch (org.xml.sax.SAXException ex ){
-           PrintWriter pw = new PrintWriter(System.out);
+           PrintWriter pw = new PrintWriter(System.err);
            pw.println("#####################################################");
-           System.err.println("XSL APPLICATION FAILED.  Exception follows.");
+           pw.println("XSL APPLICATION FAILED.  Exception follows.");
+           String filename = (String)this.getParam("XSL_FILE_NAME(if_available)");
+           pw.println("XSL File Source=" + filename);
            ex.printStackTrace(pw);
            pw.println("#####################################################");
+           pw.flush();
        }
   }
 

@@ -59,7 +59,6 @@ public class AggQueryOrgHierarchy extends CustomQueryBaseAdapter
            synchronized( matches) {
 
               Object [] objs = matches.toArray();
-
               for(int i=0; i< objs.length; i++)
               {
                    Object obj = objs[i];

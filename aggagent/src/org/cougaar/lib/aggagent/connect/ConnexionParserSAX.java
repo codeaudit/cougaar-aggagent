@@ -6,7 +6,6 @@ import java.io.PrintWriter;
 import java.util.Iterator;
 import java.io.IOException;
 
-
 import org.xml.sax.*;
 import org.xml.sax.helpers.*;
 import org.apache.xerces.parsers.SAXParser;
@@ -15,6 +14,13 @@ import org.xml.sax.InputSource;
 import org.cougaar.lib.aggagent.bsax.*;
 
 
+//
+// Don't use.  This is Illustration-ware only.
+// Illustrates pattern on how to use "content-handlers" to validate
+// input stream.  In this case, tried with SAX parser.  However,
+// This particular implementation doesn't work.  But you get the idea.
+// Try with your own stream content handler.
+//
 public class ConnexionParserSAX implements ConnexionParser
 {
     private BContentHandler myContentHandler = new BContentHandler_Stack();
@@ -22,10 +28,10 @@ public class ConnexionParserSAX implements ConnexionParser
 
     public ConnexionParserSAX() {
         try {
-                         // try to activate validation
-          mySaxParser.setFeature("http://xml.org/sax/features/validation", true);
+            // try to activate validation
+            mySaxParser.setFeature("http://xml.org/sax/features/validation", true);
         } catch (SAXException e) {
-          System.err.println("Cannot activate validation.");
+            System.err.println("Cannot activate validation.");
         }
         mySaxParser.setContentHandler(myContentHandler);
         mySaxParser.setErrorHandler(new BErrorHandler());

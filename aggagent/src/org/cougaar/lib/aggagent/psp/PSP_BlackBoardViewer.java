@@ -44,6 +44,7 @@ import org.cougaar.lib.aggagent.ldm.*;
 import org.cougaar.lib.aggagent.Configs;
 import org.cougaar.lib.aggagent.xml.XMLParseCommon;
 import org.cougaar.lib.aggagent.xml.HTMLize;
+import org.cougaar.lib.aggagent.connect.ConnectionLogger;
 
 /**
  * .<pre>
@@ -146,10 +147,13 @@ public class PSP_BlackBoardViewer extends PSP_BaseAdapter implements PlanService
        str += "<TABLE BORDER=\"0\" WIDTH=\"300\" CELLPADDING=\"2\" CELLSPACING=\"0\"  ALIGN=\"Left\"  VALIGN=\"TOP\">";
 	     str += "<TR>";
        str += "<TD BGCOLOR=BLUE HEIGHT=\"22\"><FONT FACE=\"Arial\" SIZE=\"2\" COLOR=\"#FFFFFF\">";
-       str += "<B>Agg Agent Blackboard</B></FONT>";
+       str += "<B>AggAgent Blackboard</B></FONT>";
        str += "</TD></TR>";
        str += "<TR><TD BGCOLOR=\"#e9e9e9\"><FONT FACE=\"Arial\"SIZE=\"2\">";
-             str += "<A href=\"?FILE?DOCUMENT=connxion.html\"> Connection Manager logs</A></TD></TR>";
+       //str += "<A href=\"?FILE?DOCUMENT=connxion.html\"> Connection Manager logs</A></TD></TR>";
+       str += "<A href=\"?FILE?DOCUMENT=" + ConnectionLogger.MY_LOG_FILE
+                 + "\"> Connection Mgr Log(<FONT SIZE=-2>" + ConnectionLogger.MY_LOG_FILE + "</FONT>)"
+                 + "</A></TD></TR>";
        str += "<TR><TD BGCOLOR=\"#e9e9e9\"><FONT FACE=\"Arial\"SIZE=\"2\">";
              str += "<A href= \"BLACKBOARD.PSP?MODE=RAW_BLACKBOARD\">Blackboard</A></TD></TR>";
        str += "</TABLE>";
@@ -229,8 +233,8 @@ public class PSP_BlackBoardViewer extends PSP_BaseAdapter implements PlanService
         });
     Collection container = ((CollectionSubscription)subscription).getCollection();
 
-    synchronized( container ) {
-
+    synchronized( container )
+    {
        int id = Integer.parseInt(ITEM_ID);
        out.println("<TR><TD><FONT color=red >ITEM_ID=" + id + "</font></TD></TR>");
 
@@ -266,9 +270,15 @@ public class PSP_BlackBoardViewer extends PSP_BaseAdapter implements PlanService
              {
                  HTMLPlanObject p = (HTMLPlanObject)obj;
                  StringBuffer sb = p.getDocument();
+                 //
+                 // For common look and feel -- output HTML using COMMON (w/XML) renderer.
+                 // TODO: customize renderer to display more HTML data -- currently
+                 // pretty sparse.
+                 //
                  StringBuffer html = HTMLize.layoutXML(sb, new HashMap(), true);
                  out.println("<TR><TD> <FONT color=red >ALL VALUES=</FONT><font SIZE=-2><blockquote><pre>"
-                                 + html.toString() + "</pre></blockquote></FONT></TD></TR>");
+                                 + html.toString()
+                                 + "</pre></blockquote></FONT></TD></TR>");
              }
              break;
           }

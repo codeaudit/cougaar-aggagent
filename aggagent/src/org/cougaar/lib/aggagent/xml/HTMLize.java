@@ -21,7 +21,6 @@ import org.w3c.dom.*;
 
 public class HTMLize
 {
-
      /**
        * Takes XML, Returns HTML representation
        **/
