@@ -48,7 +48,7 @@ System.out.println("AggKeepAlivePSP: execute");
       while (!out.checkError())
       {
         System.out.println("---------Keep Alive Session is Alive---------");
-        Thread.sleep(5000);
+        Thread.sleep(10000);
       }
     }
     catch (Exception done_in) {
@@ -95,21 +95,28 @@ System.out.println("AggKeepAlivePSP: execute");
     }
   }
 
+  // Without an ack message, a keep alive connection over which no updates are
+  // sent will never die (even without a client on the other end).
+  public static
+    String ackMessage = "I M   A L I V E ,   A L L   I S   W E L L";
+  private static String terminatedAckMessage = ackMessage + '\f';
+
   /**
-   *  We don't need no stinkin' ACK message.
+   *  Provide ack message to periodically send to keep alive client.
    */
   public String getConnectionACKMessage () {
-    return null;
+    return terminatedAckMessage;
   }
 
   /**
-   *  And we don't want your stinkin' ACK message, either.
+   *  This is never called.
    */
   public void setConnectionACKMessage (String s) {
+    System.out.println("ACK set to " + s);
+    ackMessage = s;
+    terminatedAckMessage = ackMessage + '\f';
   }
 
-  // More PSP methods that are basically useless, and are not implemented in
-  // any meaningful sense.
   public String getDTD () { return null; }
   public boolean returnsHTML () { return false; }
   public boolean returnsXML () { return false; }

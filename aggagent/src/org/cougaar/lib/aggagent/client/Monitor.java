@@ -11,6 +11,7 @@ import java.util.TimerTask;
 
 import org.w3c.dom.*;
 
+import org.cougaar.lib.aggagent.psp.AggregationKeepAlivePSP;
 import org.cougaar.lib.aggagent.query.UpdateListener;
 import org.cougaar.lib.aggagent.query.UpdateObservable;
 import org.cougaar.lib.aggagent.util.XmlUtils;
@@ -71,6 +72,7 @@ import org.cougaar.lib.aggagent.util.XmlUtils;
     private Runnable keepAliveTask = new Runnable() {
         public void run()
         {
+          InputStream i = null;
           String monitorRequest = createMonitorRequest();
           if (monitorRequest == null)
             return;
@@ -87,7 +89,7 @@ import org.cougaar.lib.aggagent.util.XmlUtils;
             servicePrint.println(monitorRequest);
 
             // get updates
-            InputStream i = conn.getInputStream();
+            i = conn.getInputStream();
             Thread thisThread = Thread.currentThread();
             int formFeed = (int)'\f';
             while (keepAliveThread == thisThread)
@@ -101,10 +103,7 @@ import org.cougaar.lib.aggagent.util.XmlUtils;
 
               if (c == 1)
               {
-                System.out.println("Error reading from keep alive.\n" +
-                                   "Exiting monitor with request:\n" +
-                                   monitorRequest);
-                break;
+                throw new Exception();
               }
 
               if (c == formFeed)
@@ -114,16 +113,33 @@ import org.cougaar.lib.aggagent.util.XmlUtils;
                 servicePrint.println("Got it.");
                 servicePrint.flush();
 
-                Element root = XmlUtils.parse(updateMessage.toString());
-                updateMonitoredObjects(root);
+                if (!AggregationKeepAlivePSP.ackMessage.equals(
+                     updateMessage.toString()))
+                {
+                  Element root = XmlUtils.parse(updateMessage.toString());
+                  updateMonitoredObjects(root);
+                }
               }
             }
+
+            // close input stream to shutdown keep alive psp connection.
+            i.close();
 
             // this message does nothing.  See comment above.
             servicePrint.println("CANCEL SESSION");
             servicePrint.flush();
           }
           catch (Exception e) {
+            System.out.println("Error reading from keep alive.\n" +
+                               "Exiting monitor with request:\n" +
+                               monitorRequest);
+
+            // close input stream to shutdown keep alive psp connection.
+            if (i != null)
+              try {
+                i.close();
+              } catch (Exception e2) {/* I tried */}
+
             e.printStackTrace();
           }
         }
