@@ -62,6 +62,8 @@ public class GenericQueryXML  implements GenericQuery
      protected Object myKey= null;
      protected Map preConfiguredParameters = null;
 
+     private String delimiter = new String("&&&");
+
      //
      // if SAX parser is needed (IE. SAX ContentHandler provided for transform,
      // save handle to Parser...
@@ -225,18 +227,19 @@ public class GenericQueryXML  implements GenericQuery
                   myXSL=getXSLFromParameter();
 
                   boolean output = false;
-                  String delimiter = new String("&&&");
 
                   XMLObjectProvider myObjectProvider =
                       (XMLObjectProvider)myObjectProviderMap.get(GenericLogic.collectionType_ADD);
                   if( myObjectProvider.size() > 0)
                   {
                       System.out.println("[GenericQueryXML.returnVal] XSL (collectionType_ADD)");
+                      /**
                       if( output == true ) {
                                          out.write(delimiter.getBytes());
                                          out.flush();
                        }
                       output = true;
+                      **/
                       processContainerXSL(
                                myObjectProvider, myXSL, out, GenericLogic.collectionType_ADD );
 
@@ -248,11 +251,13 @@ public class GenericQueryXML  implements GenericQuery
                   if( myObjectProvider.size() > 0 )
                   {
                       System.out.println("[GenericQueryXML.returnVal] XSL (collectionType_CHANGE)");
+                      /**
                       if( output == true ) {
                                          out.write(delimiter.getBytes());
                                          out.flush();
                        }
                        output = true;
+                       **/
                        processContainerXSL(myObjectProvider, myXSL, out, GenericLogic.collectionType_CHANGE );
                   }
                   myXSL=getXSLFromParameter();
@@ -262,11 +267,13 @@ public class GenericQueryXML  implements GenericQuery
                   if( myObjectProvider.size() > 0 )
                   {
                        System.out.println("[GenericQueryXML.returnVal] XSL (collectionType_REMOVE)");
+                       /**
                        if( output == true ) {
                                          out.write(delimiter.getBytes());
                                          out.flush();
                        }
                        output = true;
+                       **/
                        processContainerXSL(myObjectProvider, myXSL, out, GenericLogic.collectionType_REMOVE );
                   }
 
@@ -339,49 +346,6 @@ public class GenericQueryXML  implements GenericQuery
                                    GenericLogic.collectionType_REMOVE );
               }
 
-              /**
-              TXDocument doc = null;
-              synchronized( myObjectProvider)
-              {
-                     Object odoc= getDocument(myObjectProvider);
-                     if( odoc instanceof TXDocument) doc = (TXDocument)odoc;
-              }
-              if( ( doc != null) )
-              {
-                    StringWriter sw = new StringWriter();
-                    try{
-                        doc.print(sw);
-                    } catch( IOException ex ) {
-                        ex.printStackTrace();
-                    }
-                    StringBuffer sb = sw.getBuffer();
-                    StringReader str_reader = new StringReader(sb.toString() );
-
-                    try {
-                        InputSource in = new InputSource(str_reader);
-                        mySaxParser.parse(in);
-                    } catch (IOException e) {
-                        System.err.println("I/O exception reading XML document. " + e);
-                        e.printStackTrace();
-                    } catch (SAXException e) {
-                        System.err.println("SAX exception parsing document. " + e);
-                        e.printStackTrace();
-                    }
-                   //-----------------------------------------------------------------
-                   // Traverse and "write" the tree
-                   // Start from the root object
-                   //-----------------------------------------------------------------
-                   PrintWriter pw = new PrintWriter(out);
-                   pw.println("<?xml version=\"1.0\"?>");
-                   Iterator it3 = myContentHandler.getRootElements().iterator();
-                   while(it3.hasNext()){
-                      BElement be = (BElement)it3.next();
-                      be.print(pw);
-                   }
-                   pw.flush();
-                   System.out.println("[GenericQueryXML] pw.toString()=" + pw.toString() );
-              }
-              **/
           }
           // ##############################
           // FLUSH! object cache after we've consumed data

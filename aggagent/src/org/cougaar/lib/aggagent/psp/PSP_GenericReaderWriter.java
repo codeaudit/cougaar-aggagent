@@ -78,6 +78,7 @@ public class PSP_GenericReaderWriter extends PSP_BaseAdapter implements PlanServ
 {
   // QUERY SESSION IMPLEMENTATION DEFS
   private HashMap myQuerySessions = new HashMap();
+  public static String delimiter = "&&&";
 
   // Enumeration of Subscription Events
   public final int QUERY_SESSION_ADD_UPDATES    =1;
@@ -358,14 +359,26 @@ public class PSP_GenericReaderWriter extends PSP_BaseAdapter implements PlanServ
           //Subscription subscription = psc.getServerPluginSupport().subscribe(this, queryObj.getPredicate());
           //Collection container = ((CollectionSubscription)subscription).getCollection();
 
-          queryObj.execute(add_container, GenericLogic.collectionType_ADD);
-          queryObj.returnVal(printOut );
+          if( add_container.size() > 0)
+          {
+              queryObj.execute(add_container, GenericLogic.collectionType_ADD);
+              queryObj.returnVal(printOut );
+              printOut.print(delimiter);
+          }
 
-          queryObj.execute(change_container, GenericLogic.collectionType_CHANGE);
-          queryObj.returnVal(printOut );
+          if( change_container.size() > 0)
+          {
+              queryObj.execute(change_container, GenericLogic.collectionType_CHANGE);
+              queryObj.returnVal(printOut );
+              printOut.print(delimiter);
+          }
 
-          queryObj.execute(remove_container, GenericLogic.collectionType_REMOVE);
-          queryObj.returnVal(printOut );
+          if( remove_container.size() > 0)
+          {
+              queryObj.execute(remove_container, GenericLogic.collectionType_REMOVE);
+              queryObj.returnVal(printOut );
+              printOut.print(delimiter);
+          }
 
           if(useHTML )
           {
