@@ -4,7 +4,8 @@ package org.cougaar.lib.aggagent.plugin;
 import java.util.*;
 
 import org.cougaar.core.blackboard.IncrementalSubscription;
-import org.cougaar.core.plugin.SimplePlugIn;
+import org.cougaar.core.plugin.ComponentPlugin;
+import org.cougaar.core.service.BlackboardService;
 import org.cougaar.util.UnaryPredicate;
 
 import org.cougaar.lib.aggagent.query.*;
@@ -16,7 +17,7 @@ import org.cougaar.lib.aggagent.query.*;
  *  <br><br>
  *  Currently, notices are not implemented, so none are actually sent.
  */
-public class AlertPlugIn extends SimplePlugIn {
+public class AlertPlugIn extends ComponentPlugin {
   private static class ClassInstanceSeeker implements UnaryPredicate {
     private Class type = null;
 
@@ -37,14 +38,15 @@ public class AlertPlugIn extends SimplePlugIn {
   private IncrementalSubscription alerts = null;
 
   public void setupSubscriptions () {
-    resultSets = (IncrementalSubscription) subscribe(resultSetSeeker);
-    alerts = (IncrementalSubscription) subscribe(alertSeeker);
+    BlackboardService blackboard = getBlackboardService();
+    resultSets =(IncrementalSubscription)blackboard.subscribe(resultSetSeeker);
+    alerts = (IncrementalSubscription) blackboard.subscribe(alertSeeker);
   }
 
   public void execute () {
     if (resultSets.hasChanged()) {
       // update alerts associated with changed result set(s)
-      for (Enumeration e = resultSets.getChangedList(); e.hasMoreElements(); ) {
+      for (Enumeration e = resultSets.getChangedList(); e.hasMoreElements(); ){
         updateAlerts(((QueryResultAdapter) e.nextElement()).getAlerts());
       }
     }
@@ -61,7 +63,7 @@ public class AlertPlugIn extends SimplePlugIn {
     {
       Alert a = (Alert) alerts.next();
       if (a.update())
-        publishChange(a);
+        getBlackboardService().publishChange(a);
     }
   }
 }
