@@ -7,8 +7,14 @@ import java.util.List;
 
 import org.w3c.dom.*;
 
+import org.cougaar.lib.aggagent.session.XmlTransferable;
 import org.cougaar.lib.aggagent.util.XmlUtils;
 
+/**
+ *  An instance of this class us sent from a society cluster to an aggregation
+ *  agent to indicate changes in a RemoteBlackboardSubscription collecting data
+ *  on the society cluster.
+ */
 public class UpdateDelta {
   private static String AGENT_ID = "agent_id";
   private static String QUERY_ID = "query_id";
@@ -29,12 +35,27 @@ public class UpdateDelta {
   private String queryId = null;
   private String sessionKey = null;
 
+  /**
+   *  Create a new UpdateDelta, presumably for transport to a remote location.
+   *  The three String identifiers indicate which COUGAAR agent, query, and
+   *  local session are associated with this UpdateDelta.  Content must be
+   *  added before this delta will be useful.
+   *  <br><br>
+   *  <b>Note:  The setReplacement() method must be called before content can
+   *  safely be added.</b>  The boolean argument tells whether to create added,
+   *  changed, and removed lists, or simply a replacement list.
+   */
   public UpdateDelta (String agent, String query, String key) {
     cougaarAgentId = agent;
     queryId = query;
     sessionKey = key;
   }
 
+  /**
+   *  Create an UpdateDelta from XML representation.  Presumably, this is
+   *  received from a remote location, complete with identifiers and content
+   *  data elements.
+   */
   public UpdateDelta (Element root) {
     this(root.getAttribute(AGENT_ID), root.getAttribute(QUERY_ID),
       root.getAttribute(SESSION_ID));
@@ -63,6 +84,14 @@ public class UpdateDelta {
       l.add(new ResultSetDataAtom((Element) atoms.item(i)));
   }
 
+  public String getAgentId () {
+    return cougaarAgentId;
+  }
+
+  public String getQueryId () {
+    return queryId;
+  }
+
   public List getAddedList () {
     return addedList;
   }
@@ -83,6 +112,17 @@ public class UpdateDelta {
     return replacementList != null;
   }
 
+  /**
+   *  Set the "replacement mode" true or false.  If true, the UpdateDelta
+   *  contains three lists of data elements after the fashion of an
+   *  IncrementalSubscription; i.e., added, changed, and removed elements.  If
+   *  false, the UpdateDelta contains a single list which should be interpreted
+   *  as a replacement for all previously collected data elements.  This
+   *  distinction is only meaningful for persistent queries.
+   *  <br><br>
+   *  <b>Note:  this method must be called on an UpdateDelta instance before
+   *  attempting to add content to it.</b>
+   */
   public void setReplacement (boolean b) {
     if (b) {
       addedList = null;
@@ -109,7 +149,7 @@ public class UpdateDelta {
       sendBunch(changedList, CHANGED_TAG, buf);
       sendBunch(removedList, REMOVED_TAG, buf);
     }
-    appendTrailer(buf);
+    XmlUtils.appendCloseTag(UPDATE_TAG, buf);
 
     return buf.toString();
   }
@@ -117,40 +157,22 @@ public class UpdateDelta {
   private void appendHeader (StringBuffer buf) {
     buf.append("<");
     buf.append(UPDATE_TAG);
-    appendAttribute(SESSION_ID, sessionKey, buf);
-    appendAttribute(QUERY_ID, queryId, buf);
-    appendAttribute(AGENT_ID, cougaarAgentId, buf);
+    XmlUtils.appendAttribute(SESSION_ID, sessionKey, buf);
+    XmlUtils.appendAttribute(QUERY_ID, queryId, buf);
+    XmlUtils.appendAttribute(AGENT_ID, cougaarAgentId, buf);
     buf.append(">\n");
-  }
-
-  private static void appendTrailer (StringBuffer buf) {
-    buf.append("</");
-    buf.append(UPDATE_TAG);
-    buf.append(">\n");
-  }
-
-  private static void appendAttribute (String n, String v, StringBuffer buf) {
-    buf.append(" ");
-    buf.append(n);
-    buf.append("=\"");
-    buf.append(v);
-    buf.append("\"");
   }
 
   private static void sendBunch (List c, String type, StringBuffer buf) {
     if (c == null)
       return;
 
-    buf.append("<");
-    buf.append(type);
-    buf.append(">\n");
+    XmlUtils.appendOpenTag(type, buf);
 
     for (Iterator i = c.iterator(); i.hasNext(); )
-      buf.append(((ResultSetDataAtom) i.next()).toXML());
+      buf.append(((XmlTransferable) i.next()).toXml());
 
-    buf.append("</");
-    buf.append(type);
-    buf.append(">\n");
+    XmlUtils.appendCloseTag(type, buf);
   }
 
   // - - - - - - - Testing Code - - - - - - - - - - - - - - - - - - - - - - - -
