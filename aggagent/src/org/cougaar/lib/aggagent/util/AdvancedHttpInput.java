@@ -143,18 +143,4 @@ public class AdvancedHttpInput {
         m.put(p.name, p.value);
     }
   }
-
-  private static void formPragma (StringBuffer buf, Object v) {
-    buf.append("  ");
-    buf.append(v);
-    buf.append("\n");
-  }
-
-  private void formParam (StringBuffer buf, Object v) {
-    buf.append("  ");
-    buf.append(v);
-    buf.append("=");
-    buf.append(params.get(v));
-    buf.append("\n");
-  }
 }
