@@ -37,7 +37,7 @@ import org.cougaar.lib.aggagent.query.AggregationResultSet;
      */
     public ResultSetMonitor(String serverURL, int updateMethod)
     {
-      super(serverURL, "result_set", updateMethod);
+      super(serverURL, AggregationResultSet.RESULT_SET_TAG, updateMethod);
     }
 
     /**
@@ -104,7 +104,8 @@ import org.cougaar.lib.aggagent.query.AggregationResultSet;
      */
     protected Object update(Element monitoredElement)
     {
-      String queryId = monitoredElement.getAttribute("query_id");
+      String queryId =
+        monitoredElement.getAttribute(AggregationResultSet.QUERY_ID_ATT);
       AggregationResultSet newRs = new AggregationResultSet(monitoredElement);
       AggregationResultSet monitoredRs =
         (AggregationResultSet)monitorObject(queryId, newRs);
@@ -123,7 +124,8 @@ import org.cougaar.lib.aggagent.query.AggregationResultSet;
      */
     protected Object remove(Element monitoredElement)
     {
-      String queryId = monitoredElement.getAttribute("query_id");
+      String queryId =
+        monitoredElement.getAttribute(AggregationResultSet.QUERY_ID_ATT);
       AggregationResultSet removedRS = stopMonitoringResultSet(queryId);
       removedRS.fireObjectRemoved();
       return removedRS;
