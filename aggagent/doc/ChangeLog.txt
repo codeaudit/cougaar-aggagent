@@ -1,4 +1,15 @@
 
+/////////////////////////////////////////////////////////////////////////////////////////////
+Version 0.55 ChangeList
+
+1.) added new "light-weight" HTML PSP to use to view contents of Agg Agent blackboard.  
+Supports drill-down into DOM -- displays contents in html.  
+
+In  examples/minitest this new PSP is located at:
+
+agg/demo/BLACKBOARD.PSP
+
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 Version 0.5 ChangeList
