@@ -52,7 +52,7 @@ public class AggregationKeepAliveComponent extends BlackboardServletComponent {
     public void doPut(HttpServletRequest request, HttpServletResponse response)
         throws IOException
     {
-      System.out.println("AggKeepAliveServlet: doPut");
+      if (log.isDebugEnabled()) log.debug("doPut");
 
       // check if this is a cancel request
       String cancelSessionId = request.getParameter("CANCEL_SESSION_ID");
@@ -97,8 +97,9 @@ public class AggregationKeepAliveComponent extends BlackboardServletComponent {
 
         while ((!outputError) && (!sessionCanceled))
         {
-          System.out.println("---------Keep Alive Session " + thisSession +
-                             " is Alive---------");
+          if (log.isDebugEnabled()) log.debug("---------Keep Alive Session " + 
+                  thisSession +" is Alive---------");
+
           Thread.sleep(5000);
 
           // Without an ack message, a keep alive connection over which no
@@ -119,7 +120,7 @@ public class AggregationKeepAliveComponent extends BlackboardServletComponent {
         }
       }
       catch (Exception done_in) {
-        System.out.println("AggregationKeepAliveServlet::doPut:  aborted!");
+        if (log.isDebugEnabled()) log.debug("doPut:  aborted!");
       }
       finally {
         kaSession.cancel();
@@ -127,8 +128,8 @@ public class AggregationKeepAliveComponent extends BlackboardServletComponent {
         {
           sessionMap.remove(thisSession);
         }
-        System.out.println("AggregationKeepAliveServlet::doPut:  leaving");
-      }
+          if (log.isDebugEnabled()) log.debug("doPut:  leaving");
+        }
     }
   }
 

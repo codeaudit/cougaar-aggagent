@@ -22,19 +22,13 @@ package org.cougaar.lib.aggagent.plugin;
 
 import org.cougaar.util.*;
 import org.cougaar.core.mts.*;
-import org.cougaar.lib.aggagent.domain.XMLMessage;
 
 public class MessageSeeker implements UnaryPredicate {
-    MessageAddress me;
-    public MessageSeeker(MessageAddress me) {
-      this.me = me;
+    public MessageSeeker() {
+    
     }
     public boolean execute(Object o) {
-      if (o instanceof XMLMessage) {
-        XMLMessage xmsg = (XMLMessage)o;
-        return xmsg.getDestination().equals(me) ;
-      }
-      return false;
+      return (o instanceof AggRelay);
     }
   }
 

@@ -29,7 +29,6 @@ import org.w3c.dom.*;
 import org.cougaar.lib.aggagent.util.*;
 import org.cougaar.lib.aggagent.query.*;
 import org.cougaar.lib.aggagent.session.*;
-import org.cougaar.lib.aggagent.domain.*;
 
 import org.cougaar.util.*;
 import org.cougaar.core.node.*;
@@ -40,9 +39,6 @@ import org.cougaar.core.service.*;
 import org.cougaar.core.plugin.ComponentPlugin;
 import org.cougaar.core.domain.*;
 import org.cougaar.core.blackboard.*;
-import org.cougaar.core.mts.Message;
-import org.cougaar.core.mts.MessageAddress;
-import org.cougaar.core.service.MessageTransportService;
 
 /**
  * This Plugin services remote subscription requests.  It sends data back to an aggregation 
@@ -58,7 +54,7 @@ public class RemoteSubscriptionPlugin extends ComponentPlugin
   public void setupSubscriptions()
   {
     me = getBindingSite().getAgentIdentifier();
-    messageSub = subscribeIncr(new MessageSeeker(getBindingSite().getAgentIdentifier()));
+    messageSub = subscribeIncr(new MessageSeeker());
   }
 
 
@@ -69,7 +65,13 @@ public class RemoteSubscriptionPlugin extends ComponentPlugin
     // process new messages
     for(Enumeration e = messageSub.getAddedList(); e.hasMoreElements();)
     {
-      receiveMessage((XMLMessage)e.nextElement());
+      receiveMessage((AggRelay)e.nextElement());
+    }
+
+    // process removed sessions
+    for(Enumeration e = messageSub.getRemovedList(); e.hasMoreElements();)
+    {
+      cancelSession((AggRelay)e.nextElement());
     }
 
     // process changed subscriptions
@@ -88,21 +90,22 @@ public class RemoteSubscriptionPlugin extends ComponentPlugin
    * Receive a message.
    * Happens when an agg agent sends me a message.
    */
-  private void receiveMessage(XMLMessage xmsg) {
+  private void receiveMessage(AggRelay relay) {
     try {
+      XMLMessage xmsg = (XMLMessage)relay.getContent();
       if (log.isDebugEnabled()) log.debug("RemotePlugin:("+me+") receiveMessage "+xmsg);
-      getBlackboardService().publishRemove(xmsg);
+      
       Element root = XmlUtils.parse(xmsg.getText());
       String requestName = root.getNodeName();
       if (log.isDebugEnabled()) log.debug("RemotePlugin:("+me+") Got message: "+requestName+":"+root.toString());
 
       if (requestName.equals("transient_query_request"))
       {
-        transientQuery(root, createAggAddress(xmsg.getSource().getAddress()));
+        transientQuery(root, relay);
       }
       else if (requestName.equals("push_request"))
       {
-        createPushSession(root, createAggAddress(xmsg.getSource().getAddress()));
+        createPushSession(root, relay);
       }
       else if (requestName.equals("update_request"))
       {
@@ -110,11 +113,7 @@ public class RemoteSubscriptionPlugin extends ComponentPlugin
       }
       else if (requestName.equals("pull_request"))
       {
-        createPullSession(root, createAggAddress(xmsg.getSource().getAddress()));
-      }
-      else if (requestName.equals("cancel_session_request"))
-      {
-        cancelSession(root);
+        createPullSession(root, relay);
       }
     } catch (Exception ex) {
       ex.printStackTrace();
@@ -124,7 +123,7 @@ public class RemoteSubscriptionPlugin extends ComponentPlugin
 
 
 
-  private void transientQuery (Element root, MessageAddress originator)
+  private void transientQuery (Element root, AggRelay relay)
       throws Exception
   {
     UnaryPredicate objectSeeker = ScriptSpec.makeUnaryPredicate(
@@ -155,10 +154,10 @@ public class RemoteSubscriptionPlugin extends ComponentPlugin
     tempSubscription.close();
 
     // Send response message
-    sendMessage(originator, del.toXml());
+    sendMessage(relay, del.toXml());
   }
 
-  private void createPushSession (Element root, MessageAddress originator)
+  private void createPushSession (Element root, AggRelay relay)
     throws Exception {
     String queryId = root.getAttribute("query_id");
     String requester = root.getAttribute("requester");
@@ -174,7 +173,7 @@ public class RemoteSubscriptionPlugin extends ComponentPlugin
       throw new Exception("Could not create formatter");
 
     new RemotePushSession(
-      String.valueOf(idCounter++), queryId, formatter, requester, seeker);
+      String.valueOf(idCounter++), queryId, formatter, relay, seeker);
   }
 
   private int idCounter = 0;
@@ -185,12 +184,12 @@ public class RemoteSubscriptionPlugin extends ComponentPlugin
   // to cancel, to respond to subscription events from the host agent, and send
   // updates via COUGAAR messaging (all abstractly).
   private abstract class BBSession extends RemoteSession {
-    protected MessageAddress requester;
+    protected AggRelay relay;
 
-    protected BBSession (String k, String q, IncrementFormat f, String r) {
+    protected BBSession (String k, String q, IncrementFormat f, AggRelay r) {
       super(k, q, f);
       setAgentId(getBindingSite().getAgentIdentifier().toString());
-      requester = createAggAddress(r);
+      relay = r;
     }
 
     public abstract void cancel ();
@@ -208,7 +207,7 @@ public class RemoteSubscriptionPlugin extends ComponentPlugin
     private IncrementalSubscription rawData = null;
 
     public RemotePushSession (
-        String k, String q, IncrementFormat f, String r, UnaryPredicate p)
+        String k, String q, IncrementFormat f, AggRelay r, UnaryPredicate p)
     {
       super(k, q, f, r);
       synchronized (lock)
@@ -237,20 +236,20 @@ public class RemoteSubscriptionPlugin extends ComponentPlugin
 
     public void pushUpdate () {
       if (log.isDebugEnabled()) log.debug("Updating session to agg("+me+"): " + getQueryId());
-      sendMessage(requester, createUpdateDelta().toXml());
+      sendMessage(relay, createUpdateDelta().toXml());
     }
   }
   /**
-   * Doesn't actually send a message, but published an object that
+   * Doesn't actually send a message, but updates an object that
    * causes a message to be sent.
    */
-  protected void sendMessage (MessageAddress address, String message) {
+  protected void sendMessage (AggRelay relay, String message) {
     if (log.isDebugEnabled()) log.debug("RemoteSubPlugins:("+me+"):sendMessage from: " +
-      getBindingSite().getAgentIdentifier() + " to " + address.getAddress());
-    XMLMessage msg = new XMLMessage(
-      getBindingSite().getAgentIdentifier(), address, message);
-    getBlackboardService().publishAdd(msg);
-    if (log.isDebugEnabled()) log.debug("RemoteSubPlugins:("+me+"):sendMessage:  done publishized it");
+      getBindingSite().getAgentIdentifier() + " to " + relay.getSource());
+    XMLMessage msg = new XMLMessage(message);
+    relay.updateResponse(me, msg);
+    getBlackboardService().publishChange(relay);
+    if (log.isDebugEnabled()) log.debug("RemoteSubPlugins:("+me+"):sendMessage:  done publish changed it");
   }
 
   // This is the implementation of RemoteSession used for the PULL method.  It
@@ -260,7 +259,7 @@ public class RemoteSubscriptionPlugin extends ComponentPlugin
     private RemoteBlackboardSubscription rbs;
 
     public RemotePullSession (
-        String k, String q, IncrementFormat f, String r, UnaryPredicate p)
+        String k, String q, IncrementFormat f, AggRelay r, UnaryPredicate p)
     {
       super(k, q, f, r);
       synchronized (lock)
@@ -276,7 +275,7 @@ public class RemoteSubscriptionPlugin extends ComponentPlugin
       rbs.open();
       UpdateDelta del = createUpdateDelta();
       rbs.close();
-      sendMessage(requester, del.toXml());
+      sendMessage(relay, del.toXml());
     }
 
     public void cancel () {
@@ -302,10 +301,27 @@ public class RemoteSubscriptionPlugin extends ComponentPlugin
     BBSession match = findSessionById(qId);
     if (match != null)
       match.cancel();
-    else
-      if (log.isWarnEnabled()) log.warn("Error cancelling session ("+me+")" + qId + " at " +
-        getBindingSite().getAgentIdentifier().getAddress());
+    else {
+      String type = root.getNodeName();
+      if (type.equals("pull_request") || type.equals("push_request"))
+        if (log.isWarnEnabled()) log.warn("Error cancelling session ("+me+")" + qId + " at " +
+          getBindingSite().getAgentIdentifier().getAddress());
+    }
   }
+  
+  private void cancelSession (AggRelay relay) {
+    try {
+      XMLMessage xmsg = (XMLMessage)relay.getContent();
+      if (log.isDebugEnabled()) log.debug("RemotePlugin:("+me+") relay deleted "+xmsg);
+      
+      Element root = XmlUtils.parse(xmsg.getText());
+      cancelSession(root);
+    } catch (Exception ex) {
+      if (log.isErrorEnabled()) log.error("RemotePlugin:("+me+") error deleting relay: "+ex);
+    }
+        
+  }
+      
 
   private BBSession findSessionById (String id) {
     Iterator iter = queryMap.values().iterator();
@@ -320,7 +336,7 @@ public class RemoteSubscriptionPlugin extends ComponentPlugin
     return found;
   }
 
-  private void createPullSession (Element root, MessageAddress originator)
+  private void createPullSession (Element root, AggRelay relay)
     throws Exception {
     String queryId = root.getAttribute("query_id");
     String requester = root.getAttribute("requester");
@@ -336,7 +352,7 @@ public class RemoteSubscriptionPlugin extends ComponentPlugin
       throw new Exception("Could not create formatter");
 
     new RemotePullSession(
-      String.valueOf(idCounter++), queryId, formatter, requester, seeker);
+      String.valueOf(idCounter++), queryId, formatter, relay, seeker);
     if (log.isDebugEnabled()) log.debug("Pull session created("+me+")");
   }
 
@@ -353,6 +369,7 @@ public class RemoteSubscriptionPlugin extends ComponentPlugin
   }
   
   protected LoggingService log;
+  
   public void setLoggingService(LoggingService ls) {
     if ((ls == null) && log.isDebugEnabled())
       log.debug("Logger ("+me+")being reset to null");
@@ -368,9 +385,5 @@ public class RemoteSubscriptionPlugin extends ComponentPlugin
   protected IncrementalSubscription subscribeIncr (UnaryPredicate p) {
     return (IncrementalSubscription) getBlackboardService().subscribe(p);
   }
-  protected static final MessageAddress createAggAddress(String agentName) {
-//    return new ClusterIdentifier(agentName + "-agg");
-    return new ClusterIdentifier(agentName);
-  }
-
+  
 }

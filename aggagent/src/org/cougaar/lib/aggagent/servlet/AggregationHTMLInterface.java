@@ -111,9 +111,9 @@ public class AggregationHTMLInterface extends AggregationServletInterface
 
   private void sendMainFrame(PrintWriter out) {
     out.println("<FRAMESET ROWS=\"10%, 90%\">");
-    out.println("<FRAME NAME=\"title\" SRC=\"" + servletName + "?TITLE\">");
+    out.println("<FRAME NAME=\"title\" SRC=\"" + servletName + "?TITLE=foo\">");
     out.println("<FRAMESET COLS=\"30%, 70%\">");
-    out.println("<FRAME NAME=\"menu\" SRC=\"" + servletName + "?HOME\">");
+    out.println("<FRAME NAME=\"menu\" SRC=\"" + servletName + "?HOME=foo\">");
     out.println("<FRAME NAME=\"data\" SRC=\"about:blank\">");
     out.println("</FRAMESET></FRAMESET>");
   }

@@ -1,23 +1,5 @@
 
+The agg agent demo/test configuration is in aggagent/configs/mini_config
 
-aggagent is "powered by apache"   ;-)   It relies upon
+Enter queries at http://localhost:8800/$Aggregator/aggregator
 
-xalan.jar
-xerces.jar
-
-distributed with xalan version:
-
-xalan_1_2_D02
-
-which can be found at:
-
-http://www.apache.org/
-http://xml.apache.org/
-
-
-
-        "This product includes software developed by the
-         Apache Software Foundation (http://www.apache.org/)."
- 
-
-see http://xml.apache.org/dist/LICENSE.txt for full apache license.

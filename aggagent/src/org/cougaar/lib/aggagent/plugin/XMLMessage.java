@@ -18,32 +18,23 @@
  *  PERFORMANCE OF THE COUGAAR SOFTWARE.
  * </copyright>
  */
-package org.cougaar.lib.aggagent.domain;
+package org.cougaar.lib.aggagent.plugin;
 
-import org.cougaar.core.mts.MessageAddress;
+import java.io.*;
 
 /**
- * This class encapsulates the XML messages and routing information for the aggregation agent.
+ * This class encapsulates the XML messages for the aggregation agent.
  */
-public class XMLMessage {
+public class XMLMessage implements Serializable {
   private String text;
-  private MessageAddress source;
-  private MessageAddress dest;
   public String getText() {
     return text;
   }
-  public XMLMessage (MessageAddress source, MessageAddress dest, String text) {
+  public XMLMessage (String text) {
     this.text = text;
-    this.source = source;
-    this.dest = dest;
   }
   public String toString() {
-    return source.getAddress() + " TO "+dest.getAddress();
+    return text;
   }
-  public MessageAddress getSource() {
-    return source;
-  }
-  public MessageAddress getDestination() {
-    return dest;
-  }
+
 }

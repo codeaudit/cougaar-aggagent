@@ -31,31 +31,21 @@ import org.xml.sax.InputSource;
 import org.cougaar.core.agent.*;
 import org.cougaar.core.domain.*;
 import org.cougaar.core.blackboard.*;
-import org.cougaar.core.mts.Message;
-import org.cougaar.core.mts.MessageAddress;
 import org.cougaar.core.plugin.*;
 import org.cougaar.core.service.*;
-import org.cougaar.core.service.NamingService;
-import org.cougaar.core.service.MessageTransportService;
-import org.cougaar.util.UnaryPredicate;
-
-import org.cougaar.lib.aggagent.domain.*;
-import org.cougaar.lib.aggagent.query.*;
-import org.cougaar.lib.aggagent.session.*;
-import org.cougaar.lib.aggagent.util.Const;
-import org.cougaar.lib.aggagent.util.Enum.*;
-import org.cougaar.lib.aggagent.util.InverseSax;
-import org.cougaar.lib.aggagent.util.XmlUtils;
-import org.cougaar.core.mts.Message;
-import org.cougaar.core.mts.MessageAddress;
 import org.cougaar.core.mts.*;
 import org.cougaar.core.component.*;
+import org.cougaar.util.UnaryPredicate;
+
+import org.cougaar.lib.aggagent.query.*;
+import org.cougaar.lib.aggagent.session.*;
+import org.cougaar.lib.aggagent.util.*;
+import org.cougaar.lib.aggagent.util.Enum.*;
 
 /**
  * Receives aggregation requests in the form of QueryResultAdapter objects.
  */
-public class AggregationPlugin
-    extends ComponentPlugin
+public class AggregationPlugin extends ComponentPlugin
 {
   // Subscribe to all QueryResultAdapter objects
   private IncrementalSubscription querySub;
@@ -82,7 +72,7 @@ public class AggregationPlugin
   {
     me = getBindingSite().getAgentIdentifier();
     querySub = subscribeIncr(new QuerySeeker());
-    messageSub = subscribeIncr(new MessageSeeker(getBindingSite().getAgentIdentifier()));
+    messageSub = subscribeIncr(new MessageSeeker());
   }
 
   public void execute()
@@ -98,11 +88,11 @@ public class AggregationPlugin
   }
 
   private void checkNewMessages() {
-    // Only the added messages are interesting.
+    // Only the changed messages are interesting.
     // The old ones will be deleted.
-    for(Enumeration e = messageSub.getAddedList(); e.hasMoreElements();)
+    for(Enumeration e = messageSub.getChangedList(); e.hasMoreElements();)
     {
-      receiveMessage((XMLMessage)e.nextElement());
+      receiveMessage((AggRelay)e.nextElement());
     }
   }
 
@@ -170,12 +160,8 @@ public class AggregationPlugin
         }
 
         // cancel session on each of the source clusters listed in query
-        for (Enumeration sc = aq.getSourceClusters(); sc.hasMoreElements();)
-        {
-          String clusterString = (String)sc.nextElement();
-          if (log.isDebugEnabled()) log.debug("("+me+")Cancelling remote session at "+clusterString);
-          cancelRemoteSession(queryId, clusterString);
-        }
+        if (log.isDebugEnabled()) log.debug("("+me+")Cancelling remote session "+queryId);
+        cancelRemoteSession(queryId);
       }
     }
   }
@@ -232,19 +218,33 @@ public class AggregationPlugin
     return new PullTimerTask(qra);
   }
 
-  private void cancelRemoteSession (String queryId, String clusterId) {
-    sendMessage(createAggAddress(clusterId),
-      frameRequestXml("cancel_session_request", queryId, null, true, null));
+  private void cancelRemoteSession(String queryId) {
+      // todo: this is horribly inefficient.
+      try {
+          Iterator iter = messageSub.getCollection().iterator();
+          while(iter.hasNext()) {
+              AggRelay ar = (AggRelay) iter.next();
+              XMLMessage xmsg = (XMLMessage)ar.getContent();
+              Element root = XmlUtils.parse(xmsg.getText());
+              String this_id = root.getAttribute("query_id");
+              if (queryId.equals(this_id)) {
+                  getBlackboardService().publishRemove(ar);
+                  if (log.isDebugEnabled()) log.debug("AggPlugin:("+me+"):canceled session at "+ar.getTargets().iterator().next());
+              }
+          }
+      } catch (Exception ioe) {
+          if (log.isErrorEnabled()) log.error("AggPlugin:("+me+"):error canceling session"+ioe);
+      }
   }
 
   /**
    * Receive a message.
    * Happens when a remote cluster sends me an update.
    */
-  private void receiveMessage(XMLMessage xmsg) {
+  private void receiveMessage(AggRelay relay) {
     try {
       if (log.isDebugEnabled()) log.debug("AggPlugin:("+me+"):receiveMessage");
-      getBlackboardService().publishRemove(xmsg);
+      XMLMessage xmsg = (XMLMessage)relay.getResponse();
       Element root = XmlUtils.parse(xmsg.getText());
       String requestName = root.getNodeName();
 
@@ -252,7 +252,7 @@ public class AggregationPlugin
       // Handle a response to one of my previous queries
       //
       UpdateDelta delta = new UpdateDelta(root);
-
+ 
       String updatedQuery = delta.getQueryId();
       String updatedCluster = delta.getAgentId();
 
@@ -273,6 +273,10 @@ public class AggregationPlugin
 
         // publish changes to blackboard
         getBlackboardService().publishChange(qra);
+        
+        // Am I done with thie relay?
+        if (qra.getQuery().getType().equals(QueryType.TRANSIENT))
+            getBlackboardService().publishRemove(relay);
       }
       else {
         if (log.isErrorEnabled())
@@ -289,16 +293,16 @@ public class AggregationPlugin
    * Doesn't actually send a message, but published an object that
    * causes a message to be sent.
    */
-  protected void sendMessage (MessageAddress address, String message) {
+  protected void sendMessage (ClusterIdentifier address, String message) {
     if (log.isDebugEnabled()) log.debug("AggPlugins:("+me+"):sendMessage from: " +
       getBindingSite().getAgentIdentifier() + " to " + address.getAddress());
-    XMLMessage msg = new XMLMessage(
-      getBindingSite().getAgentIdentifier(), address, message);
-    getBlackboardService().publishAdd(msg);
+    XMLMessage msg = new XMLMessage(message);
+    AggRelay relay = new AggRelay(getUIDService().nextUID(), me, address, msg, null);
+    getBlackboardService().publishAdd(relay);
     if (log.isDebugEnabled()) log.debug("AggPlugins:("+me+"):sendMessage:  done publishized it");
   }
 
-  protected static final MessageAddress createAggAddress(String agentName) {
+  protected static final ClusterIdentifier createAggAddress(String agentName) {
     return new ClusterIdentifier(agentName);
   }
 
@@ -340,6 +344,10 @@ public class AggregationPlugin
   }
 
   protected LoggingService log;
+  
+  /** Holds value of property UIDService. */
+  private UIDService UIDService;
+  
   public void setLoggingService(LoggingService ls) {
     if ((ls == null) && log.isDebugEnabled())
       log.debug("Logger ("+me+")being reset to null");
@@ -351,4 +359,19 @@ public class AggregationPlugin
   public LoggingService getLoggingService() {
     return log;
   }
+  
+  /** Getter for property UIDService.
+   * @return Value of property UIDService.
+   */
+  public UIDService getUIDService() {
+      return this.UIDService;
+  }
+  
+  /** Setter for property UIDService.
+   * @param UIDService New value of property UIDService.
+   */
+  public void setUIDService(UIDService UIDService) {
+      this.UIDService = UIDService;
+  }
+  
 }

@@ -12,8 +12,7 @@ import org.cougaar.core.agent.ClusterIdentifier;
 import org.cougaar.core.blackboard.Subscription;
 import org.cougaar.core.component.*;
 import org.cougaar.core.plugin.ComponentPlugin;
-import org.cougaar.core.service.BlackboardService;
-import org.cougaar.core.service.NamingService;
+import org.cougaar.core.service.*;
 import org.cougaar.core.servlet.*;
 import org.cougaar.lib.aggagent.session.SessionManager;
 import org.cougaar.util.UnaryPredicate;
@@ -60,6 +59,9 @@ public abstract class BlackboardServletComponent extends ComponentPlugin
    */
   protected NamingService naming = null;
 
+  /** Holds value of property loggingService. */
+  protected LoggingService log;
+  
   /**
    * Constructor.
    */
@@ -235,4 +237,19 @@ public abstract class BlackboardServletComponent extends ComponentPlugin
   public String toString() {
     return getClass().getName()+"("+myPath+")";
   }
+  
+  /** Getter for property loggingService.
+   * @return Value of property loggingService.
+   */
+  public LoggingService getLoggingService() {
+    return this.log;
+  }
+  
+  /** Setter for property loggingService.
+   * @param loggingService New value of property loggingService.
+   */
+  public void setLoggingService(LoggingService loggingService) {
+    this.log = loggingService;
+  }
+  
 }

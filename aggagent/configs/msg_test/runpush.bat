@@ -30,6 +30,7 @@ set CPATH=%CPATH%;%SYSLIB%\jsse.jar
 set CPATH=%CPATH%;%SYSLIB%\xerces.jar
 set CPATH=%CPATH%;%SYSLIB%\silk.jar
 set CPATH=%CPATH%;%SYSLIB%\jpython.jar
+set CPATH=%CPATH%;C:\program files\jdk1.3\jre\lib\jaws.jar
 
 @echo on
 java -cp "%CPATH%" %FLAGS% %EXECLASS% %NODEARGS%

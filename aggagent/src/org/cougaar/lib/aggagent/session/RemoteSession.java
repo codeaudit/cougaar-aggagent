@@ -4,6 +4,7 @@ package org.cougaar.lib.aggagent.session;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.io.Serializable;
 
 import org.cougaar.util.UnaryPredicate;
 
@@ -14,7 +15,7 @@ import org.cougaar.util.UnaryPredicate;
  *  SubscriptionAccess and any errors in the UnaryPredicate or IncrementFormat
  *  scripts.
  */
-public abstract class RemoteSession {
+public abstract class RemoteSession implements Serializable {
   // collecting error reports
   private Collection newErrors = new LinkedList();
 
