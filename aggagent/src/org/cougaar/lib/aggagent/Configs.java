@@ -10,8 +10,9 @@ import java.io.*;
 
 //  Configuration assumptions associated with Aggregation Agent
 //
-//  Long run, perhaps should migrate to runtime settable property, but for now,
-//  keeping it simple.
+//  Long run,  should make this configurable
+//  eg. migrate to runtime settable property
+//  but for now,  keeping it simple.
 //
 public final class Configs
 {
@@ -21,8 +22,8 @@ public final class Configs
 
      // Consumed at: GLDictionary.java
      public static String AGGREGATION_CLUSTER_NAME_PREFIX = "AGG";
-     public static String GENERIC_PSP_SOCIETY_CLUSTER_PRIMITIVES = "glprimitives.society.cluster.xml";
-     public static String GENERIC_PSP_AGG_CLUSTER_PRIMITIVES = "glprimitives.agg.cluster.xml";
+     public static String GENERIC_PSP_SOCIETY_CLUSTER_PRIMITIVES = "society_glprimitives.xml";
+     public static String GENERIC_PSP_AGG_CLUSTER_PRIMITIVES = "aggregator_glprimitives.xml";
 
 
 }

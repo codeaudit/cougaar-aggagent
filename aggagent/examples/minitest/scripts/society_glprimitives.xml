@@ -22,7 +22,7 @@
           <keyname>QUERY_SIMPLE_ASSET</keyname>
           <xsl>xsl/asset.simple.1.xsl</xsl>
           <predicate>
-               <instanceof>org.cougaar.domain.planning.ldm.asset.Asset</instanceof>  <!-- mutually exclusive w/domnode -->
+               <instanceof>org.cougaar.domain.planning.ldm.asset.Asset</instanceof>  <!-- exclusive w/domnode -->
           </predicate>
           <adapter>org.cougaar.lib.aggagent.dictionary.glquery.GenericQueryXML</adapter>
       </glquery>
@@ -31,7 +31,7 @@
           <keyname>QUERY_SIMPLE_ASSET_SAX</keyname>
           <sax>org.cougaar.lib.aggagent.bsax.samples.SampleHandler_1</sax>
           <predicate>
-               <instanceof>org.cougaar.domain.planning.ldm.asset.Asset</instanceof>  <!-- mutually exclusive w/domnode -->
+               <instanceof>org.cougaar.domain.planning.ldm.asset.Asset</instanceof>  <!-- exclusive w/domnode -->
           </predicate>
           <adapter>org.cougaar.lib.aggagent.dictionary.glquery.GenericQueryXML</adapter>
       </glquery>
@@ -48,10 +48,10 @@
       </glquery>
 
       <glquery>
-          <keyname>QUERY_SIMPLE_ALL</keyname>
-          <xsl>xsl/all.plan.xsl</xsl>
+          <keyname>QUERY_SIMPLE_UNIQUE_ALL</keyname>
+          <xsl>xsl/all.unique.xsl</xsl>
           <predicate>
-               <instanceof>java.lang.Object</instanceof>  <!-- mutually exclusive w/domnode -->
+               <instanceof>org.cougaar.core.society.UniqueObject</instanceof>  <!-- exclusive w/domnode -->
           </predicate>
           <adapter>org.cougaar.lib.aggagent.dictionary.glquery.GenericQueryXML</adapter>
       </glquery>

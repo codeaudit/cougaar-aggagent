@@ -3,9 +3,12 @@
 
   <xsl:template match="LogPlan">
     <LogPlan> 
-       <xsl:for-each select="//*">
+       <xsl:for-each select="*|/">
           <UniqueObject 
              ID="{ID/UID}"
+             UID="{UID}"
+             uid="{uid}"
+             id="{id}"
           />
        </xsl:for-each>
     </LogPlan>
