@@ -1,6 +1,7 @@
 package org.cougaar.lib.aggagent.util;
 
 import java.io.*;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -195,6 +196,7 @@ public class XmlUtils {
     // open connection
     URL url = new URL(urlString);
     URLConnection uc = url.openConnection();
+    ((HttpURLConnection)uc).setRequestMethod("PUT");
     uc.setDoInput(true);
     uc.setDoOutput(true);
     OutputStream os = uc.getOutputStream();
@@ -216,7 +218,6 @@ public class XmlUtils {
       buf.append(line);
       buf.append("\n");
     }
-
     return buf.toString();
   }
 }

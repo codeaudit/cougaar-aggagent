@@ -1,9 +1,10 @@
-package org.cougaar.lib.aggagent.psp;
+package org.cougaar.lib.aggagent.servlet;
 
 import java.io.*;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.StringTokenizer;
+import javax.servlet.http.HttpServletRequest;
 
 import org.cougaar.lib.aggagent.query.Alert;
 import org.cougaar.lib.aggagent.query.AlertDescriptor;
@@ -73,7 +74,7 @@ public class HTMLPresenter
     return s.toString();
   }
 
-  public static void sendAlertSummary(Collection alerts, PrintStream out)
+  public static void sendAlertSummary(Collection alerts, PrintWriter out)
   {
     out.println("<table BORDER=\"1\" BGCOLOR=\"WHITE\">");
     sendAlertRow(out, "000080", "FFFFFF", "Query", "Name", "Triggered", true);
@@ -82,7 +83,7 @@ public class HTMLPresenter
     out.println("</table></center>");
   }
 
-  public static void sendQueryForm (String selfName, PrintStream out,
+  public static void sendQueryForm (String selfName, PrintWriter out,
                                     boolean persistent) {
     QueryType queryType =
       persistent ? QueryType.PERSISTENT : QueryType.TRANSIENT;
@@ -92,8 +93,9 @@ public class HTMLPresenter
     out.print(queryType);
     out.println(" Query</TH></TR>");
     out.println("<TR><TD>");
-    out.println("<form action=\"" + selfName + "?CREATE_QUERY\" ");
-    out.println("method=\"POST\" " + (persistent ? "target=\"menu\">" : ">"));
+    out.println("<form action=\"" + selfName + "\" ");
+    out.println("method=\"GET\" " + (persistent ? "target=\"menu\">" : ">"));
+    out.println("<input type=\"HIDDEN\" name=\"CREATE_QUERY\" value =\"1\">");
     out.print("<input name=\"query_type\" type=\"HIDDEN\" value=\"");
     out.println(queryType + "\"/>");
     if (persistent)
@@ -139,55 +141,54 @@ public class HTMLPresenter
     out.println("</CENTER>");
   }
 
-  public static AggregationQuery processQueryForm (AdvancedHttpInput in)
+  public static AggregationQuery processQueryForm (HttpServletRequest request)
   {
-    // parse form post request
-    in.parseFormBody();
-
     // get query type
     QueryType queryType =
-      QueryType.fromString(in.getFormParameter("query_type"));
+        QueryType.fromString(request.getParameter("query_type"));
 
     // publish request to blackboard for Aggregation Plugin
     AggregationQuery aq = new AggregationQuery(queryType);
     if (queryType == QueryType.PERSISTENT)
     {
-      aq.setName(in.getFormParameter("query_name"));
+      aq.setName(request.getParameter("query_name"));
       aq.setUpdateMethod(
-        UpdateMethod.fromString(in.getFormParameter("update_method")));
-      aq.setPullRate(Integer.parseInt(in.getFormParameter("pull_rate")));
+        UpdateMethod.fromString(request.getParameter("update_method")));
+      aq.setPullRate(Integer.parseInt(request.getParameter("pull_rate")));
     }
-    String sourceClusters = in.getFormParameter("source_cluster");
+    String sourceClusters = request.getParameter("source_cluster");
     StringTokenizer t = new StringTokenizer(sourceClusters, ",");
     while (t.hasMoreTokens())
     {
       aq.addSourceCluster(t.nextToken().trim());
     }
 
-    String pred = in.getFormParameter("unary_predicate");
+    String pred = request.getParameter("unary_predicate");
     Language pred_l =
-      Language.fromString(in.getFormParameter("unary_predicate_lang"));
+      Language.fromString(request.getParameter("unary_predicate_lang"));
     aq.setPredicateSpec(
       new ScriptSpec(ScriptType.UNARY_PREDICATE, pred_l, pred));
-    String coder = in.getFormParameter("xml_encoder");
+    String coder = request.getParameter("xml_encoder");
     Language coder_l =
-      Language.fromString(in.getFormParameter("xml_encoder_lang"));
+      Language.fromString(request.getParameter("xml_encoder_lang"));
     XmlFormat coder_f =
-      (in.hasFormParameter("xml_encoder_type") ?
+      (request.getParameter("xml_encoder_type") != null) ?
         XmlFormat.INCREMENT :
-        XmlFormat.XMLENCODER);
+        XmlFormat.XMLENCODER;
     aq.setFormatSpec(new ScriptSpec(coder_l, coder_f, coder));
 
     return aq;
   }
 
-  public static void sendAlertForm (String selfName, AdvancedHttpInput ahi,
-                                    PrintStream out) {
-    String name = ahi.getParameter("QUERY");
-    String id = ahi.getParameter("SESSION_ID");
+  public static void sendAlertForm (String selfName,
+                                    HttpServletRequest request,
+                                    PrintWriter out) {
+    String name = request.getParameter("QUERY");
+    String id = request.getParameter("SESSION_ID");
     out.println("<center>");
     out.println("<form action=\"" + selfName +
-      "?ADD_ALERT\" method=\"POST\" target=\"data\">");
+                "\" method=\"GET\" target=\"data\">");
+    out.println("<input type=\"HIDDEN\" name=\"ADD_ALERT\" value =\"1\">");
     out.println("<table border=1 cellpadding=8 bgcolor=\"#DDDDDD\">");
     out.print("<tr><th>Create new Alert for Query");
     if (name != null && name.length() > 0)
@@ -212,13 +213,12 @@ public class HTMLPresenter
     out.println("</center>");
   }
 
-  public static AlertDescriptor processAlertForm(AdvancedHttpInput ahi)
+  public static AlertDescriptor processAlertForm(HttpServletRequest request)
   {
-    ahi.parseFormBody();
-    String name = ahi.getFormParameter("alert_name");
-    String query = ahi.getFormParameter("query_id");
-    String lang = ahi.getFormParameter("alert_script_lang");
-    String script = ahi.getFormParameter("alert_script");
+    String name = request.getParameter("alert_name");
+    String query = request.getParameter("query_id");
+    String lang = request.getParameter("alert_script_lang");
+    String script = request.getParameter("alert_script");
 
     // create the Alert
     AlertDescriptor ad =new AlertDescriptor(Language.fromString(lang), script);
@@ -228,7 +228,7 @@ public class HTMLPresenter
     return ad;
   }
 
-  private static void sendAlert(PrintStream out, Alert a) {
+  private static void sendAlert(PrintWriter out, Alert a) {
     StringBuffer buf = new StringBuffer();
     QueryResultAdapter qra = a.getQueryAdapter();
     AggregationQuery q = qra.getQuery();
@@ -246,7 +246,7 @@ public class HTMLPresenter
       out, "FFFFFF", "000000", buf.toString(), a.getName(), status, false);
   }
 
-  private static void sendAlertRow (PrintStream out, String bg, String fg,
+  private static void sendAlertRow (PrintWriter out, String bg, String fg,
       String query, String name, String status, boolean header)
   {
     out.println("<tr>");
@@ -257,7 +257,7 @@ public class HTMLPresenter
   }
 
   private static void sendTableCell(
-    PrintStream out, String bg, String fg, String x, boolean header)
+    PrintWriter out, String bg, String fg, String x, boolean header)
   {
     String tagName = header ? "th" : "td";
     out.print("<" + tagName);
@@ -274,13 +274,13 @@ public class HTMLPresenter
   }
 
   private static void sendTextArea (String name, int rows, int cols,
-                                    PrintStream out) {
+                                    PrintWriter out) {
     out.println("<textarea name=\"" + name + "\" rows = \"" + rows +
       "\" cols=\"" + cols + "\"></textarea>");
   }
 
   private static void sendCoderTypeSwitch (
-      String paramName, String appearance, PrintStream out)
+      String paramName, String appearance, PrintWriter out)
   {
     out.print("(");
     out.print("<input name=\"");
@@ -290,7 +290,7 @@ public class HTMLPresenter
     out.println(")");
   }
 
-  private static void sendLanguageSelector (String paramName, PrintStream out)
+  private static void sendLanguageSelector (String paramName, PrintWriter out)
   {
     out.print("(");
     for (Iterator i = Language.getValidValues().iterator(); i.hasNext();)
@@ -305,7 +305,7 @@ public class HTMLPresenter
   }
 
   private static void sendRadio (String paramName, String appearance,
-                                 String value,boolean selected,PrintStream out)
+                                 String value,boolean selected,PrintWriter out)
   {
     out.print("<input name=\"");
     out.print(paramName);

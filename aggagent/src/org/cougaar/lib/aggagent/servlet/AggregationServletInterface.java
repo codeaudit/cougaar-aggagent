@@ -1,29 +1,35 @@
-package org.cougaar.lib.aggagent.psp;
+package org.cougaar.lib.aggagent.servlet;
 
-import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.util.*;
+import javax.servlet.http.HttpServletRequest;
 
 import org.cougaar.core.blackboard.IncrementalSubscription;
 import org.cougaar.core.blackboard.Subscription;
-import org.cougaar.lib.planserver.PlanServiceContext;
-import org.cougaar.lib.planserver.ServerPlugInSupport;
-import org.cougaar.lib.planserver.UISubscriber;
+import org.cougaar.core.blackboard.SubscriptionWatcher;
+import org.cougaar.core.service.BlackboardService;
 import org.cougaar.util.UnaryPredicate;
 
 import org.cougaar.lib.aggagent.query.Alert;
 import org.cougaar.lib.aggagent.query.QueryResultAdapter;
+import org.cougaar.lib.aggagent.session.RemoteBlackboardSubscription;
 import org.cougaar.lib.aggagent.session.SessionManager;
-import org.cougaar.lib.aggagent.util.AdvancedHttpInput;
 
-public abstract class AggregationPSPInterface
+public abstract class AggregationServletInterface
 {
-  protected static String selfName = "assessment.psp";
+  private BlackboardService blackboard;
+  private SubscriptionMonitorSupport subscriptionMonitorSupport;
 
-  public AggregationPSPInterface () {
+  public AggregationServletInterface (
+                        BlackboardService blackboard,
+                        SubscriptionMonitorSupport subscriptionMonitorSupport)
+  {
+    this.blackboard = blackboard;
+    this.subscriptionMonitorSupport = subscriptionMonitorSupport;
   }
 
-  public abstract void handleRequest(PrintStream out, AdvancedHttpInput ahi,
-                                     PlanServiceContext psc);
+  public abstract void handleRequest(PrintWriter out,
+                                     HttpServletRequest request);
 
   private static abstract class ClassSeeker implements UnaryPredicate
   {
@@ -143,10 +149,9 @@ public abstract class AggregationPSPInterface
   }
 
   protected void waitForAndReturnResults(String queryId,
-                                       PlanServiceContext psc,
-                                       PrintStream out, boolean xml)
+                                         PrintWriter out, boolean xml)
   {
-    class ChangeListener implements UISubscriber
+    class ChangeListener implements SubscriptionListener
     {
       public Object localLock = new Object();
       public QueryResultAdapter changedQra = null;
@@ -196,16 +201,21 @@ public abstract class AggregationPSPInterface
 
     }
 
-    ServerPlugInSupport spis = psc.getServerPlugInSupport();
-
     ChangeListener cl = new ChangeListener();
     UnaryPredicate queryMonitor = new QuerySeeker(queryId);
-    Subscription s = spis.subscribe(cl, queryMonitor);
+    Subscription s = null;
+    try {
+        blackboard.openTransaction();
+        s = blackboard.subscribe(queryMonitor);
+        subscriptionMonitorSupport.setSubscriptionListener(s, cl);
+    } finally {
+        blackboard.closeTransaction();
+    }
 
     // wait for a publish change event on the query result adapter
     // and then get and return result set
     cl.waitForChange();
-    spis.unsubscribeForSubscriber(s);
+    unsubscribe(s);
     if (xml)
     {
       out.println(cl.changedQra.getResultSet().toXml());
@@ -214,48 +224,92 @@ public abstract class AggregationPSPInterface
     {
       printQueryReportPage(cl.changedQra, out);
     }
-    removeQuery(spis, cl.changedQra);
+    removeQuery(cl.changedQra);
   }
 
   // Remove the query from the logplan as well as any Alerts that depend on it
-  protected static void removeQuery (
-    ServerPlugInSupport spis, QueryResultAdapter q)
+  protected void removeQuery (QueryResultAdapter q)
   {
+    blackboard.tryOpenTransaction();
     for (Iterator i = q.getAlerts(); i.hasNext(); )
-      spis.publishRemoveForSubscriber(i.next());
-    spis.publishRemoveForSubscriber(q);
+      blackboard.publishRemove(i.next());
+    blackboard.publishRemove(q);
+    blackboard.closeTransaction();
   }
 
   /**
    * Get QueryResultAdapter for given query id;
    * return null if query is not found.
    */
-  protected QueryResultAdapter findQuery(String queryId,PlanServiceContext psc)
+  protected QueryResultAdapter findQuery(String queryId)
   {
-    Iterator qras = psc.getServerPlugInSupport().
-      queryForSubscriber(new QuerySeeker(queryId)).iterator();
-
+    Iterator qras = query(new QuerySeeker(queryId)).iterator();
     return qras.hasNext() ? (QueryResultAdapter)qras.next() : null;
   }
 
   // used to be "removeQuery" --
   // find the query matching the specified ID and remove it from the logplan
-  protected void findAndRemoveQuery (String queryId, PlanServiceContext psc)
+  protected void findAndRemoveQuery (String queryId)
   {
-    ServerPlugInSupport spis = psc.getServerPlugInSupport();
-
     // find query adapter on log plan
-    Collection qs = spis.queryForSubscriber(new QuerySeeker(queryId));
+    Collection qs = blackboard.query(new QuerySeeker(queryId));
     Iterator qi = qs.iterator();
 
     // remove all queries matching query id
     while (qi.hasNext())
-      removeQuery(spis, (QueryResultAdapter) qi.next());
+      removeQuery((QueryResultAdapter) qi.next());
   }
 
-  protected void printQueryReportPage (QueryResultAdapter qra, PrintStream out){
+  protected void printQueryReportPage (QueryResultAdapter qra, PrintWriter out){
     out.println("<CENTER>");
     out.println(HTMLPresenter.toHTML(qra));
     out.println("</CENTER>");
+  }
+
+  // for access to the blackboard
+
+  public Collection query(UnaryPredicate predicate)
+  {
+    return blackboard.query(predicate);
+  }
+
+  protected void publishAdd(Object o)
+  {
+    try {
+      blackboard.openTransaction();
+      blackboard.publishAdd(o);
+    } finally {
+      blackboard.closeTransaction(false);
+    }
+  }
+
+  protected void publishChange(Object o)
+  {
+    try {
+      blackboard.openTransaction();
+      blackboard.publishChange(o);
+    } finally {
+      blackboard.closeTransaction(false);
+    }
+  }
+
+  protected void publishRemove(Object o)
+  {
+    try {
+      blackboard.openTransaction();
+      blackboard.publishRemove(o);
+    } finally {
+      blackboard.closeTransaction(false);
+    }
+  }
+
+  private void unsubscribe(Subscription subscription)
+  {
+    try {
+      blackboard.openTransaction();
+      blackboard.unsubscribe(subscription);
+    } finally {
+      blackboard.closeTransaction(false);
+    }
   }
 }

@@ -21,11 +21,11 @@ import org.cougaar.lib.aggagent.util.XmlUtils;
 
 /**
  * The AggregationPSPClient provides a client-side communication abstraction
- * to a specific Aggregation PSP.  It provides a simple interface to the
+ * to a specific Aggregation Servlet.  It provides a simple interface to the
  * functionality provided by the Aggregation Agent utilizing the Aggregation
  * PSP's XML interface. It manages both transient requests and persistent
  * sessions using both transient and keep alive connection(s) with the
- * Aggregation PSP.<BR><BR>
+ * Aggregation Servlet.<BR><BR>
  *
  * The core functions provided by the Aggregation Agent that can be accessed via
  * this interface follow:
@@ -39,36 +39,37 @@ import org.cougaar.lib.aggagent.util.XmlUtils;
  * </LI>
  * </UL>
  */
-public class AggregationPSPClient
+public class AggregationClient
 {
-  private String aggregationPSPURL = null;
-  private String keepAlivePSPURL = null;
+  private String aggregationURL = null;
+  private String keepAliveURL = null;
   private Timer pullTimer = new Timer();
 
   /**
    * Create a new client interface to a specific Aggregation Agent.
    *
    * @param clusterURL        text url of the aggregation agent's cluster
-   * @param aggregationPSPName name given to aggregation psp on given aggregation
-   *                          agent. (typical:  "aggregation.psp")
-   * @param keepAlivePSPName  name given to keep alive aggregation psp on the
+   * @param aggregationName name given to aggregation servlet on given
+   *                          aggregation agent. (typical:  "aggregator")
+   * @param keepAliveName  name given to keep alive aggregation servlet on the
    *                          given aggregation agent.
-   *                          (typical: "aggregationkeepalive.psp")
+   *                          (typical: "aggregatorkeepalive")
    */
-  public AggregationPSPClient(String clusterURL, String aggregationPSPName,
-                              String keepAlivePSPName)
+  public AggregationClient(String clusterURL, String aggregationName,
+                           String keepAliveName)
   {
-    aggregationPSPURL = clusterURL + "/" + aggregationPSPName +"?THICK_CLIENT";
-    keepAlivePSPURL = clusterURL + "/" + keepAlivePSPName;
+    aggregationURL =
+        clusterURL + "/" + aggregationName + "?THICK_CLIENT=1";
+    keepAliveURL = clusterURL + "/" + keepAliveName + "?KEEP_ALIVE=1";
 
     // check url
     String response =
-      XmlUtils.requestString(aggregationPSPURL + "?CHECK_URL", null);
+      XmlUtils.requestString(aggregationURL + "?CHECK_URL=1", null);
 
     if (response == null)
     {
       throw new NullPointerException("Cannot contact aggregation agent at " +
-                                     aggregationPSPURL);
+                                     aggregationURL);
     }
   }
 
@@ -85,7 +86,7 @@ public class AggregationPSPClient
   public Collection getActiveQueries()
   {
     Element root =
-      XmlUtils.requestXML(aggregationPSPURL + "?GET_QUERIES", null);
+        XmlUtils.requestXML(aggregationURL + "&GET_QUERIES=1", null);
 
     NodeList queryNodes =
       root.getElementsByTagName(QueryResultAdapter.QUERY_RESULT_TAG);
@@ -113,7 +114,7 @@ public class AggregationPSPClient
   public Collection getActiveAlerts()
   {
     Element root =
-      XmlUtils.requestXML(aggregationPSPURL + "?GET_ALERTS", null);
+      XmlUtils.requestXML(aggregationURL + "&GET_ALERTS=1", null);
 
     NodeList alertNodes = root.getElementsByTagName(Alert.ALERT_TAG);
 
@@ -138,7 +139,7 @@ public class AggregationPSPClient
   public Object createQuery(AggregationQuery aq)
   {
     Object response = null;
-    String taggedURL = aggregationPSPURL + "?CREATE_QUERY";
+    String taggedURL = aggregationURL + "&CREATE_QUERY=1";
 
     if (aq.getType() == QueryType.PERSISTENT)
     {
@@ -165,7 +166,7 @@ public class AggregationPSPClient
   public boolean createAlert(AlertDescriptor ad)
   {
     String response = null;
-    String taggedURL = aggregationPSPURL + "?CREATE_ALERT";
+    String taggedURL = aggregationURL + "&CREATE_ALERT=1";
     response = XmlUtils.requestString(taggedURL, ad.toXml()).trim();
 
     return response.equals("0");
@@ -180,7 +181,7 @@ public class AggregationPSPClient
   public Collection getClusterIds()
   {
     Element root =
-      XmlUtils.requestXML(aggregationPSPURL + "?GET_CLUSTERS", null);
+      XmlUtils.requestXML(aggregationURL + "&GET_CLUSTERS=1", null);
 
     NodeList clusterNodes = root.getElementsByTagName("cluster_id");
 
@@ -205,7 +206,8 @@ public class AggregationPSPClient
    */
   public AggregationResultSet getUpdatedResultSet(String queryId)
   {
-    String loadedURL = aggregationPSPURL + "?GET_RESULT_SET?QUERY_ID=" +queryId;
+    String loadedURL =
+        aggregationURL + "&GET_RESULT_SET=1&QUERY_ID=" + queryId;
     Element root = XmlUtils.requestXML(loadedURL, null);
     if (root.getNodeName().equals(AggregationResultSet.RESULT_SET_TAG))
       return new AggregationResultSet(root);
@@ -225,7 +227,8 @@ public class AggregationPSPClient
    */
   public boolean cancelQuery(String queryId)
   {
-    String loadedURL = aggregationPSPURL + "?CANCEL_QUERY?QUERY_ID=" + queryId;
+    String loadedURL =
+        aggregationURL + "&CANCEL_QUERY=1&QUERY_ID=" + queryId;
     String response = XmlUtils.requestString(loadedURL, null);
     return response.equals("0");
   }
@@ -241,8 +244,8 @@ public class AggregationPSPClient
   public boolean cancelAlert(String queryId, String alertName)
   {
     String encodedAlertName = URLEncoder.encode(alertName);
-    String loadedURL = aggregationPSPURL + "?CANCEL_ALERT?QUERY_ID=" + queryId +
-                      "?ALERT_NAME=" + encodedAlertName;
+    String loadedURL = aggregationURL + "&CANCEL_ALERT=1&QUERY_ID=" +
+                      queryId + "&ALERT_NAME=" + encodedAlertName;
     String response = XmlUtils.requestString(loadedURL, null);
     return response.equals("0");
   }
@@ -259,7 +262,7 @@ public class AggregationPSPClient
   public AlertMonitor createAlertMonitor()
   {
     // setup keep alive task on the client
-    return new AlertMonitor(keepAlivePSPURL, Monitor.KEEP_ALIVE_METHOD);
+    return new AlertMonitor(keepAliveURL, Monitor.KEEP_ALIVE_METHOD);
   }
 
   /**
@@ -281,7 +284,7 @@ public class AggregationPSPClient
   {
     // Setup pull task on client
     AlertMonitor alertMonitor =
-      new AlertMonitor(aggregationPSPURL, Monitor.PULL_METHOD);
+      new AlertMonitor(aggregationURL, Monitor.PULL_METHOD);
     pullTimer.scheduleAtFixedRate(alertMonitor.getPullTask(), 0,
                                   waitPeriod * 1000);
     return alertMonitor;
@@ -299,7 +302,7 @@ public class AggregationPSPClient
   public ResultSetMonitor createResultSetMonitor()
   {
     // setup keep alive task on the client
-    return new ResultSetMonitor(keepAlivePSPURL, Monitor.KEEP_ALIVE_METHOD);
+    return new ResultSetMonitor(keepAliveURL, Monitor.KEEP_ALIVE_METHOD);
   }
 
   /**
@@ -321,7 +324,7 @@ public class AggregationPSPClient
   {
     // Setup pull task on client
     ResultSetMonitor resultSetMonitor =
-      new ResultSetMonitor(aggregationPSPURL, Monitor.PULL_METHOD);
+      new ResultSetMonitor(aggregationURL, Monitor.PULL_METHOD);
     pullTimer.scheduleAtFixedRate(resultSetMonitor.getPullTask(), 0,
                                   waitPeriod * 1000);
     return resultSetMonitor;
@@ -337,8 +340,8 @@ public class AggregationPSPClient
    public String getSystemProperty(String propertyName)
    {
      String propertyValue =
-       XmlUtils.requestString(aggregationPSPURL +
-                              "?GET_SYSTEM_PROPERTY?PROPERTY_NAME=" +
+       XmlUtils.requestString(aggregationURL +
+                              "&GET_SYSTEM_PROPERTY=1&PROPERTY_NAME=" +
                               propertyName, null);
      return propertyValue.trim();
    }

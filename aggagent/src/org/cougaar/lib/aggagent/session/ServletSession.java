@@ -1,36 +1,36 @@
-
 package org.cougaar.lib.aggagent.session;
 
 import java.io.*;
 import java.util.*;
 
 import org.cougaar.core.agent.*;
+import org.cougaar.core.blackboard.Subscription;
 import org.cougaar.core.domain.*;
-import org.cougaar.core.blackboard.*;
 import org.cougaar.core.mts.Message;
 import org.cougaar.core.mts.MessageAddress;
-import org.cougaar.lib.planserver.*;
+import org.cougaar.core.service.BlackboardService;
 import org.cougaar.util.UnaryPredicate;
 
-import org.cougaar.lib.aggagent.session.UpdateDelta;
+import org.cougaar.lib.aggagent.servlet.SubscriptionListener;
+import org.cougaar.lib.aggagent.servlet.SubscriptionMonitorSupport;
 import org.cougaar.lib.aggagent.util.XmlUtils;
 
 /**
- *  A Session is a handler for instances of the RemotePSPSubscription class.
- *  In the context of a PSP, this class can be used to manage remote access to
- *  the local Blackboard through the RemotePSPSubscription API.
+ *  A Session is a handler for instances of the RemoteBlackboardSubscription
+ *  class.  In the context of a Servlet, this class can be used to manage
+ *  remote access to the local Blackboard through the
+ *  RemoteBlackboardSubscription API.
  */
-public class PSPSession extends RemoteSession implements UISubscriber {
+public class ServletSession extends RemoteSession
+    implements SubscriptionListener {
   protected Object lock = new Object();
-  protected RemotePSPSubscription data = null;
+  protected RemoteBlackboardSubscription data = null;
 
   /**
    *  Create a new Session with the specified session ID to search the
-   *  blackboard for Objects matching the predicate given.  The
-   *  ServerPlugInSupport argument is included so that the RemoteSubscription
-   *  may be created.
+   *  blackboard for Objects matching the predicate given.
    */
-  public PSPSession (String k, String queryId, IncrementFormat f) {
+  public ServletSession (String k, String queryId, IncrementFormat f) {
     super(k, queryId, f);
   }
 
@@ -39,10 +39,17 @@ public class PSPSession extends RemoteSession implements UISubscriber {
    *  Once this method is called, subscriptionChanged() events may start
    *  arriving.
    */
-  public void start (ServerPlugInSupport s, UnaryPredicate p) {
+  public void start (String agentId, BlackboardService b,
+                     SubscriptionMonitorSupport sms, UnaryPredicate p) {
     synchronized (lock) {
-      setAgentId(s.getClusterIDAsString());
-      data = new RemotePSPSubscription(s, p, this);
+      setAgentId(agentId);
+      try {
+        b.openTransaction();
+        data = new RemoteBlackboardSubscription(b, p);
+        sms.setSubscriptionListener(data.getSubscription(), this);
+      } finally {
+        b.closeTransaction(false);
+      }
     }
   }
 
@@ -75,16 +82,15 @@ public class PSPSession extends RemoteSession implements UISubscriber {
    *  through the provided OutputStream.  An IncrementFormat instance is used
    *  to encode the data being sent.
    */
-  public void sendUpdate (OutputStream out) {
+  public void sendUpdate (PrintWriter out) {
     UpdateDelta del = null;
     synchronized (lock) {
       data.open();
       del = createUpdateDelta();
       data.close();
     }
-    PrintStream ps = new PrintStream(out);
-    ps.println(del.toXml());
-    ps.flush();
+    out.println(del.toXml());
+    out.flush();
   }
 
   /**

@@ -5,11 +5,9 @@ import java.net.*;
 import java.util.*;
 
 import org.cougaar.core.service.BlackboardService;
-import org.cougaar.lib.planserver.ServerPlugInSupport;
-import org.cougaar.lib.planserver.server.NameService;
 import org.cougaar.util.UnaryPredicate;
 
-import org.cougaar.lib.aggagent.query.QueryResultAdapter;
+import org.cougaar.lib.aggagent.servlet.SubscriptionMonitorSupport;
 
 /**
  *  A SessionManager is a container for Sessions (q.v.), which may be created,
@@ -21,12 +19,17 @@ import org.cougaar.lib.aggagent.query.QueryResultAdapter;
 public class SessionManager {
   public static boolean debug = false;
 
-  private ServerPlugInSupport spis = null;
+  private String agentId = null;
+  private BlackboardService blackboard = null;
+  private SubscriptionMonitorSupport sms = null;
   private HashMap sessions = new HashMap();
   private int id_counter = 0;
 
-  public SessionManager (ServerPlugInSupport s) {
-    spis = s;
+  public SessionManager (String agentId, BlackboardService blackboard,
+                         SubscriptionMonitorSupport sms) {
+    this.agentId = agentId;
+    this.blackboard = blackboard;
+    this.sms = sms;
   }
 
   public Set getKeys () {
@@ -37,8 +40,8 @@ public class SessionManager {
       UnaryPredicate p, IncrementFormat f, String queryId)
   {
     String k = String.valueOf(id_counter++);
-    PSPSession s = new PSPSession(k, queryId, f);
-    s.start(spis, p);
+    ServletSession s = new ServletSession(k, queryId, f);
+    s.start(agentId, blackboard, sms, p);
 
     sessions.put(k, s);
 
@@ -51,17 +54,16 @@ public class SessionManager {
       System.out.println(
         "SessionManager::cancelSession:  called on \"" + k + "\"");
     }
-    PSPSession sess = (PSPSession) sessions.remove(k);
+    ServletSession sess = (ServletSession) sessions.remove(k);
     sess.endSession();
   }
 
-
-  private PSPSession getSession (String k) {
-    return (PSPSession) sessions.get(k);
+  private ServletSession getSession (String k) {
+    return (ServletSession) sessions.get(k);
   }
 
-  public void sendUpdate(String k, OutputStream out) {
-    PSPSession s = getSession(k);
+  public void sendUpdate(String k, PrintWriter out) {
+    ServletSession s = getSession(k);
     if (s != null)
       s.sendUpdate(out);
   }

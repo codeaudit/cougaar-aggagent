@@ -2,6 +2,7 @@ package org.cougaar.lib.aggagent.client;
 
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Collection;
@@ -61,7 +62,7 @@ import org.cougaar.lib.aggagent.util.XmlUtils;
           if (passiveSessionKey != null)
           {
             String updateURL =
-                serverURL + "?REQUEST_UPDATE?SESSION_ID=" + passiveSessionKey;
+                serverURL + "&REQUEST_UPDATE=1&SESSION_ID=" + passiveSessionKey;
             Element root = XmlUtils.requestXML(updateURL, null);
             updateMonitoredObjects(root);
           }
@@ -79,8 +80,9 @@ import org.cougaar.lib.aggagent.util.XmlUtils;
 
           // set up keep alive connection
           try {
-            URL url = new URL(serverURL + "?KEEP_ALIVE_MONITOR");
+            URL url = new URL(serverURL + "&KEEP_ALIVE_MONITOR=1");
             URLConnection conn = url.openConnection();
+            ((HttpURLConnection)conn).setRequestMethod("PUT");
             conn.setDoOutput(true);
             conn.setDoInput(true);
 
@@ -430,7 +432,7 @@ import org.cougaar.lib.aggagent.util.XmlUtils;
         return null;
 
       // Request a passive session on Aggregation Agent
-      String loadedURL = serverURL + "?CREATE_PASSIVE_SESSION";
+      String loadedURL = serverURL + "&CREATE_PASSIVE_SESSION=1";
       passiveSessionKey = XmlUtils.requestString(loadedURL,
                                                  passiveSessionRequest);
       return passiveSessionKey;
@@ -442,8 +444,9 @@ import org.cougaar.lib.aggagent.util.XmlUtils;
       if (passiveSessionKey != null)
       {
         // Cancel passive session on Aggregation Agent
-        String loadedURL = serverURL + "?CANCEL_PASSIVE_SESSION?SESSION_ID=" +
-                           passiveSessionKey;
+        String loadedURL =
+            serverURL + "&CANCEL_PASSIVE_SESSION=1&SESSION_ID=" +
+            passiveSessionKey;
         response = XmlUtils.requestString(loadedURL, null);
         passiveSessionKey = null;
       }

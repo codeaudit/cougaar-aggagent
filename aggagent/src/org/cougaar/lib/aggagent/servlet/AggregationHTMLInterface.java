@@ -1,18 +1,17 @@
-package org.cougaar.lib.aggagent.psp;
+package org.cougaar.lib.aggagent.servlet;
 
-import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.net.URLEncoder;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Vector;
+import javax.servlet.http.HttpServletRequest;
 
 import org.cougaar.core.blackboard.IncrementalSubscription;
 import org.cougaar.core.blackboard.Subscription;
-import org.cougaar.lib.planserver.PlanServiceContext;
-import org.cougaar.lib.planserver.ServerPlugInSupport;
-import org.cougaar.lib.planserver.UISubscriber;
+import org.cougaar.core.service.BlackboardService;
 import org.cougaar.util.UnaryPredicate;
 
 import org.cougaar.lib.aggagent.query.Alert;
@@ -20,24 +19,29 @@ import org.cougaar.lib.aggagent.query.AlertDescriptor;
 import org.cougaar.lib.aggagent.query.AggregationQuery;
 import org.cougaar.lib.aggagent.query.QueryResultAdapter;
 import org.cougaar.lib.aggagent.session.SessionManager;
-import org.cougaar.lib.aggagent.util.AdvancedHttpInput;
 import org.cougaar.lib.aggagent.util.Enum.*;
 
 import org.cougaar.lib.aggagent.test.CycleSizeAlert;
 
-public class AggregationHTMLInterface extends AggregationPSPInterface
+public class AggregationHTMLInterface extends AggregationServletInterface
 {
-  public AggregationHTMLInterface () {
+  private String servletName;
+
+  public AggregationHTMLInterface (BlackboardService bs,
+                                   SubscriptionMonitorSupport sms,
+                                   String servletName) {
+    super(bs, sms);
+
+    // remove first forward slash
+    this.servletName = servletName.trim().substring(1);
   }
 
-  public void handleRequest(PrintStream out, AdvancedHttpInput ahi,
-                            PlanServiceContext psc)
+  public void handleRequest(PrintWriter out, HttpServletRequest request)
   {
     // print the header
-    out.println("<html><head><title>Aggregation PSP</title></head>");
+    out.println("<html><head><title>Aggregation Servlet</title></head>");
 
-    Vector v = ahi.getHttpInput().getURLParameters();
-    if (v.size() == 0 || v.firstElement().equals("null"))
+    if (!request.getParameterNames().hasMoreElements())
     {
       sendMainFrame(out);
     }
@@ -46,30 +50,30 @@ public class AggregationHTMLInterface extends AggregationPSPInterface
       out.println("<body BGCOLOR=\"#EEEEEE\">");
 
       // check the parameters and decide what to do
-      if (ahi.hasParameter("CREATE_QUERY"))
-        publishHTMLQuery(ahi, psc, out);
-      else if (ahi.hasParameter("CREATE_QUERY_FORM"))
-        HTMLPresenter.sendQueryForm(selfName, out, true);
-      else if (ahi.hasParameter("CREATE_TRAN_QUERY_FORM"))
-        HTMLPresenter.sendQueryForm(selfName, out, false);
-      else if (ahi.hasKeyword("REPORT_QUERY"))
-        generateQueryReport(ahi, out, psc);
-      else if (ahi.hasKeyword("CANCEL_QUERY"))
-        removeQuery(ahi, out, psc);
-      else if (ahi.hasKeyword("HOME"))
-        sendHomePage(out, psc);
-      else if (ahi.hasKeyword("TITLE"))
+      if (request.getParameter("CREATE_QUERY") != null)
+        publishHTMLQuery(request, out);
+      else if (request.getParameter("CREATE_QUERY_FORM") != null)
+        HTMLPresenter.sendQueryForm(servletName, out, true);
+      else if (request.getParameter("CREATE_TRAN_QUERY_FORM") != null)
+        HTMLPresenter.sendQueryForm(servletName, out, false);
+      else if (request.getParameter("REPORT_QUERY") != null)
+        generateQueryReport(request, out);
+      else if (request.getParameter("CANCEL_QUERY") != null)
+        removeQuery(request, out);
+      else if (request.getParameter("HOME") != null)
+        sendHomePage(out);
+      else if (request.getParameter("TITLE") != null)
         sendTitle(out);
-      else if (ahi.hasKeyword("DEFAULT_ALERT"))
-        addDefaultAlert(out, psc);
-      else if (ahi.hasKeyword("ACTIVE_ALERTS"))
-        checkActiveAlerts(out, psc);
-      else if (ahi.hasKeyword("ADD_ALERT_FORM"))
-        HTMLPresenter.sendAlertForm(selfName, ahi, out);
-      else if (ahi.hasKeyword("ADD_ALERT"))
-        processAlertForm(ahi, out, psc);
+      else if (request.getParameter("DEFAULT_ALERT") != null)
+        addDefaultAlert(out);
+      else if (request.getParameter("ACTIVE_ALERTS") != null)
+        checkActiveAlerts(out);
+      else if (request.getParameter("ADD_ALERT_FORM") != null)
+        HTMLPresenter.sendAlertForm(servletName, request, out);
+      else if (request.getParameter("ADD_ALERT") != null)
+        processAlertForm(request, out);
       else
-        sendHomePage(out, psc);
+        sendHomePage(out);
 
       out.println("</body>");
     }
@@ -79,24 +83,20 @@ public class AggregationHTMLInterface extends AggregationPSPInterface
     out.flush();
   }
 
-  private void processAlertForm (
-      AdvancedHttpInput ahi, PrintStream out, PlanServiceContext psc)
+  private void processAlertForm (HttpServletRequest request, PrintWriter out)
   {
-    ServerPlugInSupport spis = psc.getServerPlugInSupport();
-
     // create the alert
-    AlertDescriptor ad = HTMLPresenter.processAlertForm(ahi);
+    AlertDescriptor ad = HTMLPresenter.processAlertForm(request);
 
     // find the indicated query, if any
-    Iterator i =
-      spis.queryForSubscriber(new QuerySeeker(ad.getQueryId())).iterator();
+    Iterator i = query(new QuerySeeker(ad.getQueryId())).iterator();
     if (i.hasNext()) {
       QueryResultAdapter qra = (QueryResultAdapter) i.next();
       try {
         Alert a = ad.createAlert();
         qra.addAlert(a);
-        spis.publishAddForSubscriber(a);
-        checkActiveAlerts(out, psc);
+        publishAdd(a);
+        checkActiveAlerts(out);
       } catch(Exception e) {
         out.println("<h2>Alert Request Error</h2>");
         out.println("The Alert could not be constructed.");
@@ -109,22 +109,22 @@ public class AggregationHTMLInterface extends AggregationPSPInterface
     }
   }
 
-  private void sendMainFrame(PrintStream out) {
+  private void sendMainFrame(PrintWriter out) {
     out.println("<FRAMESET ROWS=\"10%, 90%\">");
-    out.println("<FRAME NAME=\"title\" SRC=\"" + selfName + "?TITLE\">");
+    out.println("<FRAME NAME=\"title\" SRC=\"" + servletName + "?TITLE\">");
     out.println("<FRAMESET COLS=\"30%, 70%\">");
-    out.println("<FRAME NAME=\"menu\" SRC=\"" + selfName + "?HOME\">");
+    out.println("<FRAME NAME=\"menu\" SRC=\"" + servletName + "?HOME\">");
     out.println("<FRAME NAME=\"data\" SRC=\"about:blank\">");
     out.println("</FRAMESET></FRAMESET>");
   }
 
-  private void sendTitle(PrintStream out) {
-    out.println("<H1 align=\"center\">Aggregation PSP</H1>");
+  private void sendTitle(PrintWriter out) {
+    out.println("<H1 align=\"center\">Aggregation Servlet</H1>");
   }
 
-  private void sendHomePage (PrintStream out, PlanServiceContext psc) {
+  private void sendHomePage (PrintWriter out) {
     out.println("<P><h3>Persistent Queries</h3>");
-    summarizeQueries(out, psc);
+    summarizeQueries(out);
     out.println(selfLink("Create", "CREATE_QUERY_FORM", null, "data") +
                 " new persistent query");
     out.println("<br><br><br>");
@@ -141,10 +141,9 @@ public class AggregationHTMLInterface extends AggregationPSPInterface
   //
   //  Check for alerts on the blackboard
   //
-  private void checkActiveAlerts (PrintStream out, PlanServiceContext psc) {
+  private void checkActiveAlerts (PrintWriter out) {
     out.println("checking for active alerts ... <br>");
-    Collection c = psc.getServerPlugInSupport().queryForSubscriber(
-      new AlertSeeker());
+    Collection c = query(new AlertSeeker());
     out.println("Found " + c.size() + " alerts:<br><center>");
     HTMLPresenter.sendAlertSummary(c, out);
   }
@@ -152,52 +151,49 @@ public class AggregationHTMLInterface extends AggregationPSPInterface
   //
   //  Add the default Alert-ridden query to the blackboard
   //
-  private void addDefaultAlert (PrintStream out, PlanServiceContext psc) {
+  private void addDefaultAlert (PrintWriter out) {
     QueryResultAdapter qra =
       new QueryResultAdapter(CycleSizeAlert.createDefaultQuery());
     Alert ale = CycleSizeAlert.getDefaultAlert();
     qra.addAlert(ale);
-    psc.getServerPlugInSupport().publishAddForSubscriber(qra);
-    psc.getServerPlugInSupport().publishAddForSubscriber(ale);
-    sendHomePage(out, psc);
+    publishAdd(qra);
+    publishAdd(ale);
+    sendHomePage(out);
   }
 
-  private void publishHTMLQuery (AdvancedHttpInput in, PlanServiceContext psc,
-                             PrintStream out) {
+  private void publishHTMLQuery (HttpServletRequest request,
+                                 PrintWriter out) {
     // parse form post request
-    AggregationQuery aq = HTMLPresenter.processQueryForm(in);
+    AggregationQuery aq = HTMLPresenter.processQueryForm(request);
     QueryResultAdapter qra = new QueryResultAdapter(aq);
-    psc.getServerPlugInSupport().publishAddForSubscriber(qra);
+    publishAdd(qra);
 
     if (aq.getType() == QueryType.PERSISTENT)
     {
       // update menu frame with new query
-      sendHomePage(out, psc);
+      sendHomePage(out);
     }
     else
     {
-      waitForAndReturnResults(qra.getID(), psc, out, false);
+      waitForAndReturnResults(qra.getID(), out, false);
     }
   }
 
-  private void removeQuery (AdvancedHttpInput in, PrintStream out,
-                            PlanServiceContext psc)
+  private void removeQuery (HttpServletRequest in, PrintWriter out)
   {
     String queryId = in.getParameter("SESSION_ID");
-    findAndRemoveQuery(queryId, psc);
-    sendHomePage(out, psc);
+    findAndRemoveQuery(queryId);
+    sendHomePage(out);
   }
 
-  private void generateQueryReport (AdvancedHttpInput in, PrintStream out,
-                                    PlanServiceContext psc) {
+  private void generateQueryReport (HttpServletRequest in, PrintWriter out) {
     String id = in.getParameter("SESSION_ID");
-    QueryResultAdapter qra = findQuery(id, psc);
+    QueryResultAdapter qra = findQuery(id);
     printQueryReportPage(qra, out);
   }
 
-  private void summarizeQueries (PrintStream out, PlanServiceContext psc) {
-    Collection qs =
-      psc.getServerPlugInSupport().queryForSubscriber(new QuerySeeker());
+  private void summarizeQueries (PrintWriter out) {
+    Collection qs = query(new QuerySeeker());
     Iterator i = qs.iterator();
     if (i.hasNext()) {
       out.println("Currently active queries:");
@@ -207,7 +203,7 @@ public class AggregationHTMLInterface extends AggregationPSPInterface
         String name = qra.getQuery().getName();
         String alertPragma = "ADD_ALERT_FORM";
         if (name != null)
-          alertPragma = alertPragma + "?QUERY=" + URLEncoder.encode(name);
+          alertPragma = "QUERY=" + URLEncoder.encode(name) + "&" + alertPragma;
 
         String queryViewLink =
           selfLink(qra.getQuery().getName() + " (" + qra.getID() + ") ",
@@ -229,14 +225,15 @@ public class AggregationHTMLInterface extends AggregationPSPInterface
     }
   }
 
-  private static String selfLink (String text, String pragma, String id,
-                                  String target) {
-    StringBuffer buf = new StringBuffer(selfName);
+  private String selfLink (String text, String pragma, String id,
+                           String target) {
+    StringBuffer buf = new StringBuffer(servletName);
     if (pragma != null) {
       buf.append("?");
       buf.append(pragma);
+      buf.append("=1");
       if (id != null) {
-        buf.append("?");
+        buf.append("&");
         buf.append("SESSION_ID");
         buf.append("=");
         buf.append(URLEncoder.encode(id));
