@@ -68,7 +68,7 @@ public class AggregationKeepAliveComponent extends BlackboardServletComponent {
       //
       // Handle Keep Alive Session Request
       //
-      PrintWriter out = response.getWriter();
+      PrintWriter out = new PrintWriter(response.getOutputStream());
       KeepAliveSession kaSession = null;
 
       // establish session id, send to client
@@ -95,14 +95,7 @@ public class AggregationKeepAliveComponent extends BlackboardServletComponent {
         boolean outputError = false;
         boolean sessionCanceled = false;
 
-        // With the current servlet support, the checkError() method is
-        // unreleable.  PrintWriters are recycled by tomcat.  Once a
-        // PrintWriter is returning true for checkError(), it always does
-        // (even after it's recycled).
-        //
-        // Uncomment outputError check after this is fixed.
-        //
-        while /* ((!outputError) && */(!sessionCanceled)/*)*/
+        while ((!outputError) && (!sessionCanceled))
         {
           System.out.println("---------Keep Alive Session " + thisSession +
                              " is Alive---------");
@@ -122,18 +115,20 @@ public class AggregationKeepAliveComponent extends BlackboardServletComponent {
           {
             sessionCanceled =
                 ((Boolean)sessionMap.get(thisSession)).booleanValue();
-            if (sessionCanceled)
-            {
-              sessionMap.remove(thisSession);
-            }
           }
         }
       }
       catch (Exception done_in) {
         System.out.println("AggregationKeepAliveServlet::doPut:  aborted!");
       }
-      kaSession.cancel();
-      System.out.println("AggregationKeepAliveServlet::doPut:  leaving");
+      finally {
+        kaSession.cancel();
+        synchronized (sessionMap)
+        {
+          sessionMap.remove(thisSession);
+        }
+        System.out.println("AggregationKeepAliveServlet::doPut:  leaving");
+      }
     }
   }
 
