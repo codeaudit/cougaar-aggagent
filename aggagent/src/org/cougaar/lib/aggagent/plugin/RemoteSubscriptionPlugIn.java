@@ -216,8 +216,11 @@ System.out.println("RemotePlugin: Got message: "+requestName+":"+root.toString()
     }
 
     public void cancel () {
-      queryMap.remove(rawData);
-      getBlackboardService().unsubscribe(rawData);
+      synchronized (lock)
+      {
+        queryMap.remove(rawData);
+        getBlackboardService().unsubscribe(rawData);
+      }
     }
 
     public void subscriptionChanged () {
@@ -244,10 +247,12 @@ System.out.println("RemotePlugin: Got message: "+requestName+":"+root.toString()
         String k, String q, IncrementFormat f, String r, UnaryPredicate p)
     {
       super(k, q, f, r);
-      rbs = new RemoteBlackboardSubscription(
-        getBlackboardService(), new ErrorTrapPredicate(p));
-
-      queryMap.put(rbs.getSubscription(), this);
+      synchronized (lock)
+      {
+        rbs = new RemoteBlackboardSubscription(
+          getBlackboardService(), new ErrorTrapPredicate(p));
+        queryMap.put(rbs.getSubscription(), this);
+      }
     }
 
     public void pushUpdate () {
@@ -259,8 +264,11 @@ System.out.println("RemotePlugin: Got message: "+requestName+":"+root.toString()
     }
 
     public void cancel () {
-      queryMap.remove(rbs.getSubscription());
-      rbs.shutDown();
+      synchronized (lock)
+      {
+        queryMap.remove(rbs.getSubscription());
+        rbs.shutDown();
+      }
     }
 
     public void subscriptionChanged () {
