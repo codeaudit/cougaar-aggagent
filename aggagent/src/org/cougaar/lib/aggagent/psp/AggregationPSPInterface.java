@@ -185,7 +185,7 @@ public abstract class AggregationPSPInterface
       private boolean allClustersResponded(QueryResultAdapter qra) {
         HashSet responded = new HashSet();
 
-        Iterator iter = qra.getResultSet().getRespondingClusters();
+        Iterator iter = qra.getRawResultSet().getRespondingClusters();
         while (iter.hasNext())
           responded.add(iter.next());
 
