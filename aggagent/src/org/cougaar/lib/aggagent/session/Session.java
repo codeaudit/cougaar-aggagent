@@ -13,7 +13,7 @@ import org.cougaar.core.cluster.*;
  *  In the context of a PSP, this class can be used to manage remote access to
  *  the local Blackboard through the RemotePSPSubscription API.
  */
-public class Session {
+public class Session implements UISubscriber {
   protected Object lock = new Object();
 
   private String key = null;
@@ -52,7 +52,7 @@ public class Session {
   public void start (ServerPlugInSupport s, UnaryPredicate p) {
     synchronized (lock) {
       clusterId = s.getClusterIDAsString();
-      data = new RemotePSPSubscription(s, p);
+      data = new RemotePSPSubscription(s, p, this);
     }
   }
 
@@ -104,5 +104,20 @@ public class Session {
       }
       data.close();
     }
+  }
+
+  /**
+   *  Implementation of the UISubscriber interface.  When the COUGAAR agent has
+   *  changes to report, it will call this method so that the Session can
+   *  respond accordingly.  The only action included by default is to call the
+   *  subscriptionChanged() method of the underlying RemotePSPSubscription.
+   *  Subclasses may wish to take additional steps, such as sending notices to
+   *  other agents, etc.
+   *  <br><br>
+   *  The Subscription argument is ignored, as the relevant Subscription is
+   *  presumed to be the one encapsulated within the RemotePSPSubscription.
+   */
+  public void subscriptionChanged (Subscription sub) {
+    data.subscriptionChanged();
   }
 }
