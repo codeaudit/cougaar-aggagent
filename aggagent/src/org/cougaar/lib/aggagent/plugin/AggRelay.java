@@ -117,20 +117,20 @@ implements Relay.Source, Relay.Target, XMLizable
     return SimpleRelayFactory.INSTANCE;
   }
 
-  public boolean updateResponse(MessageAddress addr, Object o) {
+  public int updateResponse(MessageAddress addr, Object o) {
       if (!(o instanceof XMLMessage)) 
           throw new RuntimeException("AggRelay: Response is not an XMLMessage");
       return updateResponse(addr, (XMLMessage)o);
   }
   
-  public boolean updateResponse(
+  public int updateResponse(
       MessageAddress t, XMLMessage response) {
     // assert response != null
     if (!(response.equals(this.response))) {
       this.response = response;
-      return true;
+      return Relay.RESPONSE_CHANGE;
     }
-    return false;
+    return Relay.NO_CHANGE;
   }
 
   // Target interface
@@ -143,19 +143,19 @@ implements Relay.Source, Relay.Target, XMLizable
     return response;
   }
 
-  public boolean updateContent(Object o, Token token) {
+  public int updateContent(Object o, Token token) {
       if (!(o instanceof XMLMessage)) 
           throw new RuntimeException("AggRelay: Content is not an XMLMessage");
       return updateContent((XMLMessage)o, token);
   }
 
-  public boolean updateContent(XMLMessage content, Token token) {
+  public int updateContent(XMLMessage content, Token token) {
     // assert content != null
     if (!(content.equals(this.content))) {
       this.content = content;
-      return true;
+      return Relay.CONTENT_CHANGE;
     }
-    return false;
+    return Relay.NO_CHANGE;
   }
 
   // XMLizable method for UI, other clients
