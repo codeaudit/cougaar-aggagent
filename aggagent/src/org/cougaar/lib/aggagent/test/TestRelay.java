@@ -163,4 +163,13 @@ implements Relay.Source, Relay.Target
   public String toString() {
     return "("+uid+", "+content+", "+response+")";
   }
+
+  private void readObject(java.io.ObjectInputStream os) 
+    throws ClassNotFoundException, java.io.IOException {
+    os.defaultReadObject();
+    this._targets = 
+      ((target != null) ?
+       Collections.singleton(target) :
+       Collections.EMPTY_SET);
+  }  
 }
