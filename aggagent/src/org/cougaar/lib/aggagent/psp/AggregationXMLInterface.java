@@ -30,9 +30,10 @@ import org.cougaar.lib.aggagent.util.XmlUtils;
 
 public class AggregationXMLInterface extends AggregationPSPInterface
 {
-  public AggregationXMLInterface(SessionManager man)
-  {
-    super(man);
+  protected SessionManager man = null;
+
+  public AggregationXMLInterface (SessionManager m) {
+    man = m;
   }
 
   public void handleRequest(PrintStream out, AdvancedHttpInput ahi,

@@ -57,8 +57,7 @@ System.out.println("AggKeepAlivePSP: execute");
     System.out.println("AggregationKeepAlivePSP::execute:  leaving");
   }
 
-  private static class KeepAliveSession extends Session implements UISubscriber
-  {
+  private static class KeepAliveSession extends Session {
     OutputStream out = null;
 
     KeepAliveSession(ServerPlugInSupport spis, UnaryPredicate predicate,
@@ -76,24 +75,10 @@ System.out.println("AggKeepAlivePSP: execute");
      *  subscription information is available.
      */
     public void subscriptionChanged (Subscription sub) {
-System.out.println("KeepAlivePSP: subscriptionChanged");
       this.data.subscriptionChanged();
-      if (out != null)
-      {
+      if (out != null) {
         sendUpdate(out);
         endMessage(out);
-      }
-    }
-
-    /**
-     *  Create the RemoteSubscription instance to be managed by this Session.
-     *  Once this method is called, subscriptionChanged() events may start
-     *  arriving.
-     */
-    public void start (ServerPlugInSupport s, UnaryPredicate p) {
-      synchronized (lock) {
-        clusterId = s.getClusterIDAsString();
-        data = new RemotePSPSubscription(s, p, this);
       }
     }
   }

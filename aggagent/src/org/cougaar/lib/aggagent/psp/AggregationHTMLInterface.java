@@ -28,9 +28,7 @@ import org.cougaar.lib.aggagent.test.CycleSizeAlert;
 
 public class AggregationHTMLInterface extends AggregationPSPInterface
 {
-  public AggregationHTMLInterface(SessionManager man)
-  {
-    super(man);
+  public AggregationHTMLInterface () {
   }
 
   public void handleRequest(PrintStream out, AdvancedHttpInput ahi,
@@ -49,18 +47,12 @@ public class AggregationHTMLInterface extends AggregationPSPInterface
       out.println("<body BGCOLOR=\"#EEEEEE\">");
 
       // check the parameters and decide what to do
-      if (ahi.hasParameter("CREATE"))
-        createSession(ahi, out, psc);
-      else if (ahi.hasParameter("CREATE_QUERY"))
+      if (ahi.hasParameter("CREATE_QUERY"))
         publishHTMLQuery(ahi, psc, out);
       else if (ahi.hasParameter("CREATE_QUERY_FORM"))
         HTMLPresenter.sendQueryForm(selfName, out, true);
       else if (ahi.hasParameter("CREATE_TRAN_QUERY_FORM"))
         HTMLPresenter.sendQueryForm(selfName, out, false);
-      else if (ahi.hasKeyword("CANCEL"))
-        cancelSession(ahi, out, psc);
-      else if (ahi.hasKeyword("REPORT"))
-        generateReport(ahi, out);
       else if (ahi.hasKeyword("REPORT_QUERY"))
         generateQueryReport(ahi, out, psc);
       else if (ahi.hasKeyword("CANCEL_QUERY"))
@@ -141,10 +133,6 @@ public class AggregationHTMLInterface extends AggregationPSPInterface
     out.println(selfLink("Create", "CREATE_TRAN_QUERY_FORM", null, "data") +
                 " new transient query");
     out.println("<br><br><br>");
-    out.println("<P><h3>Passive Sessions<BR>on Aggregation Agent</h3>");
-    summarizeKeys(out);
-    out.println(selfLink("Create", "CREATE", null, "menu") + " new session");
-    out.println("<br><br><br>");
     out.println("<P><h3>Alerts<BR>on Aggregation Agent</h3>");
     out.println(selfLink("Add Default", "DEFAULT_ALERT", null, "menu"));
     out.println("<br><br>");
@@ -175,19 +163,6 @@ public class AggregationHTMLInterface extends AggregationPSPInterface
     sendHomePage(out, psc);
   }
 
-  private void cancelSession (AdvancedHttpInput in, PrintStream out,
-                              PlanServiceContext psc) {
-    man.cancelSession(in.getParameter("SESSION_ID"));
-    sendHomePage(out, psc);
-  }
-
-  private void createSession (AdvancedHttpInput in, PrintStream out,
-                              PlanServiceContext psc) {
-    String k = man.addSession(new QuerySeeker(), new HtmlIncrement(),
-                              "PASSIVE SESSION");
-    sendHomePage(out, psc);
-  }
-
   private void publishHTMLQuery (AdvancedHttpInput in, PlanServiceContext psc,
                              PrintStream out) {
     // parse form post request
@@ -212,37 +187,6 @@ public class AggregationHTMLInterface extends AggregationPSPInterface
     String queryId = in.getParameter("SESSION_ID");
     findAndRemoveQuery(queryId, psc);
     sendHomePage(out, psc);
-  }
-
-  private void generateReport (AdvancedHttpInput in, PrintStream out) {
-    printReportPage(in.getParameter("SESSION_ID"), out);
-  }
-
-  private void printReportPage (String id, PrintStream out) {
-    man.sendUpdate(id, out);
-  }
-
-
-  private void summarizeKeys (PrintStream out) {
-    Iterator i = man.getKeys().iterator();
-    if (i.hasNext()) {
-      out.println("Currently active sessions:");
-      out.println("<TABLE>");
-      while (i.hasNext()) {
-        String key = i.next().toString();
-        String sessionViewLink =
-          selfLink("Session ID \"" + key + "\" ", "REPORT", key, "data");
-        String sessionCancelLink = selfLink("cancel", "CANCEL", key, "menu");
-        out.println("<TR><TD>&nbsp;&nbsp;&nbsp;" + sessionViewLink +
-                    "</TD><TD>&nbsp;&nbsp;[" + sessionCancelLink + "]" +
-                    "</TD></TR>");
-      }
-      out.println("</TABLE><BR>");
-    }
-    else {
-      out.println("There are no active sessions.");
-      out.println("<BR><BR>");
-    }
   }
 
   private void generateQueryReport (AdvancedHttpInput in, PrintStream out,

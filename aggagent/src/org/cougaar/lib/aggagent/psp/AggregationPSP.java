@@ -27,7 +27,7 @@ public class AggregationPSP
 
   private void makeSubscription (PlanServiceContext psc) {
     SessionManager man = new SessionManager(psc.getServerPlugInSupport());
-    htmlInterface = new AggregationHTMLInterface(man);
+    htmlInterface = new AggregationHTMLInterface();
     xmlInterface = new AggregationXMLInterface(man);
     first_call = false;
   }

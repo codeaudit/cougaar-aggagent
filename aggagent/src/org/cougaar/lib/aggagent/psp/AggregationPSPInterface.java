@@ -18,11 +18,8 @@ import org.cougaar.lib.aggagent.util.AdvancedHttpInput;
 public abstract class AggregationPSPInterface
 {
   protected static String selfName = "assessment.psp";
-  protected SessionManager man = null;
 
-  public AggregationPSPInterface(SessionManager man)
-  {
-    this.man = man;
+  public AggregationPSPInterface () {
   }
 
   public abstract void handleRequest(PrintStream out, AdvancedHttpInput ahi,
