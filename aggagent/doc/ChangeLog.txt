@@ -1,5 +1,116 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////
+// 2-16-01 (natec)
+//
+Aggagent now annotates Subscription/Container Events w/ returned XML objects.  
+
+Specifically, the XML of  LogPlan objects are now annotated with
+"<Subscription  Event=Type />"   where Type = ADD, REMOVE,CHANGE
+
+Events correspond to subscription events noted at Generic PSP.
+
+Be sure to update your XSL to PASS-THRU this information if you care about
+Event info. (example.  the minitest XSL from cvs is provided below).
+Similarily, can filter at the source for specific events (only intersted in
+CHANGE events, for example) = use XSL to filter.
+
+Important.  Read the usage comments below.
+
+XSL Example: 
+<?xml version="1.0"?> 
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <xsl:template match="LogPlan">
+    <LogPlan> 
+       <xsl:for-each select="Task">
+          <Task 
+             ContainerEvent="{Subscription/@Event}"
+             verb="{verb}"
+             ID="{ID/UID}"
+             source="{source}"
+             destination="{destination/address}"
+          />
+       </xsl:for-each>
+    </LogPlan>
+  </xsl:template>
+</xsl:stylesheet>
+
+Some IMPORTANT subtlety:
+
+to reliably subscribe to "remove" and "change" container events you MUST
+USE a KeepAlive (GENERIC_KA.PSP) or a QuerySession Polling Query
+(QUERYSESSION="xxxx").     Changes and Removes are wrt to the viewpoint of
+specific Subscription over time.   Stateless Polling Queries do not
+maintain a significant long-lived subscription to meaningfully observe
+these events.
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+
+Latest checkins turn-on the <pollInterval/> parameter wrt to Aggregator
+Queries.
+
+   <source name="3ID" ignore="false">
+        <pollInterval>30000</pollInterval>
+        <pspquery>/alpine/demo/GENERIC.PSP?QUERY_SIMPLE_TASK</pspquery>
+   </source>
+
+Up until now, all POLLING queries were governed by a single constant, set
+as plugin parameter, as in:
+
+plugin =
+org.cougaar.lib.aggagent.plugin.AggregatorPlugin(file=scripts/aggregator_que
+ries.xml,default_poll_rate=10000)
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+
+New query type has been added to Agg Agent repetoire:  "Stateful query by
+polling".  
+
+The design intention is to cover a query UI usage model which was not well
+supported by previous query types:    "Stateless Query by polling" and
+"Query  by Keep-Alives".
+
+Desired was a query type which behaved like a "Keep-alive" but without the
+overhead of long-term connection.   the solution would trade-off sampling
+fidelity for a light-weight polling mechanism which was simple to implement
+and easy to use.  This implementaiton is notionally a "virtualized keep
+alive" query to the applicaiton.
+
+This new query type is identical to existing Query by Polling except for
+insertion of 1 additional concept:  a query session.  A query session is a
+query proxy on the server (implmeented aspart of generic psp) which is
+updated via subscription adds (later also changes/removes).   Incoming
+queries made against that query session, receive updates from the
+intervening period (since last query). 
+
+URL of new query type is identical to URL for query by polling EXCEPT for
+addition of  'QUERYSESSION' URL param. The value of parameter identifies
+the query session.  all future references must be with respect to the query
+session.   First use of ?QUERYSESSION implicitly sets up query session at
+generic psp.   Omitting ?QUERYSESSION param means the query is a stateless
+query (all matching items returned vs. just delta since last query).
+
+<pspquery>/alpine/demo/GENERIC.PSP?QUERY_SIMPLE_TASK?QUERYSESSION="1234"</ps
+pquery>
+
+query examples can be seen  in examples query script at.
+
+/aggagent/examples/minitest/scripts/aggregator_queries.xml
+
+There should be no impact on application code at the generic query adapter
+level or at the transfomer plugin level.
+
+Current implementation has the poll rate constant (consistent with all
+other polling queries).  Later features discussed:
+
+a.)
+adaptive quality by which polling varies according to observed
+rate-of-change (ie. more updates speeds up polling, slow-down in update
+rate = slowdown in polling rate).  
+
+b.)
+query session mgmt function (delete, count)  for query sessions
+
+/////////////////////////////////////////////////////////////////////////////////////////////
 Version 0.6 ChangeList
 
 1.)  SimpleTransfomerPlugin added.   Its a "shell" implementation which currently only purpose is to grab 
