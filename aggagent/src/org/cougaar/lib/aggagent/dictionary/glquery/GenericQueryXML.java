@@ -62,9 +62,6 @@ public class GenericQueryXML  implements GenericQuery
      //
      private SAXParser mySaxParser = null;
 
-
-     // Accumulates query state...
-     // flushed when contents xmlized...
      private final String DEFAULT_XML_SERVICE = "org.cougaar.domain.mlm.ui.psp.xmlservice.XMLPlanObjectProvider";
 
 
@@ -126,17 +123,7 @@ public class GenericQueryXML  implements GenericQuery
                    XMLObjectProvider   myObjectProvider =
                             (XMLObjectProvider)this.getParam(this.paramkey_XML_SERVICE);
                    synchronized( myObjectProvider ) {
-                       try{
-                            myObjectProvider.addPlanObject(o);
-
-                       } catch( Exception ex) {
-                            System.err.println("#####################################################");
-                            System.err.println("CORE LOGPLAN SERVICE FAILED.  Exception follows.");
-                            System.err.println("[XMLService]  Entry=XMLObjectProvider.addPlanObject");
-                            System.err.println("#####################################################");
-                            ex.printStackTrace();
-                       }
-
+                            addObject(o, myObjectProvider);
                    }
               }
            }
@@ -186,7 +173,7 @@ public class GenericQueryXML  implements GenericQuery
 
                  TXDocument doc = null;
                  synchronized( myObjectProvider) {
-                     Object odoc= myObjectProvider.getDocumentRef();
+                     Object odoc= getDocument(myObjectProvider);
                      if( odoc instanceof TXDocument) doc = (TXDocument)odoc;
                  }
                  //
@@ -259,7 +246,7 @@ public class GenericQueryXML  implements GenericQuery
 
               TXDocument doc = null;
               synchronized( myObjectProvider) {
-                     Object odoc= myObjectProvider.getDocumentRef();
+                     Object odoc= getDocument(myObjectProvider);
                      if( odoc instanceof TXDocument) doc = (TXDocument)odoc;
               }
               if( ( doc != null) )
@@ -296,18 +283,56 @@ public class GenericQueryXML  implements GenericQuery
                    }
                    pw.flush();
                    System.out.println("[GenericQueryXML] pw.toString()=" + pw.toString() );
-
               }
-
           }
-
           // ##############################
           // FLUSH! object cache after we've consumed data
           // ##############################
           synchronized( myObjectProvider ) {
-              myObjectProvider.reset();
+              reset(myObjectProvider);
           }
-     }
+  }
+
+  //-------------------------------------------------------------------------
+  // WRAPPERS TO XmlObjectProvider methods-- to trap exceptions and notify
+  //-------------------------------------------------------------------------
+  private void addObject( Object obj, XMLObjectProvider provider) {
+      try{
+           provider.addObject(obj);
+      } catch (Exception ex){
+            System.err.println("#####################################################");
+            System.err.println("CORE SERVICE FAILED.  Exception follows.");
+            System.err.println("[XMLService]  Entry=XMLObjectProvider.addObject");
+            System.err.println("#####################################################");
+            ex.printStackTrace();
+      }
+  }
+  private void reset(XMLObjectProvider provider){
+      try{
+           provider.reset();
+      } catch (Exception ex){
+            System.err.println("#####################################################");
+            System.err.println("CORE SERVICE FAILED.  Exception follows.");
+            System.err.println("[XMLService]  Entry=XMLObjectProvider.reset");
+            System.err.println("#####################################################");
+            ex.printStackTrace();
+      }
+  }
+  private Document getDocument(XMLObjectProvider provider) {
+      try{
+           return provider.getDocumentRef();
+      } catch (Exception ex){
+            System.err.println("#####################################################");
+            System.err.println("CORE SERVICE FAILED.  Exception follows.");
+            System.err.println("[XMLService]  Entry=XMLObjectProvider.getDocumentRef");
+            System.err.println("#####################################################");
+            ex.printStackTrace();
+      }
+      return null;
+  }
+  //-------------------------------------------------------------------------
+  // END - WRAPPERS TO XmlObjectProvider methods-- 
+  //-------------------------------------------------------------------------
 
 	public  void applyXSL(StringReader xmldata, XSLTInputSource xsl, OutputStream out)
             throws java.io.IOException,

@@ -56,9 +56,8 @@ public class AggQueryOrgHierarchy extends CustomQueryBaseAdapter
      // GenericQueryXML accumulates state
      public void execute( Collection matches ) {
 
-           synchronized( matches)
-           {
-              //Iterator it = matches.iterator();
+           synchronized( matches) {
+
               Object [] objs = matches.toArray();
 
               for(int i=0; i< objs.length; i++)

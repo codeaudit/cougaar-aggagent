@@ -87,6 +87,8 @@ public class AggregatorPlugin extends SimplifiedPlugIn
     }
 
     private boolean first_time = true;
+    private DOMParser domp = new DOMParser();
+
 
     public void execute() {
         if( first_time ){
