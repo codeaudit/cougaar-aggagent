@@ -19,7 +19,7 @@ public class CompoundKey {
     keys = new String[l.size()];
     Iterator i = l.iterator();
     for (int j = 0; i.hasNext(); j++)
-      keys[j] = (String) m.get(i.next());
+      keys[j] = m.get(i.next()).toString();
 
     makeStringVal();
   }
