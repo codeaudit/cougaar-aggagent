@@ -10,11 +10,13 @@ import org.cougaar.lib.planserver.PlanServiceContext;
 import org.cougaar.lib.planserver.PlanServiceUtilities;
 import org.cougaar.lib.planserver.PSP_BaseAdapter;
 import org.cougaar.lib.planserver.ServerPlugInSupport;
+import org.cougaar.lib.planserver.UISubscriber;
 import org.cougaar.util.UnaryPredicate;
 import org.cougaar.core.cluster.*;
 
 import org.cougaar.lib.aggagent.session.IncrementFormat;
 import org.cougaar.lib.aggagent.session.XmlIncrement;
+import org.cougaar.lib.aggagent.session.RemotePSPSubscription;
 import org.cougaar.lib.aggagent.session.Session;
 
 /**
@@ -25,7 +27,6 @@ import org.cougaar.lib.aggagent.session.Session;
 public class AggregationKeepAlivePSP extends PSP_BaseAdapter
     implements PlanServiceProvider, KeepAlive
 {
-  KeepAliveSession kas;
   /**
    *  Run a keep-alive session.  This method will continue to send lines of
    *  output to the provided PrintStream until an error is detected.
@@ -37,10 +38,9 @@ public class AggregationKeepAlivePSP extends PSP_BaseAdapter
 System.out.println("AggKeepAlivePSP: execute");
     AggregationXMLInterface.MonitorRequestParser request =
       new AggregationXMLInterface.MonitorRequestParser(in);
-    kas =
-      new KeepAliveSession(psc.getServerPlugInSupport(),
-                           request.unaryPredicate,
-                           new XmlIncrement(request.xmlEncoder), out);
+    new KeepAliveSession(psc.getServerPlugInSupport(), request.unaryPredicate,
+      new XmlIncrement(request.xmlEncoder), out);
+
     try {
       // this check will EVENTUALLY get triggered after the client drops the
       // connection.  It would be nice if I could receive a cancel message
@@ -57,7 +57,7 @@ System.out.println("AggKeepAlivePSP: execute");
     System.out.println("AggregationKeepAlivePSP::execute:  leaving");
   }
 
-  private static class KeepAliveSession extends Session
+  private static class KeepAliveSession extends Session implements UISubscriber
   {
     OutputStream out = null;
 
@@ -82,6 +82,18 @@ System.out.println("KeepAlivePSP: subscriptionChanged");
       {
         sendUpdate(out);
         endMessage(out);
+      }
+    }
+
+    /**
+     *  Create the RemoteSubscription instance to be managed by this Session.
+     *  Once this method is called, subscriptionChanged() events may start
+     *  arriving.
+     */
+    public void start (ServerPlugInSupport s, UnaryPredicate p) {
+      synchronized (lock) {
+        clusterId = s.getClusterIDAsString();
+        data = new RemotePSPSubscription(s, p, this);
       }
     }
   }
