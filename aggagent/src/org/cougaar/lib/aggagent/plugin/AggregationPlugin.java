@@ -29,7 +29,7 @@ import org.cougaar.core.mts.MessageAddress;
 import org.cougaar.core.mts.*;
 import org.cougaar.core.component.*;
 
-public class AggregationPlugIn
+public class AggregationPlugin
     extends ComponentPlugin
     implements MessageTransportClient, ServiceRevokedListener
 {
@@ -198,7 +198,7 @@ System.out.println("Cancelling remote session at "+clusterString);
   {
     sendMessage(createAggAddress(clusterId),
       frameRequestXml("push_request", queryId, null, true, qra.getQuery()));
-    System.out.println("AggPlugIn::requestPushSession:  sent message");
+    System.out.println("AggPlugin::requestPushSession:  sent message");
   }
 
   /**

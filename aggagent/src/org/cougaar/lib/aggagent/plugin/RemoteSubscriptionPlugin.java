@@ -22,7 +22,7 @@ import org.cougaar.core.mts.MessageAddress;
 import org.cougaar.core.service.MessageTransportService;
 
 
-public class RemoteSubscriptionPlugIn extends AggregationPlugIn implements MessageTransportClient
+public class RemoteSubscriptionPlugin extends AggregationPlugin implements MessageTransportClient
 {
   private static final boolean debug = false;
   private Object lock = new Object();
@@ -160,7 +160,7 @@ public class RemoteSubscriptionPlugIn extends AggregationPlugIn implements Messa
   private HashMap queryMap = new HashMap();
 
   // "BB" stands for "Blackboard".  This is the abstract base class for the
-  // RemoteSession implementations used by this PlugIn.  It adds the ability
+  // RemoteSession implementations used by this Plugin.  It adds the ability
   // to cancel, to respond to subscription events from the host agent, and send
   // updates via COUGAAR messaging (all abstractly).
   private abstract class BBSession extends RemoteSession {

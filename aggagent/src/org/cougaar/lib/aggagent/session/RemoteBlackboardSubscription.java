@@ -15,7 +15,7 @@ import org.cougaar.util.*;
  *  <p>
  *  A RemoteBlackboardSubscription is a mechanism that allows remote clients to
  *  collect information from a COUGAAR Agent in much the same way as one of its
- *  PlugIns.  Instances of this class behave like an IncrementalSubscription,
+ *  Plugins.  Instances of this class behave like an IncrementalSubscription,
  *  that is, they accumulate and incrementally report lists of blackboard
  *  objects that have been added, removed, or modified.  However, their
  *  reporting model is not tied directly to the Cluster's event thread.

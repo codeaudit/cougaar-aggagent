@@ -11,13 +11,13 @@ import org.cougaar.util.UnaryPredicate;
 import org.cougaar.lib.aggagent.query.*;
 
 /**
- *  This PlugIn serves a dual purpose.  It notices when queries have changed
+ *  This Plugin serves a dual purpose.  It notices when queries have changed
  *  and updates the associated Alert instances, and also notices when an Alert
  *  has changed its state so that notices may be sent.
  *  <br><br>
  *  Currently, notices are not implemented, so none are actually sent.
  */
-public class AlertPlugIn extends ComponentPlugin {
+public class AlertPlugin extends ComponentPlugin {
   private static class ClassInstanceSeeker implements UnaryPredicate {
     private Class type = null;
 
@@ -53,7 +53,7 @@ public class AlertPlugIn extends ComponentPlugin {
     if (alerts.hasChanged()) {
       // set initial state of new alert(s)
       updateAlerts(alerts.getAddedCollection().iterator());
-      System.out.println("AlertPlugIn::execute:  Alerts have changed");
+      System.out.println("AlertPlugin::execute:  Alerts have changed");
     }
   }
 

@@ -58,11 +58,11 @@ import java.util.*;
  *    <li>
  *      pauseInterval -- a parameter that regulates the amount of work
  *      performed by each Cluster.  Literally, this is the amount of time that
- *      the EffortWaster PlugIn pauses between updates of the blackboard state.
+ *      the EffortWaster Plugin pauses between updates of the blackboard state.
  *    </li>
  *    <li>
  *      maxCycles -- another workload regulator.  This is the maximum number of
- *      objects to be managed by the EffortWaster PlugIn on each Cluster, and
+ *      objects to be managed by the EffortWaster Plugin on each Cluster, and
  *      consequently also the number of things that must be transmitted to the
  *    </li>
  *  </ul>
@@ -73,7 +73,7 @@ public class Configurator {
 // - - - - - - - Static Configuration - - - - - - - - - - - - - - - - - - - - -
   private static List sourcePsps = new LinkedList();
   private static List aggNames = new LinkedList();
-  private static List aggPlugIns = new LinkedList();
+  private static List aggPlugins = new LinkedList();
   private static List aggPsps = new LinkedList();
   private static List jarFiles = new LinkedList();
   private static List sysFiles = new LinkedList();
@@ -84,10 +84,10 @@ public class Configurator {
 
     aggNames.add("Aggregator");
 
-    aggPlugIns.add("org.cougaar.lib.aggagent.servlet.AggregationComponent(/aggregator)");
-    aggPlugIns.add("org.cougaar.lib.aggagent.servlet.AggregationKeepAliveComponent(/aggregatorkeepalive)");
-    aggPlugIns.add("org.cougaar.lib.aggagent.plugin.AggregationPlugIn");
-    aggPlugIns.add("org.cougaar.lib.aggagent.plugin.AlertPlugIn");
+    aggPlugins.add("org.cougaar.lib.aggagent.servlet.AggregationComponent(/aggregator)");
+    aggPlugins.add("org.cougaar.lib.aggagent.servlet.AggregationKeepAliveComponent(/aggregatorkeepalive)");
+    aggPlugins.add("org.cougaar.lib.aggagent.plugin.AggregationPlugin");
+    aggPlugins.add("org.cougaar.lib.aggagent.plugin.AlertPlugin");
 
     jarFiles.add("core.jar");
     jarFiles.add("webserver.jar");
@@ -114,7 +114,7 @@ public class Configurator {
     out.println("class = org.cougaar.core.agent.ClusterImpl");
     out.println("uic = UIC/" + name);
     out.println();
-    out.println("[ PlugIns ]");
+    out.println("[ Plugins ]");
 
     for (Iterator i = plugIns.iterator(); i.hasNext(); )
       out.println("plugin = " + i.next());
@@ -246,14 +246,14 @@ public class Configurator {
     return ret;
   }
 
-  private List genSourcePlugIns () {
+  private List genSourcePlugins () {
     List ret = new LinkedList();
     //ret.add(
-    //  "org.cougaar.lib.planserver.PlanServerPlugIn(file=source.psps.xml)");
+    //  "org.cougaar.lib.planserver.PlanServerPlugin(file=source.psps.xml)");
     ret.add(
       "org.cougaar.lib.aggagent.test.EffortWaster(maxCycles=" +
       config.maxCycles + ",pauseInterval=" + config.pauseInterval + ")");
-    ret.add("org.cougaar.lib.aggagent.plugin.RemoteSubscriptionPlugIn");
+    ret.add("org.cougaar.lib.aggagent.plugin.RemoteSubscriptionPlugin");
 
     return ret;
   }
@@ -267,7 +267,7 @@ public class Configurator {
 
   private void prepareAggNode () throws IOException {
     prepareNode("cfgAggregator", "AggNode", "aggregator.psps.xml", aggPsps,
-      aggNames, aggPlugIns);
+      aggNames, aggPlugins);
   }
 
   private void prepareNode (String dirName, String name, String pspFile,
@@ -318,7 +318,7 @@ public class Configurator {
 
       prepareAggNode();
 
-      List plugIns = genSourcePlugIns();
+      List plugIns = genSourcePlugins();
 
       // loop over the number of Nodes and create a directory for each
       for (int i = 0; i < config.nodes; i++)

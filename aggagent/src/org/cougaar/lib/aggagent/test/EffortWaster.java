@@ -2,10 +2,10 @@ package org.cougaar.lib.aggagent.test;
 
 import java.util.*;
 
-import org.cougaar.core.plugin.SimplePlugIn;
+import org.cougaar.core.plugin.SimplePlugin;
 
-public class EffortWaster extends SimplePlugIn {
-  // Parameters of performance for the EffortWaster PlugIn.  The variables are
+public class EffortWaster extends SimplePlugin {
+  // Parameters of performance for the EffortWaster Plugin.  The variables are
   // initialized with their default values.
   private int maxCycles = 5;
   private long pauseInterval = 5000;

@@ -27,7 +27,7 @@ import org.cougaar.core.blackboard.Subscription;
 import org.cougaar.util.UnaryPredicate;
 
 /**
- * This interface defines the subscription monitoring support which the PlugIn
+ * This interface defines the subscription monitoring support which the Plugin
  * provides to Servlets.
  **/
 

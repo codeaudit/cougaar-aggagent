@@ -3,10 +3,10 @@ package org.cougaar.lib.aggagent.test;
 import java.util.*;
 
 import org.cougaar.core.blackboard.IncrementalSubscription;
-import org.cougaar.core.plugin.SimplePlugIn;
+import org.cougaar.core.plugin.SimplePlugin;
 import org.cougaar.util.UnaryPredicate;
 
-public class EffortMonitor extends SimplePlugIn {
+public class EffortMonitor extends SimplePlugin {
 
   private class Seeker implements UnaryPredicate
   {
