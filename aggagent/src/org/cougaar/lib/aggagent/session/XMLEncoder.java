@@ -1,8 +1,8 @@
 package org.cougaar.lib.aggagent.session;
 
-import java.io.PrintStream;
+import java.util.Collection;
 
 public interface XMLEncoder
 {
-  public void encode (Object o, PrintStream ps);
+  public void encode (Object o, Collection c);
 }

@@ -3,10 +3,12 @@ package org.cougaar.lib.aggagent.session;
 import java.io.*;
 import java.util.*;
 
-import org.cougaar.util.UnaryPredicate;
-import org.cougaar.lib.planserver.*;
-import org.cougaar.lib.aggagent.util.XmlUtils;
 import org.cougaar.core.cluster.*;
+import org.cougaar.lib.planserver.*;
+import org.cougaar.util.UnaryPredicate;
+
+import org.cougaar.lib.aggagent.query.UpdateDelta;
+import org.cougaar.lib.aggagent.util.XmlUtils;
 
 /**
  *  A Session is a handler for instances of the RemotePSPSubscription class.
@@ -95,15 +97,19 @@ public class Session implements UISubscriber {
    *  to encode the data being sent.
    */
   public void sendUpdate (OutputStream out) {
+    UpdateDelta del = new UpdateDelta(clusterId, queryId, key);
     synchronized (lock) {
       data.open();
       try {
-        sender.encode(out, data, key, queryId, clusterId);
+        sender.encode(del, data);
       } catch (Exception e) {
         XmlUtils.sendException(queryId, clusterId, e, new PrintStream(out));
       }
       data.close();
     }
+    PrintStream ps = new PrintStream(out);
+    ps.println(del.toXml());
+    ps.flush();
   }
 
   /**

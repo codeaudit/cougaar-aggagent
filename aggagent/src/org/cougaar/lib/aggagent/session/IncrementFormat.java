@@ -2,7 +2,8 @@ package org.cougaar.lib.aggagent.session;
 
 import java.io.*;
 
+import org.cougaar.lib.aggagent.query.UpdateDelta;
+
 public interface IncrementFormat {
-  public void encode (OutputStream out, SubscriptionAccess sess, String key,
-                      String queryId, String clusterId);
+  public void encode (UpdateDelta out, SubscriptionAccess sacc);
 }
