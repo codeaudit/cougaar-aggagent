@@ -66,7 +66,7 @@ public class ConnectionListener implements Runnable
        myDataPool = data_pool;
     }
 
-    public URLConnexionProbe getURLxGauge(){
+    public URLConnexionProbe getConnexionProbe(){
        return myURLConnexionProbe;
     }
 
@@ -167,7 +167,7 @@ public class ConnectionListener implements Runnable
                         +       "<LI>Connection to: " + myURLConnexionProbe.toExternalForm()
                         +        "<LI>Duration: " +  this.connectionInterval
                         +        "<LI>lastByteCount      :" + lastByteCount
-                        +        "<LI>cumulativeByteCount:" + this.totalByteCount + " (keepalive)"
+                        +        "<LI>cumulativeByteCount:" + this.totalByteCount + " (applicable to keepalive only)"
                         +        "<LI>data pool size:" + myDataPool.size()
                         +    "</UL>"
                         +    "</UL>");

@@ -31,6 +31,14 @@ public class ConnectionManager
     //
     private List dataPool = Collections.synchronizedList(new ArrayList());
 
+    // Connection Timers apply to poll queries only.
+    // they are created by <pollInterval/> spec
+    // If not defined and Poll Query default to POLL_INTERVAL
+    // If KeepAlive query and defined -- no effect.
+    //
+    private static Map connectionTimers = Collections.synchronizedMap(new HashMap());
+
+
 
     //private Vector myRawURLs = new Vector(); // Vector = synchronized  , raw URLs
     private ConnectionLogger myConnectionLogger = null;
@@ -119,6 +127,11 @@ public class ConnectionManager
                }
             }
 
+            String pollInterval = XMLParseCommon.getAttributeOrChildNodeValue("pollInterval", n);
+            System.out.println("POLL INTERVAL = " + pollInterval);
+            long poll_interval = -1;
+            if( pollInterval != null) poll_interval = Long.valueOf(pollInterval).intValue();
+
             String pspquery = XMLParseCommon.getAttributeOrChildNodeValue("pspquery", n);
             if( pspquery == null) pspquery = "";
 
@@ -142,7 +155,8 @@ public class ConnectionManager
             String externalform = null;
             if( url != null ) {
                  externalform = url.toExternalForm();
-                 this.addURL(url);
+                 if( poll_interval >-1) this.addURLWithTimer(url,poll_interval);
+                 else this.addURL(url);
                  /**
                  myConnectionLogger.log("<Font color=red>SOURCE from configuration file</font>: "
                                  + name + ", url="
@@ -155,7 +169,8 @@ public class ConnectionManager
                  System.out.println("\t[ConnectionManager.parseXMLConfigFile()] Soruce name="
                                  + name + ", url.externalform=["
                                  + externalform
-                                 + "], pspquery=" + pspquery);
+                                 + "], pspquery=" + pspquery
+                                 + ", poll_interval=" + poll_interval);
             } else {
                  myConnectionLogger.log("<Font color=red>SOURCE FAILED TO LOAD from configuration file </font>."
                                  + "<FONT SIZE=-2 COLOR=BLUE><UL><LI>name=" + name + "<LI> url="
@@ -179,6 +194,18 @@ public class ConnectionManager
         //myURLs.add(u);
         URLConnexionProbe ucg = new URLConnexionProbeAdapter(u);
         // ucg.setParser(parser);
+        this.addURL(ucg);
+    }
+    public void addURLWithTimer(URL u, long min_time){
+        myConnectionLogger.log(
+                "<FONT COLOR=RED>Adding URL With <font color=blue>Timer("
+                + min_time + ")</font>: <FONT COLOR=GREEN SIZE=-1>"
+                + u.toExternalForm()
+                + "</FONT> to space:" +  getNamespace() + "</FONT>");
+        //myURLs.add(u);
+        URLConnexionProbe ucg = new URLConnexionProbeAdapter(u);
+        ConnexTimer timer = new ConnexTimer(min_time);
+        connectionTimers.put(ucg,timer);
         this.addURL(ucg);
     }
 
@@ -268,7 +295,15 @@ public class ConnectionManager
                        Iterator it2 = copy.iterator();
                        while(it2.hasNext() ){
                             ConnectionListener cl = (ConnectionListener)it2.next();
-                            cl.start();
+                            URLConnexionProbe probe = cl.getConnexionProbe();
+                            ConnexTimer timer = (ConnexTimer)connectionTimers.get(probe);
+                            if( timer != null ){
+                                // presume Polling query with timer
+                                if( timer.proceed() == true ) cl.start();
+                                // else, try later!
+                            } else {
+                                cl.start();
+                            }
                        }
                     }
                } catch (Exception ex) {

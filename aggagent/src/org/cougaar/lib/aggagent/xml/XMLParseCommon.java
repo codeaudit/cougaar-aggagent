@@ -40,132 +40,7 @@ public class XMLParseCommon
        return buf;
     }
 
-   /**
-    static private String[] colorRange= {
-       "000000", "FF0000", "EE0000", "DD0000", "CC0000", "BB0000", "AA0000",
-       "990000", "880000", "770000", "660000", "550000", "440000", "330000", "220000",
-       "110000",
-       // REPEAT
-       "000000", "FF0000", "EE0000", "DD0000", "CC0000", "BB0000", "AA0000",
-       "990000", "880000", "770000", "660000", "550000", "440000", "330000", "220000",
-       "110000",
-       // REPEAT
-       "000000", "FF0000", "EE0000", "DD0000", "CC0000", "BB0000", "AA0000",
-       "990000", "880000", "770000", "660000", "550000", "440000", "330000", "220000",
-       "110000"
-    };
-
-
-    //################################################################################
-    // @param aliases:   cannot be null.  pass empty HashMap if no aliases.
-    //                   if aliases defined, replace %TOKEN% with its alias (if exists)
-    //
-    public static StringBuffer filterXMLtoHTML_withIndentation(StringBuffer dataout,
-                                                  HashMap aliases, boolean color_depth_coding)
-    {
-       StringBuffer buf = new StringBuffer();
-
-       int depth=0;
-       int i;
-       int sz = dataout.length();
-       //char prev_c = (char)-1;
-       //char prev_prev_c = (char)-1;
-       char c = (char)-1;
-       char c_next_1 = (char)-1;
-       char c_prev_1 = (char)-1;
-       boolean indent=false;
-       int num_opening_brackets =0;
-
-       String  currToken = null;
-       for(i=0;i<sz;i++)
-       {
-           c = dataout.charAt(i);
-           if( (i-1)>=0)  { if( Character.isWhitespace(dataout.charAt(i-1)) == false) c_prev_1 = dataout.charAt(i-1); }
-           if( (i+1)<sz ) { c_next_1 = dataout.charAt(i+1); }
-           else c_next_1 =  (char)-1;
-
-           // ###################################################
-           // ALIAS TOKEN PROCESSING
-           //
-           if( c == '%' ) {
-                if( currToken == null) {
-                     // opening '%'
-                     currToken = new String();
-                }
-                else {
-                     // closing '%'
-                     String alias = (String)aliases.get(currToken);
-                     if( alias != null) {
-                         buf.append(alias);
-                     }
-                     else {
-                         buf.append("NULL_ALIAS");
-                     }
-                     currToken = null;
-                }
-           }
-           else if( currToken != null ) {
-               // accumulate token
-               currToken += c;
-           }
-           else
-
-           // ###################################################
-           // XML PROCESSING
-           //
-
-           //  CASE:  "</"
-           if( (c== '<') && (c_next_1 =='/')) {
-                // if no value, indent, else keep value on same line
-                if( c_prev_1 == '>') buf.append(indent(depth, color_depth_coding)+"&lt");
-                else buf.append("&lt");
-                depth--;  // after output
-                i++;
-                num_opening_brackets++;
-           }
-           else if( c == '<' ) {
-                depth++;
-                // if no value, OR FIRST '<' indent, else keep value on same line
-                if( (c_prev_1 == '>') || (num_opening_brackets ==0)) buf.append(indent(depth, color_depth_coding)+"&lt");
-                else buf.append("&lt");
-                num_opening_brackets++;
-           }
-           // case: "/>"
-           else if((c== '/') && (c_next_1 =='>')) {
-                buf.append("/&gt\n" );
-                if( color_depth_coding ){
-                    buf.append("</FONT>");
-                }
-                i++;
-                depth--;
-                //indent =true;
-           }
-           else if( c == '>' ) {
-                buf.append("&gt");  //System.out.print(" &gt ");
-                if(c_next_1 == '<') buf.append("\n");  // case: no value, dont want carriage return
-                if( color_depth_coding ){
-                    buf.append("</FONT>");
-                }
-           }
-           else {
-               buf.append(c); //System.out.print(c);
-           }
-       }
-       return buf;
-    }
-    
-    //
-    //
-    //
-    private static String indent(int depth, boolean color_depth_coding) {
-        String buf= new String();
-        for(int j=0; j<depth; j++){
-           buf +="   ";
-        }
-        if( color_depth_coding) buf += "<FONT COLOR=" + colorRange[depth] + ">";
-        return buf;
-    }
-    **/
+ 
 
     // @returns value
     public static String getAttributeOrChildNodeValue( String name, Node node ){
@@ -190,7 +65,19 @@ public class XMLParseCommon
           int size = nl.getLength();
           for(int i=0; i<size; i++) {
                 Node n2 = nl.item(i);
-                if( n2.getNodeName().toLowerCase().equals(name) ) {
+                if( n2.getNodeName().toLowerCase().equals(name.toLowerCase()) )
+                {
+                    /**
+                    if( n2.getFirstChild().getNodeType() == n2.TEXT_NODE ){
+                        System.out.println("++++++++++++++++++++++++++++++++++++++++++> TEXT NODE FOuND:" + name);
+                    }
+                    else   if( n2.getFirstChild().getNodeType() == n2.COMMENT_NODE ){
+                        System.out.println("++++++++++++++++++++++++++++++++++++++++++> COMMENT NODE FOuND:" + name);
+                    }
+                    else   if( n2.getFirstChild().getNodeType() == n2.ELEMENT_NODE ){
+                        System.out.println("++++++++++++++++++++++++++++++++++++++++++> ELEMENT NODE FOuND:" + name);
+                    }
+                    **/
                     /**
                     System.out.println("<<<<<<<<<<<<found n2=" + n2.getNodeName()
                                           + ", value=" + n2.getNodeValue()
@@ -202,6 +89,8 @@ public class XMLParseCommon
                                            + ", ENTITY_NODE=" + n2.ENTITY_NODE);
                     **/
                     return n2; //.getChildNodes().item(0);
+                } else {
+                    //System.out.println("+++++++++++++++++++++++++++++ NODE IGNORED: " + n2.getNodeName() + ", looking=" + name);
                 }
           }
        } else return n;

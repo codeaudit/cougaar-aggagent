@@ -6,7 +6,8 @@ import java.io.*;
 
 
 
-/** Webservices "Gauging" is modeled with respect to URLs vs. Connections.
+/**  Webservices modelled via "Probes against URLs."
+  *  Can attach custom parsers (and later "gauges") to filter and monitor probes.
   *  The URL is the "proxy" to the WebService
   **/
 public class URLConnexionProbeAdapter implements URLConnexionProbe

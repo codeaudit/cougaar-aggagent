@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.ByteArrayInputStream;
 import java.io.FileReader;
 import java.io.StringReader;
+import java.util.Map;
 
 import org.apache.xerces.parsers.DOMParser;
 import org.xml.sax.helpers.DefaultHandler;
@@ -52,6 +53,7 @@ public class AggregatorPlugin extends SimplifiedPlugIn
     // DEFAULT POLL RATE IN miliseconds
     // Plan is to have poll rates settable on individual queries
     public long POLL_INTERVAL = 5000;
+
 
     /**
          NO SUBSCRIPTIONS FOR NOW

@@ -404,8 +404,11 @@ public class PSP_GenericReaderWriter extends PSP_BaseAdapter implements PlanServ
        synchronized(myQuerySessions){
             QuerySessionUISubscriber subscriber = (QuerySessionUISubscriber)myQuerySessions.get(query_session_id);
             if( subscriber != null ){
-                List updates = subscriber.grabUpdates();
-                return updates;
+                 synchronized( subscriber )
+                 {
+                    List updates = subscriber.grabUpdates();
+                    return updates;
+                 }
             }
        }
        return null;
