@@ -232,4 +232,24 @@ public class XmlUtils {
     out.println(encodedException);
     out.println("</exception>");
   }
+
+  public static void appendAttribute (String n, String v, StringBuffer buf) {
+    buf.append(" ");
+    buf.append(n);
+    buf.append("=\"");
+    buf.append(replaceIllegalChars(v));
+    buf.append("\"");
+  }
+
+  public static void appendCloseTag (String n, StringBuffer buf) {
+    buf.append("</");
+    buf.append(n);
+    buf.append(">\n");
+  }
+
+  public static void appendOpenTag (String n, StringBuffer buf) {
+    buf.append("<");
+    buf.append(n);
+    buf.append(">\n");
+  }
 }
