@@ -35,12 +35,16 @@ public class ScriptSpec {
   private String text = null;
   private Map params = new HashMap();
 
+  /**
+   *  Tell the language in which this script is written.  See Enum.Language
+   *  for details.
+   */
   public Language getLanguage () {
     return lang;
   }
 
   /**
-   *  Tell the basic purpose of the script.
+   *  Tell the basic purpose of the script.  See Enum.ScriptType for details.
    */
   public ScriptType getType () {
     return type;
@@ -64,51 +68,69 @@ public class ScriptSpec {
     return aggType;
   }
 
+  /**
+   *  Supply the caller with the text of the script.  In the case of a Java
+   *  representation, the class name is returned.
+   */
   public String getText () {
     return text;
   }
 
-  public ScriptSpec () {
-  }
-
+  /**
+   *  Create a new ScriptSpec for the provided script with the purpose and
+   *  language specified.  Everything else is left as its default value.
+   */
   public ScriptSpec (ScriptType t, Language l, String s) {
     type = t;
     lang = l;
     text = s;
   }
 
+  /**
+   *  Create a new ScriptSpec for an IncrementFormat, with the language and
+   *  XmlFormat specified.
+   */
   public ScriptSpec (Language l, XmlFormat f, String s) {
-    type = ScriptType.INCREMENT_FORMAT;
-    lang = l;
+    this(ScriptType.INCREMENT_FORMAT, l, s);
     format = f;
-    text = s;
   }
 
+  /**
+   *  Create a new ScriptSpec for an Aggregator, with the aggregation type,
+   *  collation IDs, and script language specified.
+   */
   public ScriptSpec (Language l, AggType agg, String s, String ids) {
-    type = ScriptType.AGGREGATOR;
-    lang = l;
+    this(ScriptType.AGGREGATOR, l, s);
     aggType = agg;
-    text = s;
     aggIds = parseAggIds(ids);
   }
 
+  /**
+   *  Create a new ScriptSpec for a Java implementation.  Here, the purpose
+   *  of the script, the class name, and a parameter map for the Java class are
+   *  supplied by the caller.
+   */
   public ScriptSpec (ScriptType t, String s, Map p) {
-    type = t;
-    lang = Language.JAVA;
-    text = s;
+    this(t, Language.JAVA, s);
     if (p != null)
       params.putAll(p);
   }
 
+  /**
+   *  Create a new ScriptSpec for an IncrementFormat in Java.  The XmlFormat,
+   *  class name, and parameter list are provided by the caller.
+   */
   public ScriptSpec (XmlFormat f, String s, Map p) {
-    type = ScriptType.INCREMENT_FORMAT;
-    lang = Language.JAVA;
-    format = f;
-    text = s;
+    this(Language.JAVA, f, s);
     if (p != null)
       params.putAll(p);
   }
 
+  /**
+   *  Create a new ScriptSpec for an Aggregator in Java.  The caller supplies
+   *  the AggType, class name, collation IDs, and a parameter map for the Java
+   *  class.
+   */
   public ScriptSpec (AggType agg, String s, String ids, Map p) {
     type = ScriptType.AGGREGATOR;
     lang = Language.JAVA;
@@ -119,6 +141,10 @@ public class ScriptSpec {
       params.putAll(p);
   }
 
+  /**
+   *  Reconstitute a ScriptSpec that has been converted to XML.  In effect,
+   *  this constructor is the inverse of the toXml() method of this class.
+   */
   public ScriptSpec (Element root) {
     type = ScriptType.fromString(root.getNodeName());
     lang = Language.fromString(root.getAttribute("language"));
@@ -195,6 +221,11 @@ public class ScriptSpec {
     }
   }
 
+  /**
+   *  Convert this ScriptSpec to XML for transmission over a network.  The
+   *  parsed XML document can then be used to reconstruct the ScriptSpec using
+   *  the constructor that takes an Element as its argument.
+   */
   public String toXml () {
     StringBuffer buf = new StringBuffer();
     buf.append("<");
@@ -231,6 +262,9 @@ public class ScriptSpec {
     return buf.toString();
   }
 
+  /**
+   *  Retrieve the list of collation IDs for an Aggregator script.
+   */
   public String getAggIdString () {
     if (aggIds != null)
       return encodeAggIds(aggIds);
@@ -266,7 +300,20 @@ public class ScriptSpec {
     return bean;
   }
 
+  private void checkTypeMatch (ScriptType makeType) throws Exception {
+    if (makeType != type)
+      throw new Exception(
+        "Cannot make " + makeType + " from a " + type + " script");
+  }
+
+  /**
+   *  Create a UnaryPredicate from this ScriptSpec, if appropriate.  If the
+   *  language spec is not one of those recognized, then this method will
+   *  return null.  If the script is not a UnaryPredicate script, then an
+   *  Exception will be raised.
+   */
   public UnaryPredicate toUnaryPredicate () throws Exception {
+    checkTypeMatch(ScriptType.UNARY_PREDICATE);
     if (lang == Language.JPYTHON)
       return PythUnaryPredicate.predicateFromScript(text);
     else if (lang == Language.SILK)
@@ -276,7 +323,13 @@ public class ScriptSpec {
     return null;
   }
 
+  /**
+   *  Create an Alert from this ScriptSpec, if appropriate.  If the language
+   *  spec is not one of those recognized, then this method will return null.
+   *  If the script is not an Alert script, then an Exception will be raised.
+   */
   public Alert toAlert () throws Exception {
+    checkTypeMatch(ScriptType.ALERT);
     if (lang == Language.JPYTHON)
       return PythAlert.parseAlert(text);
     else if (lang == Language.SILK)
@@ -286,7 +339,7 @@ public class ScriptSpec {
     return null;
   }
 
-  public IncrementFormat toScriptedFormat () throws Exception {
+  private IncrementFormat toScriptedFormat () throws Exception {
     if (lang == Language.JPYTHON)
       return PythIncrementFormat.formatFromScript(text);
     else if (lang == Language.SILK)
@@ -296,7 +349,7 @@ public class ScriptSpec {
     return null;
   }
 
-  public XMLEncoder toXMLEncoder () throws Exception {
+  private XMLEncoder toXMLEncoder () throws Exception {
     if (lang == Language.JPYTHON)
       return PythXMLEncoder.encoderFromScript(text);
     else if (lang == Language.SILK)
@@ -306,7 +359,14 @@ public class ScriptSpec {
     return null;
   }
 
+  /**
+   *  Create an IncrementFormat from this ScriptSpec, if appropriate.  If the
+   *  language spec is not one of those recognized, then this method will
+   *  return null.  If the script is not an IncrementFormat script, then an
+   *  Exception will be raised.
+   */
   public IncrementFormat toIncrementFormat () throws Exception {
+    checkTypeMatch(ScriptType.INCREMENT_FORMAT);
     if (format == XmlFormat.INCREMENT)
       return toScriptedFormat();
     else if (format == XmlFormat.XMLENCODER)
@@ -314,7 +374,7 @@ public class ScriptSpec {
     return null;
   }
 
-  public Aggregator toScriptedAggregator () throws Exception {
+  private Aggregator toScriptedAggregator () throws Exception {
     if (lang == Language.JPYTHON)
       return PythAggregator.aggregatorFromScript(text);
     else if (lang == Language.SILK)
@@ -324,7 +384,7 @@ public class ScriptSpec {
     return null;
   }
 
-  public DataAtomMelder toDataAtomMelder () throws Exception {
+  private DataAtomMelder toDataAtomMelder () throws Exception {
     if (lang == Language.JPYTHON)
       return PythMelder.melderFromScript(text);
     else if (lang == Language.SILK)
@@ -334,7 +394,14 @@ public class ScriptSpec {
     return null;
   }
 
+  /**
+   *  Create an Aggregator from this ScriptSpec, if appropriate.  If the
+   *  language spec is not one of those recognized, then this method will
+   *  return null.  If the script is not an Aggregator script, then an
+   *  Exception will be raised.
+   */
   public Aggregator toAggregator () throws Exception {
+    checkTypeMatch(ScriptType.AGGREGATOR);
     if (aggType == AggType.AGGREGATOR)
       return toScriptedAggregator();
     else if (aggType == AggType.MELDER)
@@ -342,6 +409,9 @@ public class ScriptSpec {
     return null;
   }
 
+  /**
+   *  Convert this ScriptSpec to a Java Object of the appropriate type.
+   */
   public Object toObject ()  throws Exception {
     if (type == ScriptType.UNARY_PREDICATE)
       return toUnaryPredicate();
@@ -354,26 +424,46 @@ public class ScriptSpec {
     return null;
   }
 
+  /**
+   *  Create a UnaryPredicate directly from an XML representation.  If the
+   *  document does not specify a UnaryPredicate, an Exception may be raised.
+   */
   public static UnaryPredicate makeUnaryPredicate (Element elt)
       throws Exception
   {
     return new ScriptSpec(elt).toUnaryPredicate();
   }
 
+  /**
+   *  Create an IncrementFormat directly from an XML representation.  If the
+   *  document does not specify an IncrementFormat, an Exception may be raised.
+   */
   public static IncrementFormat makeIncrementFormat (Element elt)
       throws Exception
   {
     return new ScriptSpec(elt).toIncrementFormat();
   }
 
+  /**
+   *  Create an Alert directly from an XML representation.  If the document
+   *  does not specify an Alert, an Exception may be raised.
+   */
   public static Alert makeAlert (Element elt) throws Exception {
     return new ScriptSpec(elt).toAlert();
   }
 
+  /**
+   *  Create an Aggregator directly from an XML representation.  If the
+   *  document does not specify an Aggregator, an Exception may be raised.
+   */
   public static Aggregator makeAggregator (Element elt) throws Exception {
     return new ScriptSpec(elt).toAggregator();
   }
 
+  /**
+   *  Create an Object of the appropriate type directly from an XML
+   *  representation.
+   */
   public static Object makeObject (Element elt) throws Exception {
     return new ScriptSpec(elt).toObject();
   }
