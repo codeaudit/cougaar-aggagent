@@ -157,7 +157,7 @@ public abstract class AggregationServletInterface
 
       public synchronized void waitForChange () {
           try {
-            wait();
+            this.wait();
           }
           catch (InterruptedException bla) { }
       }
@@ -171,7 +171,7 @@ public abstract class AggregationServletInterface
             changedQra = (QueryResultAdapter)changedList.nextElement();
             if (allClustersResponded(changedQra)) {
               //System.out.println("All clusters checked in");
-              notify();
+              this.notify();              
             } else {
               //System.out.println("Still waiting for some clusters");
             }
