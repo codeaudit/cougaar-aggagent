@@ -92,7 +92,8 @@ System.out.println("RemotePlugin: Got message: "+requestName+":"+root.toString()
 
 
 
-  private void transientQuery(Element root, MessageAddress originator) throws Exception
+  private void transientQuery (Element root, MessageAddress originator)
+      throws Exception
   {
     UnaryPredicate objectSeeker = ScriptSpec.makeUnaryPredicate(
       XmlUtils.getChildElement(root, "unary_predicate"));
@@ -107,13 +108,12 @@ System.out.println("RemotePlugin: Got message: "+requestName+":"+root.toString()
     RemoteBlackboardSubscription tempSubscription =
       new RemoteBlackboardSubscription(getBlackboardService(), objectSeeker, true);
 
-    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    UpdateDelta del = new UpdateDelta(
+      root.getAttribute("cluster_id"), root.getAttribute("query_id"), "");
     // Use xml encoder to encode data from blackboard
     tempSubscription.open();
     try {
-      String query_id = root.getAttribute("query_id");
-      String cluster_id = root.getAttribute("cluster_id");
-      formatter.encode(out, tempSubscription, "", query_id, cluster_id);
+      formatter.encode(del, tempSubscription);
     } catch (Exception e) {
       tempSubscription.close();
       throw e;
@@ -121,7 +121,7 @@ System.out.println("RemotePlugin: Got message: "+requestName+":"+root.toString()
     tempSubscription.close();
 
     // Send response message
-    sendMessage(originator, new String(out.toByteArray()));
+    sendMessage(originator, del.toXml());
   }
 
 
@@ -207,12 +207,11 @@ System.out.println("RemotePlugin: Got message: "+requestName+":"+root.toString()
     public void pushUpdate () {
       System.out.println("Updating session to agg: " + queryId);
 
-      ByteArrayOutputStream baos = new ByteArrayOutputStream();
-      formatter.encode(baos, getData(), key, queryId,
-        getBindingSite().getAgentIdentifier().toString());
+      UpdateDelta del = new UpdateDelta(
+        getBindingSite().getAgentIdentifier().toString(), queryId, key);
+      formatter.encode(del, getData());
 
-      MessageAddress originator = createAggAddress(requester);
-      sendMessage(originator, new String(baos.toByteArray()));
+      sendMessage(createAggAddress(requester), del.toXml());
     }
 
     public void subscriptionChanged () {

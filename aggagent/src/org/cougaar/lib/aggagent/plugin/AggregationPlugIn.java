@@ -244,7 +244,7 @@ System.out.println("Cancelling remote session at "+clusterString);
    */
   public void receiveMessage(Message message) {
     try {
-//      System.out.println(message);
+      // System.out.println(message);
       XMLMessage xmsg = (XMLMessage)message;
 
       Element root = XmlUtils.parse(xmsg.getText());
@@ -253,21 +253,25 @@ System.out.println("Cancelling remote session at "+clusterString);
       //
       // Handle a response to one of my previous queries
       //
+      UpdateDelta delta = new UpdateDelta(root);
 
-      String updatedQuery = root.getAttribute("query_id");
-      String updatedCluster = root.getAttribute("cluster_id");
+      String updatedQuery = delta.getQueryId();
+      String updatedCluster = delta.getAgentId();
 
-      System.out.println("AggPlugin Received a message at "+getBindingSite().getAgentIdentifier());
-      System.out.println("   Query update to :"+updatedQuery+" from "+updatedCluster);
+      System.out.println("AggPlugin Received a message at " +
+        getBindingSite().getAgentIdentifier());
+      System.out.println(
+        "   Query update to :" + updatedQuery + " from " + updatedCluster);
+
       // find query result adapter on blackboard
-      Iterator updatedQueries = getBlackboardService().query(new QueryRAFinder(updatedQuery)).iterator();
+      Iterator updatedQueries = getBlackboardService().query(
+        new QueryRAFinder(updatedQuery)).iterator();
 
       if (updatedQueries.hasNext()) {
         QueryResultAdapter qra = (QueryResultAdapter)updatedQueries.next();
 
         // update query result set based on reported changes
-        qra.getRawResultSet().incrementalUpdate(updatedCluster, root);
-        qra.aggregate();
+        qra.updateResults(delta);
 
         // publish changes to blackboard
         getBlackboardService().openTransaction();
@@ -309,13 +313,10 @@ System.out.println("Cancelling remote session at "+clusterString);
   }
 
   protected void sendMessage (MessageAddress address, String message) {
-    System.out.println("AggPlugins::sendMessage from: "+getBindingSite().getAgentIdentifier()+" to "+address.getAddress());
-//    System.out.println("-------------------------------------------------------");
-//    System.out.println(message);
-//    System.out.println("-------------------------------------------------------");
-    XMLMessage msg = new XMLMessage(getBindingSite().getAgentIdentifier(),
-                                    address,
-                                    message);
+    System.out.println("AggPlugins::sendMessage from: " +
+      getBindingSite().getAgentIdentifier() + " to " + address.getAddress());
+    XMLMessage msg = new XMLMessage(
+      getBindingSite().getAgentIdentifier(), address, message);
     messenger.sendMessage(msg);
     System.out.println("AggPlugins::sendMessage:  done");
   }
