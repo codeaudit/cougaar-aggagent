@@ -68,7 +68,7 @@ public class AggregatorPlugin extends SimplifiedPlugIn
            /**
                NO SUBSCRIPTIONS FOR NOW
 
-           Class klass = Class.forName("alp.ui.aggserver.ldm.Task");
+           Class klass = Class.forName("org.cougaar.ui.aggserver.ldm.Task");
            myPredicate = this.getInstanceOfPredicate(klass);
            mySubscription = (IncrementalSubscription)subscribe(myPredicate);
            **/

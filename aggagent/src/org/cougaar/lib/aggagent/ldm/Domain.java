@@ -6,9 +6,9 @@ import java.util.Enumeration;
 
 import org.cougaar.core.cluster.PublishHistory;
 import org.cougaar.domain.planning.ldm.LDMServesPlugIn;
-import org.cougaar.core.cluster.ALPPlanServesLogicProvider;
-import org.cougaar.core.cluster.XPlanServesALPPlan;
-import org.cougaar.core.cluster.ALPPlan;
+import org.cougaar.core.cluster.WhiteboardServesLogicProvider;
+import org.cougaar.core.cluster.XPlanServesWhiteboard;
+import org.cougaar.core.cluster.Whiteboard;
 import org.cougaar.core.cluster.ClusterServesLogicProvider;
 import org.cougaar.domain.planning.ldm.Factory;
 import org.cougaar.util.UnaryPredicate;
@@ -37,21 +37,21 @@ public class Domain  implements org.cougaar.domain.planning.ldm.Domain
    * Create new Domain-specific LogicProviders for loading into the LogPlan.
    * @return a Collection of the LogicProvider instances or null.
    **/
-  public Collection createLogicProviders(ALPPlanServesLogicProvider logplan,
+  public Collection createLogicProviders(WhiteboardServesLogicProvider logplan,
                                   ClusterServesLogicProvider cluster) {
        
        return null;
    }
 
-  public XPlanServesALPPlan createXPlan(java.util.Collection existingXPlans) {
-       return new XPlanServesALPPlan () {
+  public XPlanServesWhiteboard createXPlan(java.util.Collection existingXPlans) {
+       return new XPlanServesWhiteboard () {
           public void add(Object p0){}
           public void change(Object p0, Collection p1){}
           public void remove(Object p0){}
-          public Enumeration searchALPPlan(UnaryPredicate p0){return null;}
+          public Enumeration searchWhiteboard(UnaryPredicate p0){return null;}
           public void sendDirective(Directive p0){}
           public void sendDirective(Directive p0, Collection p1){}
-          public void setupSubscriptions(ALPPlan alpPlan){}
+          public void setupSubscriptions(Whiteboard alpPlan){}
           public PublishHistory getHistory() { return null; }
        };
   }

@@ -19,7 +19,7 @@ set LIBPATHS=%LIBPATHS%;%COUGAAR_INSTALL_PATH%\lib\xalan.jar
 set LIBPATHS=%LIBPATHS%;%COUGAAR_INSTALL_PATH%\lib\xml4j_2_0_11.jar
 
 
-set MYPROPERTIES=  -Dalp.domain.AGG=alp.ui.aggserver.ldm.Domain
+set MYPROPERTIES=  -Dalp.domain.AGG=org.cougaar.ui.aggserver.ldm.Domain
 
 
 REM

@@ -22,7 +22,7 @@ set LIBPATHS=%LIBPATHS%;%COUGAAR_INSTALL_PATH%\lib\xml4j_2_0_11.jar
 
 
 REM pass in "NodeName" to run a specific named Node
-set MYPROPERTIES=-Dalp.domain.alp=mil.darpa.log.alp.domain.ALPDomain 
+set MYPROPERTIES=-Dorg.cougaar.domain.alp=mil.darpa.log.alp.domain.GLMDomain 
 
 REM
 REM Appending Properties list...

@@ -12,7 +12,7 @@ Additional PSPs loaded by PSP Launcher
    (AND/OR)
    2) In a cluster "ABC"'s "ABC.ini" an optional "file=" parameter can 
       be specified for the PlanServerPlugIn, e.g. 
-       plugin = alp.ui.planserver.PlanServerPlugIn(file=mypsps.xml)
+       plugin = org.cougaar.lib.planserver.PlanServerPlugIn(file=mypsps.xml)
 -->
 
 <object type="java.util.Vector">
