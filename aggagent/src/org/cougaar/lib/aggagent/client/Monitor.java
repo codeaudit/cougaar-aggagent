@@ -11,9 +11,9 @@ import java.util.TimerTask;
 
 import org.w3c.dom.*;
 
-import org.cougaar.lib.aggagent.psp.AggregationKeepAlivePSP;
 import org.cougaar.lib.aggagent.query.UpdateListener;
 import org.cougaar.lib.aggagent.query.UpdateObservable;
+import org.cougaar.lib.aggagent.util.Const;
 import org.cougaar.lib.aggagent.util.XmlUtils;
 
   /**
@@ -113,8 +113,8 @@ import org.cougaar.lib.aggagent.util.XmlUtils;
                 servicePrint.println("Got it.");
                 servicePrint.flush();
 
-                if (!AggregationKeepAlivePSP.ackMessage.equals(
-                     updateMessage.toString()))
+                if (!updateMessage.toString().
+                    equals(Const.KEEP_ALIVE_ACK_MESSAGE))
                 {
                   Element root = XmlUtils.parse(updateMessage.toString());
                   updateMonitoredObjects(root);

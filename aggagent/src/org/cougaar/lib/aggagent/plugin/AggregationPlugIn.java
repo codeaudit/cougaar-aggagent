@@ -25,7 +25,10 @@ import org.cougaar.core.society.MessageAddress;
 import org.cougaar.core.mts.*;
 import org.cougaar.core.component.*;
 
-public class AggregationPlugIn extends ComponentPlugin implements MessageTransportClient, ServiceRevokedListener
+import org.cougaar.lib.aggagent.util.Const;
+
+public class AggregationPlugIn extends ComponentPlugin
+  implements MessageTransportClient, ServiceRevokedListener
 {
   private static final boolean debug = false;
 
@@ -48,7 +51,8 @@ public class AggregationPlugIn extends ComponentPlugin implements MessageTranspo
 
   public void setupSubscriptions()
   {
-    myAddress = createAggAddress(getBindingSite().getAgentIdentifier().toString());
+    myAddress =
+      createAggAddress(getBindingSite().getAgentIdentifier().toString());
 
     messenger = (MessageTransportService) getServiceBroker().getService(
       this, MessageTransportService.class, this);
@@ -62,7 +66,8 @@ public class AggregationPlugIn extends ComponentPlugin implements MessageTranspo
       System.out.println(
         "  X\n  X\nMessageTransportService not granted.  Too bad.\n  X\n  X");
 
-    querySub = (IncrementalSubscription)getBlackboardService().subscribe(new QuerySeeker());
+    querySub = (IncrementalSubscription)
+      getBlackboardService().subscribe(new QuerySeeker());
   }
 
   public void execute()

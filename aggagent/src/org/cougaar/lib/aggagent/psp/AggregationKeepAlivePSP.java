@@ -18,6 +18,7 @@ import org.cougaar.lib.aggagent.session.IncrementFormat;
 import org.cougaar.lib.aggagent.session.XmlIncrement;
 import org.cougaar.lib.aggagent.session.RemotePSPSubscription;
 import org.cougaar.lib.aggagent.session.Session;
+import org.cougaar.lib.aggagent.util.Const;
 
 /**
  *  This keep-alive PSP is used for monitoring the aggregation agent's
@@ -97,9 +98,8 @@ System.out.println("AggKeepAlivePSP: execute");
 
   // Without an ack message, a keep alive connection over which no updates are
   // sent will never die (even without a client on the other end).
-  public static
-    String ackMessage = "I M   A L I V E ,   A L L   I S   W E L L";
-  private static String terminatedAckMessage = ackMessage + '\f';
+  private static String
+    terminatedAckMessage = Const.KEEP_ALIVE_ACK_MESSAGE + '\f';
 
   /**
    *  Provide ack message to periodically send to keep alive client.
@@ -113,8 +113,6 @@ System.out.println("AggKeepAlivePSP: execute");
    */
   public void setConnectionACKMessage (String s) {
     System.out.println("ACK set to " + s);
-    ackMessage = s;
-    terminatedAckMessage = ackMessage + '\f';
   }
 
   public String getDTD () { return null; }
