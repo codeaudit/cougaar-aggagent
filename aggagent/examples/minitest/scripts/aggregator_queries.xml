@@ -1,35 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xml>
-   <source name="3ID" ignore="false">
+   <source name="Yahoo" ignore="false">
         <pollInterval>1000</pollInterval>
-        <pspquery>/alpine/demo/GENERIC_KA.PSP?QUERY_SIMPLE_TASK</pspquery>
+        <url>http://www.yahoo.com</url>
    </source>
-   <source name="3ID">
+   <source name="MSN" ignore="false">
         <pollInterval>1000</pollInterval>
-        <pspquery>/alpine/demo/GENERIC.PSP?QUERY_SIMPLE_ASSET_SAX</pspquery>
-   </source>
-   <source name="3ID" ignore="false">
-        <pollInterval>1000</pollInterval>
-        <pspquery>/alpine/demo/GENERIC_KA.PSP?QUERY_SIMPLE_TASK</pspquery>
-   </source>
-   <source ignore="false">
-        <pollInterval>1000</pollInterval>
-        <name>3-69-ARBN</name>
-        <pspquery>/alpine/demo/GENERIC.PSP?QUERY_SIMPLE_ASSET</pspquery>
-   </source>
-   <source ignore="false">
-        <pollInterval>1000</pollInterval>
-        <name>1BDE</name>
-        <pspquery>/alpine/demo/GENERIC.PSP?QUERY_SIMPLE_ASSET</pspquery>
-   </source>
-   <source ignore="false">
-        <pollInterval>1000</pollInterval>
-        <name>3ID</name>
-        <pspquery>/alpine/demo/GENERIC.PSP?QUERY_ORG_HIERARCHY</pspquery>
-   </source>
-   <source ignore="false">
-        <pollInterval>1000</pollInterval>
-        <name>3-69-ARBN</name>
-        <pspquery>/alpine/demo/GENERIC.PSP?QUERY_SIMPLE_UNIQUE_ALL</pspquery>
+        <url>http://www.msn.com</url>
    </source>
 </xml>
