@@ -66,7 +66,8 @@ import org.apache.xalan.xslt.XSLTProcessor;
 import org.apache.xalan.xslt.XSLTInputSource;
 
 
-import org.cougaar.lib.aggagent.XMLParseCommon;
+import org.cougaar.lib.aggagent.xml.XMLParseCommon;
+import org.cougaar.lib.aggagent.xml.HTMLize;
 import org.cougaar.lib.aggagent.dictionary.GLDictionary;
 import org.cougaar.lib.aggagent.dictionary.glquery.GenericQuery;
 
@@ -233,7 +234,7 @@ public class PSP_GenericReaderWriter extends PSP_BaseAdapter implements PlanServ
 
           if(useHTML ) {
 
-           StringBuffer sb = XMLParseCommon.filterXMLtoHTML_withIndentation(
+           StringBuffer sb = HTMLize.layoutXML(
                    new StringBuffer(new String(bufOut.toByteArray())),
                    new HashMap(),
                    true

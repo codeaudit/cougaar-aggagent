@@ -41,7 +41,7 @@ import org.cougaar.lib.planserver.PlanServiceUtilities;
 
 import org.cougaar.lib.aggagent.ldm.*;
 import org.cougaar.lib.aggagent.Configs;
-import org.cougaar.lib.aggagent.XMLParseCommon;
+import org.cougaar.lib.aggagent.xml.XMLParseCommon;
 
 /**
  * .<pre>

@@ -15,7 +15,7 @@ import org.cougaar.domain.planning.ldm.asset.*;
 import org.cougaar.lib.planserver.server.NameService;
 
 import org.cougaar.lib.aggagent.Configs;
-import org.cougaar.lib.aggagent.XMLParseCommon;
+import org.cougaar.lib.aggagent.xml.XMLParseCommon;
 import org.cougaar.lib.aggagent.dictionary.GenericLogic;
 import org.cougaar.lib.aggagent.dictionary.glquery.GenericQuery;
 import org.cougaar.lib.aggagent.ldm.PlanObject;

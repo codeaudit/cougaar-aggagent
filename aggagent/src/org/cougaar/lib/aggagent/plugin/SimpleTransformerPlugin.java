@@ -50,7 +50,7 @@ import org.cougaar.lib.aggagent.ldm.*;
 public class SimpleTransformerPlugin extends SimplifiedPlugIn
 {
     public long INITIAL_WAKE_UP_INTERVAL = 10000;
-    public long POLL_INTERVAL = 20000; // miliseconds
+    public long POLL_INTERVAL = 15000; // miliseconds
 
     private IncrementalSubscription mySubscription;
     private UnaryPredicate myPredicate;
@@ -59,6 +59,8 @@ public class SimpleTransformerPlugin extends SimplifiedPlugIn
     //
     private ArrayList watchedBlackboardObjects = new ArrayList();
 
+    private boolean removeObjectsImmediately=false;
+    private int numberRemovedObjects=0;
 
     public void setupSubscriptions() {
         try{
@@ -69,13 +71,15 @@ public class SimpleTransformerPlugin extends SimplifiedPlugIn
 
            this.wakeAfter(INITIAL_WAKE_UP_INTERVAL);
 
+           String remove_val = getStringParameter("remove=", getParameters().elements(),
+                                  "false");
+           if( remove_val.trim().toLowerCase().startsWith("true") == true) removeObjectsImmediately = true;
+
 
         } catch (Exception ex ) {
            ex.printStackTrace();
         }
     }
-
-    private boolean first_time = true;
 
     public void execute() {
 
@@ -83,7 +87,14 @@ public class SimpleTransformerPlugin extends SimplifiedPlugIn
 
         while( en.hasMoreElements() ){
             Object obj = en.nextElement();
-            watchedBlackboardObjects.add(obj);
+
+            if( removeObjectsImmediately ) {
+                this.numberRemovedObjects++;
+                mySubscription.remove(obj);
+            }
+            else {
+                watchedBlackboardObjects.add(obj);
+            }
         }
 
         printStatus( System.out);
@@ -96,8 +107,10 @@ public class SimpleTransformerPlugin extends SimplifiedPlugIn
          pw.println("\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
          pw.println("! SimpleTransformer status");
          pw.println("! num watched objects (blackboard)=" + watchedBlackboardObjects.size() );
+         pw.println("! num removed objects (blackboard)=" + this.numberRemovedObjects );
          pw.println("! VM free memory=" + Runtime.getRuntime().freeMemory() );
          pw.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+         pw.flush();
     }
 
 

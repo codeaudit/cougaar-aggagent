@@ -14,7 +14,7 @@ import org.cougaar.lib.planserver.server.NameService;
 import org.cougaar.util.ConfigFileFinder;
 
 import org.cougaar.lib.aggagent.Configs;
-import org.cougaar.lib.aggagent.XMLParseCommon;
+import org.cougaar.lib.aggagent.xml.XMLParseCommon;
 
 //#######################################################################
 public class ConnectionManager

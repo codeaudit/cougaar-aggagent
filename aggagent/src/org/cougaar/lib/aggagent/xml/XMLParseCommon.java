@@ -1,5 +1,5 @@
 
-package org.cougaar.lib.aggagent;
+package org.cougaar.lib.aggagent.xml;
 
 import java.io.File;
 import java.io.FileReader;
@@ -40,7 +40,7 @@ public class XMLParseCommon
        return buf;
     }
 
-
+   /**
     static private String[] colorRange= {
        "000000", "FF0000", "EE0000", "DD0000", "CC0000", "BB0000", "AA0000",
        "990000", "880000", "770000", "660000", "550000", "440000", "330000", "220000",
@@ -165,7 +165,7 @@ public class XMLParseCommon
         if( color_depth_coding) buf += "<FONT COLOR=" + colorRange[depth] + ">";
         return buf;
     }
-
+    **/
 
     // @returns value
     public static String getAttributeOrChildNodeValue( String name, Node node ){

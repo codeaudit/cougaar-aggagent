@@ -102,17 +102,18 @@ public class AggregatorPlugin extends SimplifiedPlugIn
            first_time = false;
         }
 
-
-        // visit all connections, harvest data, and recycle any which
+        //
+        // visit all connections, HARVEST DATA, and recycle any which
         // may have failed and or are down (ie. non keep-alive)
+        //
         List data = myConnectionManager.cycleAllAsynchronousConnections(true);
         System.out.println("[AggregatorPlugin] total data List size=" + data.size());
         Iterator it = data.iterator();
         while (it.hasNext() ) {
             Object obj = it.next();
-            String str = null;
+            StringBuffer str_buf = null;
             if( obj instanceof StringBuffer ) {
-                 str = ((StringBuffer)obj).toString();
+                 str_buf = ((StringBuffer)obj);
             }
 
 
@@ -126,6 +127,21 @@ public class AggregatorPlugin extends SimplifiedPlugIn
             {
                System.out.println("Is XML");
             **/
+
+            if( isHTML(str_buf) ) {
+                // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                // ASSUME HTML! - GO TO IT!
+                // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                processDataFromConnection_asHTML(str_buf);
+            }
+            else {
+                // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                // ASSUME XML - GO TO IT!
+                // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                processDataFromConnection_asXML(str_buf.toString());
+            }
+
+            /**
                try{
                     //ByteArrayInputStream bais = new ByteArrayInputStream(str.getBytes());
                     //InputSource is = new InputSource(bais);
@@ -159,19 +175,24 @@ public class AggregatorPlugin extends SimplifiedPlugIn
                        PlanObject p = new PlanObject(doc);
                        publishAdd(p);
                     }
-                } catch (Exception ex ){
-                    //ex.printStackTrace();
+                } catch ( SAXParseException sax) {
+                    //
+                    // if we see this, assume this is not valid XML
+                    //
                     System.out.println("Not XML");
                     System.out.println("\n[AggregatorPlugin] data=" + str + "\n");
+                } catch (Exception ex ){
+                    ex.printStackTrace();
                 }
+            **/
+            
             /**
             }else {
                 System.out.println("Not XML");
                 System.out.println("[AggregatorPlugin] data=" + str);
             }
             **/
-            int sz = str.length();
-            System.out.println("[AggregatorPlugin] data len=" + str.length());
+            System.out.println("[AggregatorPlugin] data len=" + str_buf.length());
         }
 
         /**
@@ -182,7 +203,74 @@ public class AggregatorPlugin extends SimplifiedPlugIn
 
         this.wakeAfter(POLL_INTERVAL);
     }
-    /**
+
+    private boolean isHTML(StringBuffer data){
+        if( data != null) {
+             if( data.length() >= 10 ){
+                  int dst_len = 10;
+                  char[] dst = new char[dst_len];
+                  data.getChars(0,dst_len,dst,0);
+                  String str = new String(dst);
+                  if( str.toLowerCase().trim().startsWith("<html") == true)
+                       return true;
+             }
+        }
+        return false;
+    }
+    private void processDataFromConnection_asHTML(StringBuffer strbuffer)
+    {
+            HTMLPlanObject hp = new HTMLPlanObject(strbuffer);
+            publishAdd(hp);
+    }
+
+    private void processDataFromConnection_asXML(String str)
+    {
+               try{
+                    //ByteArrayInputStream bais = new ByteArrayInputStream(str.getBytes());
+                    //InputSource is = new InputSource(bais);
+                    StringReader sr = new StringReader(str.trim());
+                    InputSource is = new InputSource(sr);
+
+                    //System.err.println("str=" + str);
+                    //FileReader freader = new FileReader("task.xml");
+                    //InputSource is = new InputSource(freader);
+
+                    DOMParser domp = new DOMParser();
+                    domp.setErrorHandler(new ErrorHandler(){
+                          public void error(SAXParseException exception) {
+                             System.err.println("[ErrorHandler.error]: " + exception);
+                           }
+                           public void fatalError(SAXParseException exception) {
+                                 System.err.println("[ErrorHandler.fatalError]: " + exception);
+                           }
+                           public void warning(SAXParseException exception) {
+                                 System.err.println("[ErrorHandler.warning]: " + exception);
+                            }
+                        }
+                    );
+
+                    domp.parse(is);
+                    Document doc = domp.getDocument();
+
+                    System.out.println("Is XML");
+
+                    if( doc != null ) {
+                       PlanObject p = new PlanObject(doc);
+                       publishAdd(p);
+                    }
+                } catch ( SAXParseException sax) {
+                    //
+                    // if we see this, assume this is not valid XML
+                    //
+                    System.out.println("Not XML");
+                    System.out.println("\n[AggregatorPlugin] data=" + str + "\n");
+                } catch (Exception ex ){
+                    ex.printStackTrace();
+                }
+    }
+
+
+  /**
    * Return a String parameter from the head of a list of plugin parameters
    * @param Enumeration of Plugin command line parameters
    * @param integer default value if no numeric value found

@@ -41,7 +41,8 @@ import org.cougaar.lib.planserver.PlanServiceUtilities;
 
 import org.cougaar.lib.aggagent.ldm.*;
 import org.cougaar.lib.aggagent.Configs;
-import org.cougaar.lib.aggagent.XMLParseCommon;
+import org.cougaar.lib.aggagent.xml.XMLParseCommon;
+import org.cougaar.lib.aggagent.xml.HTMLize;
 
 /**
  * .<pre>
@@ -245,8 +246,16 @@ public class PSP_BlackBoardViewer extends PSP_BaseAdapter implements PlanService
                  TreeWalker treew = new TreeWalker(fxml);
                  treew.traverse(p.getDocument());
                  StringBuffer sb = sw.getBuffer();
-                 StringBuffer html = XMLParseCommon.filterXMLtoHTML_withIndentation(sb, new HashMap(), true);
-                out.println("<TR><TD> <FONT color=red >ALL VALUES=</FONT><font SIZE=-2><blockquote><pre>"
+                 StringBuffer html = HTMLize.layoutXML(sb, new HashMap(), true);
+                 out.println("<TR><TD> <FONT color=red >ALL VALUES=</FONT><font SIZE=-2><blockquote><pre>"
+                                 + html.toString() + "</pre></blockquote></FONT></TD></TR>");
+             }
+             else if( obj instanceof HTMLPlanObject)
+             {
+                 HTMLPlanObject p = (HTMLPlanObject)obj;
+                 StringBuffer sb = p.getDocument();
+                 StringBuffer html = HTMLize.layoutXML(sb, new HashMap(), true);
+                 out.println("<TR><TD> <FONT color=red >ALL VALUES=</FONT><font SIZE=-2><blockquote><pre>"
                                  + html.toString() + "</pre></blockquote></FONT></TD></TR>");
              }
              break;
