@@ -6,16 +6,12 @@ import java.util.*;
 
 /**
  *  <p>
- *  Note:  this class is broken; it needs to be updated to accomodate the new
- *  AggAgent methodology.
- *  </p>
- *  <p>
  *  The Configurator is a utility for producing test configurations of
  *  arbitrary size.  When run as a standalone application (which is the most
  *  likely scenario), this class requires an initialization file, which may be
  *  specified on the command line (or else the user will be prompted).  The
  *  output, which is placed in the specified destination directory (see below),
- *  consists of directories named cfgAssess and cfgNode<it>n</it>, where
+ *  consists of directories named cfgAggregator and cfgNode<it>n</it>, where
  *  <it>n</it> ranges from 0 to one less than the number of specified source
  *  Nodes.  The former contains the AggregationAgent Node config., and each of
  *  the latter is a source Node configuration.  All of these nodes should be
@@ -35,7 +31,7 @@ import java.util.*;
  *      python.jar.
  *    </li>
  *    <li>
- *      blackjackCp -- the path to the blackjack.jar file or the blackjack
+ *      aggagentCp -- path to the aggagent.jar file or the compiled aggagent
  *      class files.
  *    </li>
  *    <li>
@@ -81,33 +77,26 @@ public class Configurator {
 
 // - - - - - - - Static Configuration - - - - - - - - - - - - - - - - - - - - -
   private static List sourcePsps = new LinkedList();
-  private static List sinkNames = new LinkedList();
-  private static List sinkPlugIns = new LinkedList();
-  private static List sinkPsps = new LinkedList();
+  private static List aggNames = new LinkedList();
+  private static List aggPlugIns = new LinkedList();
+  private static List aggPsps = new LinkedList();
   private static List jarFiles = new LinkedList();
 
   static {
-    sourcePsps.add(new Psp(
-      "org.cougaar.lib.aggagent.plugin.GenericPSP",
-      "test/generic.psp"));
+    // sourcePsps.add(new Psp(
+    //   "org.cougaar.lib.aggagent.plugin.GenericPSP", "test/generic.psp"));
 
-    sinkNames.add("Sink");
+    aggNames.add("Aggregator");
 
-    sinkPlugIns.add(
-      "org.cougaar.lib.planserver.PlanServerPlugIn(file=sink.psps.xml)");
-    sinkPlugIns.add(
-      "org.cougaar.lib.aggagent.plugin.AggregationPlugIn");
-    sinkPlugIns.add(
-      "org.cougaar.lib.aggagent.plugin.AlertPlugIn");
+    aggPlugIns.add(
+      "org.cougaar.lib.planserver.PlanServerPlugIn(file=aggregator.psps.xml)");
+    aggPlugIns.add("org.cougaar.lib.aggagent.plugin.AggregationPlugIn");
+    aggPlugIns.add("org.cougaar.lib.aggagent.plugin.AlertPlugIn");
 
 
-    sinkPsps.add(new Psp(
-      "org.cougaar.lib.aggagent.psp.AggregationPSP",
-      "assessment.psp"));
-    // sinkPsps.add(new Psp(
-    //   "org.cougaar.lib.aggagent.plugin.ResultSetPSP",
-    //   "resultset.psp"));
-    sinkPsps.add(new Psp(
+    aggPsps.add(new Psp(
+      "org.cougaar.lib.aggagent.psp.AggregationPSP", "assessment.psp"));
+    aggPsps.add(new Psp(
       "org.cougaar.lib.aggagent.psp.AggregationKeepAlivePSP",
       "assessmentkeepalive.psp"));
 
@@ -207,7 +196,7 @@ public class Configurator {
     out.println("set EXECLASS=org.cougaar.core.society.Node");
     out.println("set NODEARGS=-c -n %NODE%");
     out.println();
-    out.println("set BJPATH=" + config.blackjackCp);
+    out.println("set BJPATH=" + config.aggagentCp);
     out.println("set LIB=" + config.lib);
 
     out.println();
@@ -263,9 +252,9 @@ public class Configurator {
     ret.add(
       "org.cougaar.lib.planserver.PlanServerPlugIn(file=source.psps.xml)");
     ret.add(
-      "org.cougaar.lib.aggagent.test.EffortWaster(" +
-      "maxCycles=" + config.maxCycles + ",pauseInterval=" +
-      config.pauseInterval + ")");
+      "org.cougaar.lib.aggagent.test.EffortWaster(maxCycles=" +
+      config.maxCycles + ",pauseInterval=" + config.pauseInterval + ")");
+    ret.add("org.cougaar.lib.aggagent.plugin.RemoteSubscriptionPlugIn");
 
     return ret;
   }
@@ -277,9 +266,9 @@ public class Configurator {
       sourcePsps, genClusterNames(nodeNum), plugIns);
   }
 
-  private void prepareSinkNode () throws IOException {
-    prepareNode("cfgAssess", "SinkNode", "sink.psps.xml", sinkPsps, sinkNames,
-      sinkPlugIns);
+  private void prepareAggNode () throws IOException {
+    prepareNode("cfgAggregator", "AggNode", "aggregator.psps.xml", aggPsps,
+      aggNames, aggPlugIns);
   }
 
   private void prepareNode (String dirName, String name, String pspFile,
@@ -326,7 +315,7 @@ public class Configurator {
     try {
       prepareDestination(config.destination);
 
-      prepareSinkNode();
+      prepareAggNode();
 
       List plugIns = genSourcePlugIns();
 
@@ -343,7 +332,7 @@ public class Configurator {
     // pragmatics
     public File destination = null;
     public String lib = null;
-    public String blackjackCp = null;
+    public String aggagentCp = null;
 
     // gross configurations
     public String nameServer = null;
@@ -366,7 +355,7 @@ public class Configurator {
     }
 
     public void setBlackjackCp (String s) {
-      blackjackCp = s;
+      aggagentCp = s;
     }
 
     public void setNameServer (String s) {
@@ -432,7 +421,7 @@ public class Configurator {
           setDestination(value);
         else if (name.equals("lib"))
           setLib(value);
-        else if (name.equals("blackjackCp"))
+        else if (name.equals("aggagentCp"))
           setBlackjackCp(value);
         else if (name.equals("nameServer"))
           setNameServer(value);
