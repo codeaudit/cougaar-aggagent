@@ -62,7 +62,7 @@ public class RemoteSubscriptionPlugin extends ComponentPlugin
 
   public void execute () {
 
-    if (log.isDebugEnabled()) log.debug("RemotePlugin:("+me+") Nmessages= "+messageSub.getCollection().size());
+    if (log != null && log.isDebugEnabled()) log.debug("RemotePlugin:("+me+") Nmessages= "+messageSub.getCollection().size());
 
     // process new messages
     for(Enumeration e = messageSub.getAddedList(); e.hasMoreElements();)
@@ -95,11 +95,11 @@ public class RemoteSubscriptionPlugin extends ComponentPlugin
   private void receiveMessage(AggRelay relay) {
     try {
       XMLMessage xmsg = (XMLMessage)relay.getContent();
-      if (log.isDebugEnabled()) log.debug("RemotePlugin:("+me+") receiveMessage "+xmsg);
+      if (log != null && log.isDebugEnabled()) log.debug("RemotePlugin:("+me+") receiveMessage "+xmsg);
       
       Element root = XmlUtils.parse(xmsg.getText());
       String requestName = root.getNodeName();
-      if (log.isDebugEnabled()) log.debug("RemotePlugin:("+me+") Got message: "+requestName+":"+root.toString());
+      if (log != null && log.isDebugEnabled()) log.debug("RemotePlugin:("+me+") Got message: "+requestName+":"+root.toString());
 
       if (requestName.equals("transient_query_request"))
       {
@@ -237,7 +237,7 @@ public class RemoteSubscriptionPlugin extends ComponentPlugin
     }
 
     public void pushUpdate () {
-      if (log.isDebugEnabled()) log.debug("Updating session to agg("+me+"): " + getQueryId());
+      if (log != null && log.isDebugEnabled()) log.debug("Updating session to agg("+me+"): " + getQueryId());
       sendMessage(relay, createUpdateDelta().toXml());
     }
   }
@@ -246,12 +246,12 @@ public class RemoteSubscriptionPlugin extends ComponentPlugin
    * causes a message to be sent.
    */
   protected void sendMessage (AggRelay relay, String message) {
-    if (log.isDebugEnabled()) log.debug("RemoteSubPlugins:("+me+"):sendMessage from: " +
+    if (log != null && log.isDebugEnabled()) log.debug("RemoteSubPlugins:("+me+"):sendMessage from: " +
       getAgentIdentifier() + " to " + relay.getSource());
     XMLMessage msg = new XMLMessage(message);
     relay.updateResponse(me, msg);
     getBlackboardService().publishChange(relay);
-    if (log.isDebugEnabled()) log.debug("RemoteSubPlugins:("+me+"):sendMessage:  done publish changed it");
+    if (log != null && log.isDebugEnabled()) log.debug("RemoteSubPlugins:("+me+"):sendMessage:  done publish changed it");
   }
 
   // This is the implementation of RemoteSession used for the PULL method.  It
@@ -273,7 +273,7 @@ public class RemoteSubscriptionPlugin extends ComponentPlugin
     }
 
     public void pushUpdate () {
-      if (log.isDebugEnabled()) log.debug("Updating session to agg("+me+"): " + getQueryId());
+      if (log != null && log.isDebugEnabled()) log.debug("Updating session to agg("+me+"): " + getQueryId());
       rbs.open();
       UpdateDelta del = createUpdateDelta();
       rbs.close();
@@ -306,7 +306,7 @@ public class RemoteSubscriptionPlugin extends ComponentPlugin
     else {
       String type = root.getNodeName();
       if (type.equals("pull_request") || type.equals("push_request"))
-        if (log.isWarnEnabled()) log.warn("Error cancelling session ("+me+")" + qId + " at " +
+        if (log != null && log.isWarnEnabled()) log.warn("Error cancelling session ("+me+")" + qId + " at " +
           getAgentIdentifier().getAddress());
     }
   }
@@ -314,12 +314,12 @@ public class RemoteSubscriptionPlugin extends ComponentPlugin
   private void cancelSession (AggRelay relay) {
     try {
       XMLMessage xmsg = (XMLMessage)relay.getContent();
-      if (log.isDebugEnabled()) log.debug("RemotePlugin:("+me+") relay deleted "+xmsg);
+      if (log != null && log.isDebugEnabled()) log.debug("RemotePlugin:("+me+") relay deleted "+xmsg);
       
       Element root = XmlUtils.parse(xmsg.getText());
       cancelSession(root);
     } catch (Exception ex) {
-      if (log.isErrorEnabled()) log.error("RemotePlugin:("+me+") error deleting relay: "+ex);
+      if (log != null && log.isErrorEnabled()) log.error("RemotePlugin:("+me+") error deleting relay: "+ex);
     }
         
   }
@@ -355,7 +355,7 @@ public class RemoteSubscriptionPlugin extends ComponentPlugin
 
     new RemotePullSession(
       String.valueOf(idCounter++), queryId, formatter, relay, seeker);
-    if (log.isDebugEnabled()) log.debug("Pull session created("+me+")");
+    if (log != null && log.isDebugEnabled()) log.debug("Pull session created("+me+")");
   }
 
   private void returnUpdate (Element root) throws Exception {
@@ -366,14 +366,14 @@ public class RemoteSubscriptionPlugin extends ComponentPlugin
     if (bbs != null)
       bbs.pushUpdate();
     else
-      if (log.isWarnEnabled()) log.warn(
+      if (log != null && log.isWarnEnabled()) log.warn(
         "Error: ("+me+") query not found while updating " + qId + " for " + requester);
   }
   
-  protected LoggingService log;
+  protected LoggingService log = null;
   
   public void setLoggingService(LoggingService ls) {
-    if ((ls == null) && log.isDebugEnabled())
+    if ((ls == null) && (log != null) && log.isDebugEnabled())
       log.debug("Logger ("+me+")being reset to null");
     log = ls;
     if ((log != null) && log.isDebugEnabled())

@@ -79,7 +79,7 @@ public class AggregationPlugin extends ComponentPlugin
   public void execute()
   {
 
-    if (log.isDebugEnabled()) log.debug("("+me+")AggPlugin: execute");
+    if (log != null && log.isDebugEnabled()) log.debug("("+me+")AggPlugin: execute");
 
     checkNewMessages();
     checkNewQueries();
@@ -173,12 +173,12 @@ public class AggregationPlugin extends ComponentPlugin
                   }
                 }
             }
-            if (log.isDebugEnabled()) log.debug("("+me+")Updating remote session "+qra.getID());
+            if (log != null && log.isDebugEnabled()) log.debug("("+me+")Updating remote session "+qra.getID());
           }
           Vector addedClusters = qra.getAndResetAddedClusters();
           // add the new cluster relays
           if (addedClusters != null && !addedClusters.isEmpty()) {
-            if (log.isDebugEnabled()) log.debug("("+me+")Updating remote session "+qra.getID());
+            if (log != null && log.isDebugEnabled()) log.debug("("+me+")Updating remote session "+qra.getID());
             Enumeration newClusters = addedClusters.elements();
             while (newClusters.hasMoreElements()) {
               String clusterId = (String) newClusters.nextElement();
@@ -191,7 +191,7 @@ public class AggregationPlugin extends ComponentPlugin
           }
         }
       }  catch (Exception ioe) {
-        if (log.isErrorEnabled()) log.error("AggPlugin:("+me+"):error updating session"+ioe);
+        if (log != null && log.isErrorEnabled()) log.error("AggPlugin:("+me+"):error updating session"+ioe);
       }
     }
   }
@@ -213,7 +213,7 @@ public class AggregationPlugin extends ComponentPlugin
         }
 
         // cancel session on each of the source clusters listed in query
-        if (log.isDebugEnabled()) log.debug("("+me+")Cancelling remote session "+queryId);
+        if (log != null && log.isDebugEnabled()) log.debug("("+me+")Cancelling remote session "+queryId);
         cancelRemoteSession(queryId);
       }
     }
@@ -253,7 +253,7 @@ public class AggregationPlugin extends ComponentPlugin
   {
     sendMessage(createAggAddress(clusterId),
       frameRequestXml("push_request", queryId, null, true, qra.getQuery()));
-    if (log.isDebugEnabled()) log.debug("AggPlugin:("+me+"):requestPushSession:  sent message");
+    if (log != null && log.isDebugEnabled()) log.debug("AggPlugin:("+me+"):requestPushSession:  sent message");
   }
 
   /**
@@ -282,11 +282,11 @@ public class AggregationPlugin extends ComponentPlugin
               String this_id = root.getAttribute("query_id");
               if (queryId.equals(this_id)) {
                   getBlackboardService().publishRemove(ar);
-                  if (log.isDebugEnabled()) log.debug("AggPlugin:("+me+"):canceled session at "+ar.getTargets().iterator().next());
+                  if (log != null && log.isDebugEnabled()) log.debug("AggPlugin:("+me+"):canceled session at "+ar.getTargets().iterator().next());
               }
           }
       } catch (Exception ioe) {
-          if (log.isErrorEnabled()) log.error("AggPlugin:("+me+"):error canceling session"+ioe);
+          if (log != null && log.isErrorEnabled()) log.error("AggPlugin:("+me+"):error canceling session"+ioe);
       }
   }
 
@@ -296,7 +296,7 @@ public class AggregationPlugin extends ComponentPlugin
    */
   private void receiveMessage(AggRelay relay) {
     try {
-      if (log.isDebugEnabled()) log.debug("AggPlugin:("+me+"):receiveMessage");
+      if (log != null && log.isDebugEnabled()) log.debug("AggPlugin:("+me+"):receiveMessage");
       XMLMessage xmsg = (XMLMessage)relay.getResponse();
       Element root = XmlUtils.parse(xmsg.getText());
       String requestName = root.getNodeName();
@@ -309,7 +309,7 @@ public class AggregationPlugin extends ComponentPlugin
       String updatedQuery = delta.getQueryId();
       String updatedCluster = delta.getAgentId();
 
-      if (log.isDebugEnabled())
+      if (log != null && log.isDebugEnabled())
         log.debug("AggPlugin ("+me+")Received a message at " +
         getAgentIdentifier() +
         " --- Query update to :" + updatedQuery + " from " + updatedCluster);
@@ -331,7 +331,7 @@ public class AggregationPlugin extends ComponentPlugin
             getBlackboardService().publishRemove(relay);
       }
       else {
-        if (log.isErrorEnabled())
+        if (log != null && log.isErrorEnabled())
         log.error("AggPlugin: unable to find query ID: "+updatedQuery);
       }
     } catch (Exception ex) {
@@ -346,14 +346,14 @@ public class AggregationPlugin extends ComponentPlugin
    * causes a message to be sent.
    */
   protected void sendMessage (MessageAddress address, String message) {
-    if (log.isDebugEnabled()) log.debug("AggPlugins:("+me+"):sendMessage from: " +
+    if (log != null && log.isDebugEnabled()) log.debug("AggPlugins:("+me+"):sendMessage from: " +
       getAgentIdentifier() + " to " + address.getAddress());
     XMLMessage msg = new XMLMessage(message);
     AggRelay relay = new AggRelay(getUIDService().nextUID(), me, address, msg, null);
     // I need to flag this relay as one that I created, so I don't try to service it, too.
     relay.setLocal(true);
     getBlackboardService().publishAdd(relay);
-    if (log.isDebugEnabled()) log.debug("AggPlugins:("+me+"):sendMessage:  done publishized it");
+    if (log != null && log.isDebugEnabled()) log.debug("AggPlugins:("+me+"):sendMessage:  done publishized it");
   }
 
   protected static final MessageAddress createAggAddress(String agentName) {
@@ -397,13 +397,13 @@ public class AggregationPlugin extends ComponentPlugin
     }
   }
 
-  protected LoggingService log;
+  protected LoggingService log = null;
   
   /** Holds value of property UIDService. */
   private UIDService UIDService;
   
   public void setLoggingService(LoggingService ls) {
-    if ((ls == null) && log.isDebugEnabled())
+    if ((ls == null) && (log != null) && log.isDebugEnabled())
       log.debug("Logger ("+me+")being reset to null");
     log = ls;
     if ((log != null) && log.isDebugEnabled())
