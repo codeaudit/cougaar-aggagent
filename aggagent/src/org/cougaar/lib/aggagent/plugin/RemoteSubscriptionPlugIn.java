@@ -153,40 +153,14 @@ System.out.println("RemotePlugin: Got message: "+requestName+":"+root.toString()
   private int idCounter = 0;
   private HashMap queryMap = new HashMap();
 
-  private void updatePushSession(RemotePushSession rps) {
-    System.out.println("Updating session to agg: "+rps.queryId);
+  private static class SubscriptionWrapper implements SubscriptionAccess {
+    private IncrementalSubscription sub = null;
 
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    rps.formatter.encode(baos, rps, rps.key, rps.queryId, getBindingSite().getAgentIdentifier().toString());
-
-    MessageAddress originator = createAggAddress(rps.requester);
-    sendMessage(originator, new String(baos.toByteArray()));
-  }
-
-
-  private class RemotePushSession implements SubscriptionAccess {
-
-    public String requester;
-    public String key;
-    public String queryId;
-    public IncrementFormat formatter;
-    public IncrementalSubscription sub;
-
-    public RemotePushSession (String k, String queryId, IncrementFormat f,
-        String requester, IncrementalSubscription sub)
-    {
-      this.requester = requester;
-      this.key = k;
-      this.queryId = queryId;
-      this.formatter = f;
-      this.sub = sub;
+    public SubscriptionWrapper (IncrementalSubscription s) {
+      sub = s;
     }
 
-    public void subscriptionChanged () {
-      updatePushSession(this);
-    }
-
-    public IncrementalSubscription getSubscription() {
+    public IncrementalSubscription getSubscription () {
       return sub;
     }
 
@@ -202,7 +176,56 @@ System.out.println("RemotePlugin: Got message: "+requestName+":"+root.toString()
     public Collection getMembership () {
       return sub.getCollection();
     }
+  }
 
+  private class RemotePushSession {
+
+    public String requester;
+    public String key;
+    public String queryId;
+    public IncrementFormat formatter;
+    private SubscriptionAccess data = null;
+    private IncrementalSubscription rawData = null;
+
+    protected RemotePushSession (String k, String qId, IncrementFormat f,
+        String req, SubscriptionAccess acc)
+    {
+      key = k;
+      queryId = qId;
+      formatter = f;
+      requester = req;
+      data = acc;
+    }
+
+    public RemotePushSession (String k, String qId, IncrementFormat f,
+        String req, IncrementalSubscription sub)
+    {
+      this(k, qId, f, req, new SubscriptionWrapper(sub));
+      rawData = sub;
+    }
+
+    public void pushUpdate () {
+      System.out.println("Updating session to agg: " + queryId);
+
+      ByteArrayOutputStream baos = new ByteArrayOutputStream();
+      formatter.encode(baos, getData(), key, queryId,
+        getBindingSite().getAgentIdentifier().toString());
+
+      MessageAddress originator = createAggAddress(requester);
+      sendMessage(originator, new String(baos.toByteArray()));
+    }
+
+    public void subscriptionChanged () {
+      pushUpdate();
+    }
+
+    public IncrementalSubscription getSubscription() {
+      return rawData;
+    }
+
+    public SubscriptionAccess getData () {
+      return data;
+    }
   }
 
   private class RemotePullSession extends RemotePushSession {
@@ -219,39 +242,31 @@ System.out.println("RemotePlugin: Got message: "+requestName+":"+root.toString()
       rbs.subscriptionChanged();
     }
 
-    public Collection getAddedCollection () {
-      return rbs.getAddedCollection();
-    }
-    public Collection getChangedCollection () {
-      return rbs.getChangedCollection();
-    }
-    public Collection getRemovedCollection () {
-      return rbs.getRemovedCollection();
-    }
-    public Collection getMembership () {
-      return rbs.getMembership();
+    public SubscriptionAccess getData () {
+      return rbs;
     }
   }
 
 
-  private void cancelSession(Element root, MessageAddress originator) throws Exception
+  private void cancelSession (Element root, MessageAddress originator)
+      throws Exception
   {
     String query_id = root.getAttribute("query_id");
     Iterator iter = queryMap.values().iterator();
-    RemotePushSession to_be_deleted = null;
+    boolean found = false;
     while (iter.hasNext()) {
       RemotePushSession rps = (RemotePushSession)iter.next();
       if (rps.queryId.equals(query_id)) {
-        to_be_deleted = rps;
+        found = true;
+        IncrementalSubscription s = rps.getSubscription();
+        getBlackboardService().unsubscribe(s);
+        queryMap.remove(s);
         break;
       }
     }
-    if (to_be_deleted != null) {
-      getBlackboardService().unsubscribe(to_be_deleted.sub);
-      queryMap.remove(to_be_deleted.sub);
-    } else {
-      System.out.println("Error cancelling session "+query_id+" at "+getBindingSite().getAgentIdentifier().getAddress());
-    }
+    if (!found)
+      System.out.println("Error cancelling session " + query_id + " at " +
+        getBindingSite().getAgentIdentifier().getAddress());
   }
 
 
@@ -303,7 +318,7 @@ System.out.println("RemotePlugin: Got message: "+requestName+":"+root.toString()
       System.err.println("Error updating query: "+queryId+" : not found");
     } else {
       rps.rbs.open();
-      updatePushSession(rps);
+      rps.pushUpdate();
       rps.rbs.close();
     }
   }
