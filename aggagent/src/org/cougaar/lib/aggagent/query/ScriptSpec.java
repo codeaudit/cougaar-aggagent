@@ -14,12 +14,24 @@ import org.cougaar.lib.aggagent.session.*;
 import org.cougaar.lib.aggagent.util.Enum.*;
 import org.cougaar.lib.aggagent.util.XmlUtils;
 
+/**
+ *  An instance of this class may be used to represent a script, including the
+ *  code itself plus a variety of information concerning the intended usage of
+ *  the script.
+ */
 public class ScriptSpec {
   private static Class[] STRING_PARAM = new Class[] {String.class};
 
   private ScriptType type = null;
   private Language lang = null;
+
+  // only used when the script is for XML encoding
   private XmlFormat format = null;
+
+  // only used when the script is intended for data set aggregation
+  private AggType aggType = null;
+  private List aggIds = null;
+
   private String text = null;
   private Map params = new HashMap();
 
@@ -27,8 +39,29 @@ public class ScriptSpec {
     return lang;
   }
 
+  /**
+   *  Tell the basic purpose of the script.
+   */
+  public ScriptType getType () {
+    return type;
+  }
+
+  /**
+   *  Retrieve the type of XML encoding that this script provides.  See
+   *  Enum.XmlFormat for details.  This value is only meaningful if the script
+   *  type is Enum.ScriptType.INCREMENT_FORMAT, and should be ignored otherwise.
+   */
   public XmlFormat getFormat () {
     return format;
+  }
+
+  /**
+   *  Retrieve the type of aggregation that this script provides.  See
+   *  Enum.AggType for details.  This value is only meaningful if the script
+   *  type is Enum.ScriptType.AGGREGATOR, and should be ignored otherwise.
+   */
+  public AggType getAggType () {
+    return aggType;
   }
 
   public String getText () {
@@ -49,6 +82,14 @@ public class ScriptSpec {
     lang = l;
     format = f;
     text = s;
+  }
+
+  public ScriptSpec (Language l, AggType agg, String s, String ids) {
+    type = ScriptType.AGGREGATOR;
+    lang = l;
+    aggType = agg;
+    text = s;
+    aggIds = parseAggIds(ids);
   }
 
   public ScriptSpec (ScriptType t, String s, Map p) {
@@ -73,11 +114,43 @@ public class ScriptSpec {
     lang = Language.fromString(root.getAttribute("language"));
     if (type == ScriptType.INCREMENT_FORMAT)
       format = XmlFormat.fromString(root.getAttribute("type"));
+    if (type == ScriptType.AGGREGATOR) {
+      aggType = AggType.fromString(root.getAttribute("type"));
+      aggIds = parseAggIds(root.getAttribute("aggIds"));
+    }
 
     if (lang == Language.JAVA)
       parseJavaSpec(root);
     else
       parseScriptSpec(root);
+  }
+
+  private static List parseAggIds (String s) {
+    if (s == null)
+      return null;
+
+    List ret = new LinkedList();
+    StringTokenizer tok = new StringTokenizer(s, " ,;\t\r\n");
+    while (tok.hasMoreTokens())
+      ret.add(tok.nextToken());
+
+    return ret;
+  }
+
+  private static String encodeAggIds (List l) {
+    if (l == null)
+      return null;
+
+    StringBuffer buf = new StringBuffer();
+    Iterator i = l.iterator();
+    if (i.hasNext()) {
+      buf.append(i.next());
+      while (i.hasNext()) {
+        buf.append(" ");
+        buf.append(i.next());
+      }
+    }
+    return buf.toString();
   }
 
   private void parseJavaSpec (Element elt) {
@@ -124,6 +197,16 @@ public class ScriptSpec {
       buf.append(format);
       buf.append("\"");
     }
+    if (aggType != null) {
+      buf.append(" type=\"");
+      buf.append(aggType);
+      buf.append("\"");
+    }
+    if (aggIds != null) {
+      buf.append(" aggIds=\"");
+      buf.append(encodeAggIds(aggIds));
+      buf.append("\"");
+    }
     buf.append(">");
 
     if (lang == Language.JAVA)
@@ -136,6 +219,12 @@ public class ScriptSpec {
     buf.append(">");
 
     return buf.toString();
+  }
+
+  public String getAggIdString () {
+    if (aggIds != null)
+      return encodeAggIds(aggIds);
+    return null;
   }
 
   private static String propertySetterName (String property) {
@@ -215,6 +304,34 @@ public class ScriptSpec {
     return null;
   }
 
+  public Aggregator toScriptedAggregator () throws Exception {
+    if (lang == Language.JPYTHON)
+      return PythAggregator.aggregatorFromScript(text);
+    else if (lang == Language.SILK)
+      return new SilkAggregator(text);
+    else if (lang == Language.JAVA)
+      return (Aggregator) makeBean();
+    return null;
+  }
+
+  public DataAtomMelder toDataAtomMelder () throws Exception {
+    if (lang == Language.JPYTHON)
+      return PythMelder.melderFromScript(text);
+    else if (lang == Language.SILK)
+      return new SilkMelder(text);
+    else if (lang == Language.JAVA)
+      return (DataAtomMelder) makeBean();
+    return null;
+  }
+
+  public Aggregator toAggregator () throws Exception {
+    if (aggType == AggType.AGGREGATOR)
+      return toScriptedAggregator();
+    else if (aggType == AggType.MELDER)
+      return new BatchAggregator(aggIds, toDataAtomMelder());
+    return null;
+  }
+
   public Object toObject ()  throws Exception {
     if (type == ScriptType.UNARY_PREDICATE)
       return toUnaryPredicate();
@@ -222,17 +339,29 @@ public class ScriptSpec {
       return toIncrementFormat();
     else if (type == ScriptType.ALERT)
       return toAlert();
+    else if (type == ScriptType.AGGREGATOR)
+      return toAggregator();
     return null;
   }
 
   public static UnaryPredicate makeUnaryPredicate (Element elt)
-    throws Exception {
+      throws Exception
+  {
     return new ScriptSpec(elt).toUnaryPredicate();
   }
 
   public static IncrementFormat makeIncrementFormat (Element elt)
-    throws Exception {
+      throws Exception
+  {
     return new ScriptSpec(elt).toIncrementFormat();
+  }
+
+  public static Alert makeAlert (Element elt) throws Exception {
+    return new ScriptSpec(elt).toAlert();
+  }
+
+  public static Aggregator makeAggregator (Element elt) throws Exception {
+    return new ScriptSpec(elt).toAggregator();
   }
 
   public static Object makeObject (Element elt) throws Exception {
