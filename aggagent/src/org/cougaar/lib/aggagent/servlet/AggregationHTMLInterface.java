@@ -202,8 +202,15 @@ public class AggregationHTMLInterface extends AggregationServletInterface
         QueryResultAdapter qra = (QueryResultAdapter)i.next();
         String name = qra.getQuery().getName();
         String alertPragma = "ADD_ALERT_FORM";
-        if (name != null)
-          alertPragma = "QUERY=" + URLEncoder.encode(name) + "&" + alertPragma;
+
+        try {
+          if (name != null)
+            alertPragma = "QUERY=" + URLEncoder.encode(name, "UTF-8") + "&" +
+                          alertPragma;
+        } catch (java.io.UnsupportedEncodingException e)
+        {
+          e.printStackTrace();
+        }
 
         String queryViewLink =
           selfLink(qra.getQuery().getName() + " (" + qra.getID() + ") ",
@@ -227,19 +234,28 @@ public class AggregationHTMLInterface extends AggregationServletInterface
 
   private String selfLink (String text, String pragma, String id,
                            String target) {
-    StringBuffer buf = new StringBuffer(servletName);
-    if (pragma != null) {
-      buf.append("?");
-      buf.append(pragma);
-      buf.append("=1");
-      if (id != null) {
-        buf.append("&");
-        buf.append("SESSION_ID");
-        buf.append("=");
-        buf.append(URLEncoder.encode(id));
+    String hl = null;
+
+    try {
+      StringBuffer buf = new StringBuffer(servletName);
+      if (pragma != null) {
+        buf.append("?");
+        buf.append(pragma);
+        buf.append("=1");
+        if (id != null) {
+          buf.append("&");
+          buf.append("SESSION_ID");
+          buf.append("=");
+          buf.append(URLEncoder.encode(id, "UTF-8"));
+        }
       }
+      hl = hyperlink(text, buf.toString(), target);
+    } catch (java.io.UnsupportedEncodingException e)
+    {
+      e.printStackTrace();
     }
-    return hyperlink(text, buf.toString(), target);
+
+    return hl;
   }
 
   private static String hyperlink (String text, String url, String target) {

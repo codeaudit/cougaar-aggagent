@@ -243,11 +243,18 @@ public class AggregationClient
    */
   public boolean cancelAlert(String queryId, String alertName)
   {
-    String encodedAlertName = URLEncoder.encode(alertName);
-    String loadedURL = aggregationURL + "&CANCEL_ALERT=1&QUERY_ID=" +
-                      queryId + "&ALERT_NAME=" + encodedAlertName;
-    String response = XmlUtils.requestString(loadedURL, null);
-    return response.equals("0");
+    boolean success = false;
+    try {
+      String encodedAlertName = URLEncoder.encode(alertName, "UTF-8");
+      String loadedURL = aggregationURL + "&CANCEL_ALERT=1&QUERY_ID=" +
+                        queryId + "&ALERT_NAME=" + encodedAlertName;
+      String response = XmlUtils.requestString(loadedURL, null);
+      success = response.equals("0");
+    } catch (java.io.UnsupportedEncodingException e)
+    {
+      e.printStackTrace();
+    }
+    return success;
   }
 
   /**
