@@ -66,7 +66,7 @@ public class CustomQueryBaseAdapter     implements GenericQuery
      //
      // Generic PSP calls this method on Collection of objects answering subscription
      // GenericQueryXML accumulates state
-     public void execute( Collection matches ){
+     public void execute( Collection matches, final String collectionType  ){
          new RuntimeException( "Need to provide behavior to  CustomQueryBaseAdapter.execute()");
      }
 

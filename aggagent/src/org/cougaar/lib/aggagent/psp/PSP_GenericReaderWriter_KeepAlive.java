@@ -88,6 +88,8 @@ public class PSP_GenericReaderWriter_KeepAlive extends PSP_GenericReaderWriter
       this.setConnectionACKMessage(null);
   }
 
+  private static String delimiter = "&&&";
+
   // ################################################################################
   public void _execute(
       PrintStream out,
@@ -108,7 +110,7 @@ public class PSP_GenericReaderWriter_KeepAlive extends PSP_GenericReaderWriter
              synchronizedExecute (out, query_parameters, psc, psu, my_gl_dict, container, queryObj);
              System.out.println("[PSP_GenericReaderWriter.KeepAlive._execute()] SYNCHEXECUTE!!! container.size=" + container.size());
              container.clear(); // remove all objects - they have been handled
-             out.println("&&&");
+             out.println(delimiter);
              out.flush();
              System.out.println("[PSP_GenericReaderWriter.KeepAlive._execute()] FLUSH!!!");
          }
@@ -169,72 +171,5 @@ public class PSP_GenericReaderWriter_KeepAlive extends PSP_GenericReaderWriter
          addItem(obj);
       }
   }
-
-  /**
-  // ################################################################################
-  public void synchronizedExecute(
-      PrintStream out,
-      HttpInput query_parameters,
-      PlanServiceContext psc,
-      PlanServiceUtilities psu,
-      GLDictionary my_gl_dict
-      ) throws Exception
-  {
- 
-      boolean useHTML =
-         (boolean)query_parameters.existsParameter("HTML");
-
-
-      System.out.println("[PSP_GenericReaderWriter_KeepAlive] +++> start execution @" + psc.getServerPluginSupport().getClusterIDAsString() );
-      GLDictionary myGLDictionary = getGLDictionary(psc, psu);
-
-      GenericQuery queryObj =
-                (GenericQuery)myGLDictionary.match(query_parameters,
-                                                    myGLDictionary.MATCH_MODE_QUERY);
-
-      if( queryObj != null )
-      {
-          ByteArrayOutputStream bufOut = null;
-          PrintStream printOut = null;
-          if( useHTML ) {
-              bufOut = new ByteArrayOutputStream(512);
-              printOut = new PrintStream(bufOut);
-          }
-          else printOut = out;
-
-          System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>> myGLDictionary returned: " + queryObj);
-
-          Subscription subscription = psc.getServerPluginSupport().subscribe(this, queryObj.getPredicate());
-          Collection container = ((CollectionSubscription)subscription).getCollection();
-
-          queryObj.execute(container);
-             //   false:   write results to printOut as single document
-             //   for keep-alive contexts, should dribble documents back individually
-             //                    as objects come in (use true).
-          queryObj.returnVal(printOut, null, false);
-
-          if(useHTML ) {
-
-           StringBuffer sb = filterXMLtoHTML(new StringBuffer(new String(bufOut.toByteArray())));
-
-           out.print("<HTML><BODY><PRE><BLOCKQUOTE>" +
-                       sb.toString()
-                       + "</BLOCKQUOTE></PRE></BODY></HTML>"
-                       );
-         }
-      }
-      else {
-           out.println("<HTML><BODY><H3>Cataloged GenericLogic Entries in Dictionary @"
-                         + psc.getServerPluginSupport().getClusterIDAsString() + "</H3>");
-           out.println("<P>Dictionary size=" + myGLDictionary.getNumGLEntries() + "</P>");
-           out.println("<BR>" + myGLDictionary.toHTMLString());
-           out.println("</HTML>");
-      }
-      out.flush();
-
-      System.out.println("[PSP_GenericReaderWriter] <+++ leave execution @" + psc.getServerPluginSupport().getClusterIDAsString() );
-  }
-  **/
-
-
+  
 }

@@ -224,7 +224,8 @@ public class PSP_GenericReaderWriter extends PSP_BaseAdapter implements PlanServ
            // normal poll query -- no state
            //
            Subscription subscription = psc.getServerPluginSupport().subscribe(this, queryObj.getPredicate());
-           Collection container = ((CollectionSubscription)subscription).getCollection();   // Doesn't block
+           CollectionSubscription collsub = ((CollectionSubscription)subscription);   // Doesn't block
+           Collection container = collsub.getCollection();   // Doesn't block
            synchronizedExecute (out, query_parameters, psc, psu, my_gl_dict, container, queryObj);
       }
   }
@@ -287,8 +288,7 @@ public class PSP_GenericReaderWriter extends PSP_BaseAdapter implements PlanServ
           //Subscription subscription = psc.getServerPluginSupport().subscribe(this, queryObj.getPredicate());
           //Collection container = ((CollectionSubscription)subscription).getCollection();
 
-          queryObj.execute(container);
-
+          queryObj.execute(container, queryObj.collectionType_ADD);
           queryObj.returnVal(printOut ); // my_gl_dict.getXSL(myXSL_Alias));
 
           if(useHTML )
@@ -306,7 +306,6 @@ public class PSP_GenericReaderWriter extends PSP_BaseAdapter implements PlanServ
          }
       }
       out.flush();
-
       System.out.println("[PSP_GenericReaderWriter] <+++ leave execution @" + psc.getServerPluginSupport().getClusterIDAsString() );
   }
 

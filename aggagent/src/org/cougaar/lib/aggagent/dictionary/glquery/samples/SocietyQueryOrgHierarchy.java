@@ -46,7 +46,7 @@ public class SocietyQueryOrgHierarchy extends CustomQueryBaseAdapter
      //
      // Generic PSP calls this method on Collection of objects answering subscription
      // GenericQueryXML accumulates state
-     public void execute( Collection matches ) {
+     public void execute( Collection matches, final String collectionType  ) {
 
            synchronized( matches)
            {

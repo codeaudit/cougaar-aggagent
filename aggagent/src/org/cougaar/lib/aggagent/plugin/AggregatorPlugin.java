@@ -57,7 +57,7 @@ public class AggregatorPlugin extends SimplifiedPlugIn
 
     /**
          NO SUBSCRIPTIONS FOR NOW
-         
+
     private IncrementalSubscription mySubscription;
     private UnaryPredicate myPredicate;
     **/
@@ -203,7 +203,7 @@ public class AggregatorPlugin extends SimplifiedPlugIn
 
     private void processDataFromConnection_asXML(String str)
     {
-               try{
+            try{
                     //ByteArrayInputStream bais = new ByteArrayInputStream(str.getBytes());
                     //InputSource is = new InputSource(bais);
                     StringReader sr = new StringReader(str.trim());
@@ -227,7 +227,9 @@ public class AggregatorPlugin extends SimplifiedPlugIn
                             }
                         }
                     );
-
+                    //
+                    // .reset() DISABLED:
+                    // USE seems to occasionally corrupt document created.
                     //myDOMParser.reset();
                     myDOMParser.parse(is);
                     Document doc = myDOMParser.getDocument();
@@ -240,15 +242,15 @@ public class AggregatorPlugin extends SimplifiedPlugIn
                                           + doc.getDocumentElement().getNodeName());
                        publishAdd(p);
                     }
-                } catch ( SAXParseException sax) {
+            } catch ( SAXParseException sax) {
                     //
                     // if we see this, assume this is not valid XML
                     //
                     System.out.println("Not XML");
                     System.out.println("\n[AggregatorPlugin] data=" + str + "\n");
-                } catch (Exception ex ){
+            } catch (Exception ex ){
                     ex.printStackTrace();
-                }
+            }
     }
 
 

@@ -40,8 +40,14 @@ import org.xml.sax.InputSource;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.w3c.dom.Element;
+import org.w3c.dom.Comment;
+import org.w3c.dom.Attr;
 
 import org.cougaar.lib.aggagent.dictionary.glquery.GenericQuery;
+import org.cougaar.lib.aggagent.dictionary.GenericLogic;
 import org.cougaar.lib.aggagent.bsax.*;
 
 //
@@ -86,8 +92,16 @@ public class GenericQueryXML  implements GenericQuery
                // Install Default XML Service
                //
                try{
-                  Object xobj = Class.forName(this.DEFAULT_XML_SERVICE).newInstance();
-                  params.put(this.paramkey_XML_SERVICE, xobj);
+                  Object xobj_service_add = Class.forName(this.DEFAULT_XML_SERVICE).newInstance();
+                  Object xobj_service_remove = Class.forName(this.DEFAULT_XML_SERVICE).newInstance();
+                  Object xobj_service_changed = Class.forName(this.DEFAULT_XML_SERVICE).newInstance();
+
+                  HashMap XML_Object_Services = new HashMap();
+                  XML_Object_Services.put(GenericLogic.collectionType_ADD, xobj_service_add);
+                  XML_Object_Services.put(GenericLogic.collectionType_REMOVE, xobj_service_remove);
+                  XML_Object_Services.put(GenericLogic.collectionType_CHANGE, xobj_service_changed);
+
+                  params.put(this.paramkey_XML_SERVICE, XML_Object_Services);
 
                } catch (Exception ex) {
                   ex.printStackTrace();
@@ -109,11 +123,12 @@ public class GenericQueryXML  implements GenericQuery
          }
          return predicate;
      }
-
+     
      //
      // Generic PSP calls this method on Collection of objects answering subscription
      // GenericQueryXML accumulates state
-     public void execute( Collection matches ) {
+     public void execute( Collection matches, final String collectionType  )
+     {
            synchronized( matches )
            {
               Object [] objs = matches.toArray();
@@ -121,13 +136,28 @@ public class GenericQueryXML  implements GenericQuery
                    Object o = objs[i];
                    // create XML document for selected plan objects
                    // accumulated!
-                   XMLObjectProvider   myObjectProvider =
-                            (XMLObjectProvider)this.getParam(this.paramkey_XML_SERVICE);
+
+                   //XMLObjectProvider myObjectProvider =
+                   //       ObjectProvider_x_SubscriptionCollectionTypes.get(collectionType);
+
+                   HashMap   myObjectProviderMap =
+                            (HashMap)this.getParam(this.paramkey_XML_SERVICE);
+                   XMLObjectProvider myObjectProvider =
+                            (XMLObjectProvider)myObjectProviderMap.get(collectionType);
+
                    synchronized( myObjectProvider ) {
+                         if( collectionType.equals(GenericLogic.collectionType_ADD) ) {
+                            System.out.println("[GenericQueryXML.execute] addObject() used.");
                             addObject(o, myObjectProvider);
+                         }
                    }
               }
            }
+     }
+
+     protected boolean existsXSLParameter(){
+          StringBuffer sbuf_xsl = (StringBuffer)this.getParam(this.paramkey_XSL);
+          return (sbuf_xsl != null);
      }
 
      protected XSLTInputSource getXSLFromParameter(){
@@ -153,22 +183,13 @@ public class GenericQueryXML  implements GenericQuery
      public void  returnVal( OutputStream out)
      {
           System.out.println("[GenericQueryXML.returnVal] Called.");
-          XMLObjectProvider   myObjectProvider = (XMLObjectProvider)this.getParam(this.paramkey_XML_SERVICE);
+
+          HashMap myObjectProviderMap = (HashMap)this.getParam(this.paramkey_XML_SERVICE);
+
+          // XMLObjectProvider   myObjectProvider = (XMLObjectProvider)this.getParam(this.paramkey_XML_SERVICE);
 
           XSLTInputSource  myXSL = null;
           String mySAXContentHandlerClassName = null;
-
-          //
-          // XSL PARAMETER?
-          //
-          myXSL=getXSLFromParameter();
-
-          if( myXSL != null) {
-               System.out.println("[GenericQueryXML.returnVal] XSL USED:" + myXSL);
-          } else {
-               System.out.println("[GenericQueryXML.returnVal] XSL NOT USED.");
-          }
-
 
           //StringBuffer sbuf_xsl = (StringBuffer)preConfiguredParameters.get(this.paramkey_XSL);
           //if( sbuf_xsl != null) myXSL =  new XSLTInputSource(new StringReader(sbuf_xsl.toString()));
@@ -187,25 +208,90 @@ public class GenericQueryXML  implements GenericQuery
           }
 
           //#################################
-          // XSL PROCESSING
+          // XSL PROCESSING  (DOM)
           // ################################
-          if( myXSL != null)
-          {
-              try {   /**
-                  File xslf = new File( "../../gldictionary_entries/task.simple.1.xsl");
-                  System.out.println("XSL FILE ATTEMPTED READ:" + xslf.getAbsolutePath() );
-                  FileReader fr = new FileReader(xslf);
-                  XSLTInputSource  xslsource =  new XSLTInputSource(fr);
-                  myXSL= xslsource;
-                  **/
 
-                 TXDocument doc = null;
+          //
+          //  Potentially, sending multiple documents (1 per subscription event type
+          //  for which objects are available...
+          //
+          //   <LogPlan>...</LogPlan>
+          //   <LogPlan>...</LogPlan>
+          //   <LogPlan>...</LogPlan>
+          //
+          if( existsXSLParameter() )
+          {
+              try {
+                  myXSL=getXSLFromParameter();
+
+                  boolean output = false;
+                  String delimiter = new String("&&&");
+
+                  XMLObjectProvider myObjectProvider =
+                      (XMLObjectProvider)myObjectProviderMap.get(GenericLogic.collectionType_ADD);
+                  if( myObjectProvider.size() > 0)
+                  {
+                      System.out.println("[GenericQueryXML.returnVal] XSL (collectionType_ADD)");
+                      if( output == true ) {
+                                         out.write(delimiter.getBytes());
+                                         out.flush();
+                       }
+                      output = true;
+                      processContainerXSL(
+                               myObjectProvider, myXSL, out, GenericLogic.collectionType_ADD );
+
+                  }
+                  myXSL=getXSLFromParameter();
+
+                  myObjectProvider =
+                      (XMLObjectProvider)myObjectProviderMap.get(GenericLogic.collectionType_CHANGE);
+                  if( myObjectProvider.size() > 0 )
+                  {
+                      System.out.println("[GenericQueryXML.returnVal] XSL (collectionType_CHANGE)");
+                      if( output == true ) {
+                                         out.write(delimiter.getBytes());
+                                         out.flush();
+                       }
+                       output = true;
+                       processContainerXSL(myObjectProvider, myXSL, out, GenericLogic.collectionType_CHANGE );
+                  }
+                  myXSL=getXSLFromParameter();
+
+                  myObjectProvider =
+                      (XMLObjectProvider)myObjectProviderMap.get(GenericLogic.collectionType_REMOVE);
+                  if( myObjectProvider.size() > 0 )
+                  {
+                       System.out.println("[GenericQueryXML.returnVal] XSL (collectionType_REMOVE)");
+                       if( output == true ) {
+                                         out.write(delimiter.getBytes());
+                                         out.flush();
+                       }
+                       output = true;
+                       processContainerXSL(myObjectProvider, myXSL, out, GenericLogic.collectionType_REMOVE );
+                  }
+                 /**
                  synchronized( myObjectProvider) {
                      Object odoc= getDocument(myObjectProvider);
                      if( odoc instanceof TXDocument) doc = (TXDocument)odoc;
+                     if( doc != null)
+                     {
+                         //Element ce = doc.createElement("Container");
+                         //ce.setAttribute("Event", "ADD");
+                         //doc.getFirstChild().appendChild(ce);
+
+                         NodeList children = doc.getFirstChild().getChildNodes();
+                         for(int i=0; i<children.getLength(); i++)
+                         {
+                            Node n= (Node)children.item(i);
+                            Element elem = doc.createElement("Subscription");
+                            elem.setAttribute("Event","ADD");
+                            n.appendChild(elem);
+                         }
+                     }
                  }
                  //
-                 // This is TERRIBLE THING TO DO ...FOR NOW...
+                 // This is BAD.
+                 // TODO:  FIX THIS
                  // converting TO STRING TO APPLY XSL is v. inefficient.
                  // When COUGAAR XML parser version is updated, will go away.
                  //
@@ -219,12 +305,16 @@ public class GenericQueryXML  implements GenericQuery
                     StringReader sr = new StringReader(sb.toString() );
                     applyXSL(sr,myXSL, out);
 
+                    // DEBUG
+                    //doc.print(new PrintWriter(System.out));
+                    //
                  } else if( (doc != null)  ) {
                      doc.print(new PrintWriter(out));
                  }
 
                  // send document to client
                  //doc.print(new PrintWriter(out));
+                 **/
               } catch (Exception ex ){
                     ex.printStackTrace();
               }
@@ -271,8 +361,33 @@ public class GenericQueryXML  implements GenericQuery
                   mySaxParser.setErrorHandler(new BErrorHandler());
               }
 
+              XMLObjectProvider myObjectProvider =
+                      (XMLObjectProvider)myObjectProviderMap.get(GenericLogic.collectionType_ADD);
+
+              if( myObjectProvider.size() > 0) {
+                    processContainerSAX(myObjectProvider, myContentHandler, mySaxParser, out,
+                                   GenericLogic.collectionType_ADD );
+              }
+
+              myObjectProvider =
+                      (XMLObjectProvider)myObjectProviderMap.get(GenericLogic.collectionType_CHANGE);
+
+              if( myObjectProvider.size() > 0 ) {
+                   processContainerSAX(myObjectProvider, myContentHandler, mySaxParser, out,
+                                   GenericLogic.collectionType_CHANGE );
+              }
+
+              myObjectProvider =
+                      (XMLObjectProvider)myObjectProviderMap.get(GenericLogic.collectionType_REMOVE);
+              if( myObjectProvider.size() > 0 ) {
+                   processContainerSAX(myObjectProvider, myContentHandler, mySaxParser, out,
+                                   GenericLogic.collectionType_REMOVE );
+              }
+
+              /**
               TXDocument doc = null;
-              synchronized( myObjectProvider) {
+              synchronized( myObjectProvider)
+              {
                      Object odoc= getDocument(myObjectProvider);
                      if( odoc instanceof TXDocument) doc = (TXDocument)odoc;
               }
@@ -311,13 +426,152 @@ public class GenericQueryXML  implements GenericQuery
                    pw.flush();
                    System.out.println("[GenericQueryXML] pw.toString()=" + pw.toString() );
               }
+              **/
           }
           // ##############################
           // FLUSH! object cache after we've consumed data
           // ##############################
+
+          XMLObjectProvider myObjectProvider =
+                      (XMLObjectProvider)myObjectProviderMap.get(GenericLogic.collectionType_ADD);
           synchronized( myObjectProvider ) {
               reset(myObjectProvider);
           }
+
+          myObjectProvider =
+                      (XMLObjectProvider)myObjectProviderMap.get(GenericLogic.collectionType_CHANGE);
+          synchronized( myObjectProvider ) {
+              reset(myObjectProvider);
+          }
+
+          myObjectProvider =
+                      (XMLObjectProvider)myObjectProviderMap.get(GenericLogic.collectionType_REMOVE);
+          synchronized( myObjectProvider ) {
+              reset(myObjectProvider);
+          }
+  }
+
+  //
+  // Process one container of subscription Objects (ADD,CHANGED,REMOVED)
+  // and converts to XML and applies SAX.  The result is written to provided
+  // output stream.
+  //
+  private void processContainerSAX(XMLObjectProvider myObjectProvider,
+                                   BContentHandler myContentHandler, SAXParser mySaxParser, OutputStream out,
+                                   final String collectionType){
+       try{
+           TXDocument doc = null;
+           synchronized( myObjectProvider) {
+                     Object odoc= getDocument(myObjectProvider);
+                     if( odoc instanceof TXDocument) doc = (TXDocument)odoc;
+           }
+           if( ( doc != null) )
+           {
+                    StringWriter sw = new StringWriter();
+                    try{
+                        doc.print(sw);
+                    } catch( IOException ex ) {
+                        ex.printStackTrace();
+                    }
+                    StringBuffer sb = sw.getBuffer();
+                    StringReader str_reader = new StringReader(sb.toString() );
+
+                    try {
+                        InputSource in = new InputSource(str_reader);
+                        mySaxParser.parse(in);
+                    } catch (IOException e) {
+                        System.err.println("I/O exception reading XML document. " + e);
+                        e.printStackTrace();
+                    } catch (SAXException e) {
+                        System.err.println("SAX exception parsing document. " + e);
+                        e.printStackTrace();
+                    }
+                   //-----------------------------------------------------------------
+                   // Traverse and "write" the tree
+                   // Start from the root object
+                   //-----------------------------------------------------------------
+                   PrintWriter pw = new PrintWriter(out);
+                   pw.println("<?xml version=\"1.0\"?>");
+                   Iterator it3 = myContentHandler.getRootElements().iterator();
+                   while(it3.hasNext()){
+                      BElement be = (BElement)it3.next();
+                      be.print(pw);
+                   }
+                   pw.flush();
+                   System.out.println("[GenericQueryXML] pw.toString()=" + pw.toString() );
+            }
+       } catch (Exception ex ){
+            ex.printStackTrace();
+       }
+  }
+
+
+  //
+  // Process one container of subscription Objects (ADD,CHANGED,REMOVED)
+  // and converts to XML and applies XSL.  The result is written to provided
+  // output stream.
+  //
+  private void processContainerXSL(XMLObjectProvider myObjectProvider,
+                                   XSLTInputSource  myXSL, OutputStream out,
+                                   final String collectionType )
+  {
+       TXDocument doc = null;
+       try{
+             synchronized( myObjectProvider)
+             {
+                     Object odoc= getDocument(myObjectProvider);
+                     if( odoc instanceof TXDocument) doc = (TXDocument)odoc;
+                     if( doc != null)
+                     {
+                         //Element ce = doc.createElement("Container");
+                         //ce.setAttribute("Event", "ADD");
+                         //doc.getFirstChild().appendChild(ce);
+
+                         NodeList children = doc.getFirstChild().getChildNodes();
+                         for(int i=0; i<children.getLength(); i++)
+                         {
+                             Node n= (Node)children.item(i);
+                             Element elem = doc.createElement("Subscription");
+                             if( collectionType.equals(GenericLogic.collectionType_ADD)) {
+                                 elem.setAttribute("Event","ADD");
+                             }
+                             else if( collectionType.equals(GenericLogic.collectionType_CHANGE)){
+                                 elem.setAttribute("Event","CHANGED");
+                             }
+                             else if( collectionType.equals(GenericLogic.collectionType_REMOVE)){
+                                 elem.setAttribute("Event","REMOVED");
+                             } else
+                                 elem.setAttribute("Event","UNKNOWN");
+
+                             n.appendChild(elem);
+                         }
+                     }
+             }
+             //
+             // This is BAD.
+             // TODO:  FIX THIS
+             // converting TO STRING TO APPLY XSL is v. inefficient.
+             // When COUGAAR XML parser version is updated, will go away.
+             //
+             if( (myXSL != null) && ( doc != null) )
+             {
+                    StringWriter sw = new StringWriter();
+                    doc.print(sw);
+                    StringBuffer sb = sw.getBuffer();
+                    //System.err.println("returnVal, sb.toSTring()=" + sb.toString().substring(0,120));
+                    //System.err.println("returnVal, sbuf.toString()=" + sbuf.toString());
+                    StringReader sr = new StringReader(sb.toString() );
+                    applyXSL(sr,myXSL, out);
+
+                    // DEBUG
+                    //doc.print(new PrintWriter(System.out));
+                    //
+
+             } else if( (doc != null)  )
+                           doc.print(new PrintWriter(out));
+       } catch (Exception ex ) {
+           ex.printStackTrace();
+       }
   }
 
   //-------------------------------------------------------------------------
@@ -383,23 +637,27 @@ public class GenericQueryXML  implements GenericQuery
             throws java.io.IOException,
                    java.net.MalformedURLException
 	{
-    try{
-        // Have the XSLTProcessorFactory obtain a interface to a
-        // new XSLTProcessor object.
-        XSLTProcessor processor = XSLTProcessorFactory.getProcessor();
+      try{
+          // Have the XSLTProcessorFactory obtain a interface to a
+          // new XSLTProcessor object.
+          XSLTProcessor processor = XSLTProcessorFactory.getProcessor();
 
-        synchronized( processor ){
+          synchronized( processor ){
 
-           // Have the XSLTProcessor processor object transform "foo.xml" to
-           // System.out, using the XSLT instructions found in "foo.xsl".
-           processor.process(
-                      new XSLTInputSource(xmldata),
-                      xsl,
-                      new XSLTResultTarget(out));
-        }
-    } catch (org.xml.sax.SAXException ex ){
-          ex.printStackTrace(new PrintWriter(System.out));
-    }
+              // Have the XSLTProcessor processor object transform "foo.xml" to
+              // System.out, using the XSLT instructions found in "foo.xsl".
+              processor.process(
+                        new XSLTInputSource(xmldata),
+                        xsl,
+                        new XSLTResultTarget(out));
+          }
+       } catch (org.xml.sax.SAXException ex ){
+           PrintWriter pw = new PrintWriter(System.out);
+           pw.println("#####################################################");
+           System.err.println("XSL APPLICATION FAILED.  Exception follows.");
+           ex.printStackTrace(pw);
+           pw.println("#####################################################");
+       }
   }
 
 }
