@@ -3,7 +3,7 @@ package org.cougaar.lib.aggagent.test;
 import java.util.*;
 
 import org.cougaar.core.blackboard.IncrementalSubscription;
-import org.cougaar.core.plugin.SimplePlugin;
+import org.cougaar.planning.plugin.legacy.SimplePlugin;
 import org.cougaar.util.UnaryPredicate;
 
 public class EffortMonitor extends SimplePlugin {
