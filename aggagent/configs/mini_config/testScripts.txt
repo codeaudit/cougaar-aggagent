@@ -122,3 +122,19 @@ def handle (x):
 def instantiate ():
   return handle
 
+--------------------------------------------------------
+Aggregators:
+
+from java.lang import *
+from org.cougaar.lib.aggagent.query import ResultSetDataAtom
+def handle (ids, key, atoms, out):
+  sum = 0
+  i = atoms.iterator()
+  while (i.hasNext()):
+    a = i.next()
+    sum = sum + Integer.parseInt(a.getValue("value"))
+  meld = ResultSetDataAtom(ids, key)
+  meld.addValue("total", String.valueOf(sum))
+  out.add(meld)
+def instantiate ():
+  return handle
