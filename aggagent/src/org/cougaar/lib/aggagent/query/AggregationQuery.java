@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Timer;
 import java.util.Vector;
 
 import org.w3c.dom.*;
@@ -39,6 +40,7 @@ public class AggregationQuery
 
     private ScriptSpec predicateSpec = null;
     private ScriptSpec formatSpec = null;
+    private ScriptSpec aggSpec = null;
 
     /**
      * name assigned to this query by user or ui developer;
@@ -81,6 +83,10 @@ public class AggregationQuery
       nl = root.getElementsByTagName(ScriptType.INCREMENT_FORMAT.toString());
       if (nl.getLength() > 0)
         formatSpec = new ScriptSpec((Element) nl.item(0));
+
+      nl = root.getElementsByTagName(ScriptType.AGGREGATOR.toString());
+      if (nl.getLength() > 0)
+        aggSpec = new ScriptSpec((Element) nl.item(0));
     }
 
     public void setName(String name)
@@ -144,6 +150,14 @@ public class AggregationQuery
       formatSpec = ss;
     }
 
+    public ScriptSpec getAggSpec () {
+      return aggSpec;
+    }
+
+    public void setAggSpec (ScriptSpec ss) {
+      aggSpec = ss;
+    }
+
     public String toXML()
     {
         StringBuffer xml = new StringBuffer();
@@ -158,6 +172,7 @@ public class AggregationQuery
             xml.append("</source_cluster>\n");
         }
         xml.append(scriptXML());
+        xml.append(aggXML());
         xml.append("</query>\n");
 
         return xml.toString();
@@ -171,19 +186,24 @@ public class AggregationQuery
       return predicateSpec.toXml() + "\n" + formatSpec.toXml() + "\n";
     }
 
+    private String aggXML () {
+      if (aggSpec != null)
+        return aggSpec.toXml() + "\n";
+      return "";
+    }
+
     public String toString()
     {
       return userDefinedName;
     }
 
-    private java.util.Timer pullTimer;
-    public void setPullTimer(java.util.Timer newPullTimer) {
+    private Timer pullTimer;
+    public void setPullTimer(Timer newPullTimer) {
       pullTimer = newPullTimer;
     }
     public java.util.Timer getPullTimer() {
       return pullTimer;
     }
-
 
     public static void main(String args[])
     {
