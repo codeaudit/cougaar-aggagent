@@ -188,7 +188,10 @@ public class AggregationResultSet implements XmlTransferable {
 
     // update result set based on incremental change xml
     synchronized (lock) {
-      if (delta.isReplacement()) {
+      if (delta.isErrorReport()) {
+        setException(delta.getAgentId(), delta.getErrorReport());
+      }
+      else if (delta.isReplacement()) {
         removeAll(agentId);
         update(agentId, delta.getReplacementList());
       }
