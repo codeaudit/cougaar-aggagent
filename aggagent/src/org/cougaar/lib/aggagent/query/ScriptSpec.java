@@ -12,6 +12,7 @@ import org.cougaar.lib.aggagent.query.Alert;
 import org.cougaar.lib.aggagent.script.*;
 import org.cougaar.lib.aggagent.session.*;
 import org.cougaar.lib.aggagent.util.Enum.*;
+import org.cougaar.lib.aggagent.util.InverseSax;
 import org.cougaar.lib.aggagent.util.XmlUtils;
 
 /**
@@ -20,6 +21,13 @@ import org.cougaar.lib.aggagent.util.XmlUtils;
  *  the script.
  */
 public class ScriptSpec {
+  private static String CLASS_TAG = "class";
+  private static String PARAM_TAG = "param";
+  private static String LANGUAGE_ATT = "language";
+  private static String TYPE_ATT = "type";
+  private static String AGG_IDS_ATT = "aggIds";
+  private static String NAME_ATT = "name";
+
   private static Class[] STRING_PARAM = new Class[] {String.class};
 
   private ScriptType type = null;
@@ -147,12 +155,12 @@ public class ScriptSpec {
    */
   public ScriptSpec (Element root) {
     type = ScriptType.fromString(root.getNodeName());
-    lang = Language.fromString(root.getAttribute("language"));
+    lang = Language.fromString(root.getAttribute(LANGUAGE_ATT));
     if (type == ScriptType.INCREMENT_FORMAT)
-      format = XmlFormat.fromString(root.getAttribute("type"));
+      format = XmlFormat.fromString(root.getAttribute(TYPE_ATT));
     if (type == ScriptType.AGGREGATOR) {
-      aggType = AggType.fromString(root.getAttribute("type"));
-      aggIds = parseAggIds(root.getAttribute("aggIds"));
+      aggType = AggType.fromString(root.getAttribute(TYPE_ATT));
+      aggIds = parseAggIds(root.getAttribute(AGG_IDS_ATT));
     }
 
     if (lang == Language.JAVA)
@@ -190,14 +198,14 @@ public class ScriptSpec {
   }
 
   private void parseJavaSpec (Element elt) {
-    NodeList nl = elt.getElementsByTagName("class");
+    NodeList nl = elt.getElementsByTagName(CLASS_TAG);
     if (nl.getLength() > 0)
       text = XmlUtils.getElementText((Element) nl.item(0)).trim();
 
-    nl = elt.getElementsByTagName("param");
+    nl = elt.getElementsByTagName(PARAM_TAG);
     for (int i = 0; i < nl.getLength(); i++) {
       Element p = (Element) nl.item(i);
-      String name = p.getAttribute("name");
+      String name = p.getAttribute(NAME_ATT);
       String val = XmlUtils.getElementText(p);
       params.put(name, val);
     }
@@ -207,59 +215,42 @@ public class ScriptSpec {
     text = XmlUtils.getElementText(elt);
   }
 
-  private void doJavaXml (StringBuffer buf) {
-    buf.append("<class>");
-    buf.append(XmlUtils.replaceIllegalChars(text));
-    buf.append("</class>");
-    for (Iterator i = params.entrySet().iterator(); i.hasNext(); ) {
-      Map.Entry p = (Map.Entry) i.next();
-      buf.append("<param name=\"");
-      buf.append(XmlUtils.replaceIllegalChars(p.getKey().toString()));
-      buf.append("\">");
-      buf.append(XmlUtils.replaceIllegalChars(p.getValue().toString()));
-      buf.append("</param>");
-    }
-  }
-
   /**
    *  Convert this ScriptSpec to XML for transmission over a network.  The
    *  parsed XML document can then be used to reconstruct the ScriptSpec using
    *  the constructor that takes an Element as its argument.
    */
   public String toXml () {
-    StringBuffer buf = new StringBuffer();
-    buf.append("<");
-    buf.append(type);
-    buf.append(" language=\"");
-    buf.append(lang);
-    buf.append("\"");
-    if (format != null) {
-      buf.append(" type=\"");
-      buf.append(format);
-      buf.append("\"");
-    }
-    if (aggType != null) {
-      buf.append(" type=\"");
-      buf.append(aggType);
-      buf.append("\"");
-    }
-    if (aggIds != null) {
-      buf.append(" aggIds=\"");
-      buf.append(encodeAggIds(aggIds));
-      buf.append("\"");
-    }
-    buf.append(">");
+    InverseSax doc = new InverseSax();
+    includeXml(doc);
+    return doc.toString();
+  }
+
+  public void includeXml (InverseSax doc) {
+    doc.addElement(type.toString());
+    doc.addAttribute(LANGUAGE_ATT, lang.toString());
+    if (format != null)
+      doc.addAttribute(TYPE_ATT, format.toString());
+    if (aggType != null)
+      doc.addAttribute(TYPE_ATT, aggType.toString());
+    if (aggIds != null)
+      doc.addAttribute(AGG_IDS_ATT, encodeAggIds(aggIds));
 
     if (lang == Language.JAVA)
-      doJavaXml(buf);
+      includeJavaXml(doc);
     else
-      buf.append(XmlUtils.replaceIllegalChars(text));
+      doc.addText(text);
 
-    buf.append("</");
-    buf.append(type);
-    buf.append(">");
+    doc.endElement();
+  }
 
-    return buf.toString();
+  private void includeJavaXml (InverseSax doc) {
+    doc.addTextElement(CLASS_TAG, text);
+    for (Iterator i = params.entrySet().iterator(); i.hasNext(); ) {
+      Map.Entry p = (Map.Entry) i.next();
+      doc.addEltAttText(
+        PARAM_TAG, NAME_ATT, p.getKey().toString(), p.getValue().toString());
+    }
   }
 
   /**

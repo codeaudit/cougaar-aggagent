@@ -20,6 +20,7 @@ import org.cougaar.lib.aggagent.query.*;
 import org.cougaar.lib.aggagent.session.*;
 import org.cougaar.lib.aggagent.util.Const;
 import org.cougaar.lib.aggagent.util.Enum.*;
+import org.cougaar.lib.aggagent.util.InverseSax;
 import org.cougaar.lib.aggagent.util.XmlUtils;
 import org.cougaar.core.society.Message;
 import org.cougaar.core.society.MessageAddress;
@@ -161,93 +162,62 @@ System.out.println("Cancelling remote session at "+clusterString);
     }
   }
 
+  private String frameRequestXml (String action, String qId, String cId,
+      boolean requester, AggregationQuery query)
+  {
+    InverseSax request = new InverseSax();
+    request.addElement(action);
+    request.addAttribute("query_id", qId);
+    if (cId != null)
+      request.addAttribute("cluster_id", cId);
+    if (requester)
+      request.addAttribute(
+        "requester", getBindingSite().getAgentIdentifier().toString());
+    if (query != null)
+      query.includeScriptXml(request);
+    request.endElement();
+    return request.toString();
+  }
+
   /**
    * send query to cluster
    */
-  private void queryCluster(String clusterString, QueryResultAdapter qra)
-  {
-    AggregationQuery query = qra.getQuery();
-    MessageAddress sourceAddr = createAggAddress(clusterString);
-
-    StringBuffer transientQueryRequest = new StringBuffer(Const.XML_HEAD);
-    transientQueryRequest.append("<transient_query_request query_id=\"");
-    transientQueryRequest.append(qra.getID());
-    transientQueryRequest.append("\" cluster_id=\"");
-    transientQueryRequest.append(clusterString);
-    transientQueryRequest.append("\">");
-    transientQueryRequest.append(query.scriptXML());
-    transientQueryRequest.append("</transient_query_request>");
-
-    sendMessage(sourceAddr, transientQueryRequest.toString());
+  private void queryCluster (String cId, QueryResultAdapter qra) {
+    sendMessage(createAggAddress(cId), frameRequestXml(
+      "transient_query_request", qra.getID(), cId, false, qra.getQuery()));
   }
 
   /**
    * Send request to given Generic Plugin URL for a push session back to
    * this cluster.
    */
-  private void requestPushSession(String query_id, String sourceCluster,
-                                  QueryResultAdapter qra)
+  private void requestPushSession (
+      String queryId, String clusterId, QueryResultAdapter qra)
   {
-    AggregationQuery query = qra.getQuery();
-
-    StringBuffer pushSessionRequest = new StringBuffer(Const.XML_HEAD);
-    pushSessionRequest.append("<push_request query_id=\"");
-    pushSessionRequest.append(query_id);
-    pushSessionRequest.append("\" requester=\"");
-    pushSessionRequest.append(getBindingSite().getAgentIdentifier().toString());
-    pushSessionRequest.append("\">");
-    pushSessionRequest.append(query.scriptXML());
-    pushSessionRequest.append("</push_request>");
-
-
-    MessageAddress sourceAddr = createAggAddress(sourceCluster);
-    sendMessage(sourceAddr, pushSessionRequest.toString());
-    System.out.println("AggPlugIn::createPushSession:  sent message:");
+    sendMessage(createAggAddress(clusterId),
+      frameRequestXml("push_request", queryId, null, true, qra.getQuery()));
+    System.out.println("AggPlugIn::requestPushSession:  sent message");
   }
 
   /**
    * Send request to given Generic Plugin URL for a pull session back to
    * this cluster.
    */
-  private void requestPullSession(String query_id, String sourceCluster,
-                                  QueryResultAdapter qra)
+  private void requestPullSession (
+      String queryId, String clusterId, QueryResultAdapter qra)
   {
-    AggregationQuery query = qra.getQuery();
-
-    StringBuffer pushSessionRequest = new StringBuffer(Const.XML_HEAD);
-    pushSessionRequest.append("<pull_request query_id=\"");
-    pushSessionRequest.append(query_id);
-    pushSessionRequest.append("\" requester=\"");
-    pushSessionRequest.append(getBindingSite().getAgentIdentifier().toString());
-    pushSessionRequest.append("\">");
-    pushSessionRequest.append(query.scriptXML());
-    pushSessionRequest.append("</pull_request>");
-
-
-    MessageAddress sourceAddr = createAggAddress(sourceCluster);
-    sendMessage(sourceAddr, pushSessionRequest.toString());
-    System.out.println("AggPlugIn::createPullSession:  sent message:");
-
+    sendMessage(createAggAddress(clusterId),
+      frameRequestXml("pull_request", queryId, null, true, qra.getQuery()));
   }
 
   private TimerTask getTimerTask(QueryResultAdapter qra) {
     return new PullTimerTask(qra);
   }
 
-  private void cancelRemoteSession(String query_id, String sourceCluster)
-  {
-    // send request to given Generic Plugin URL to cancel a push session back
-    // to this cluster
-    StringBuffer cancelSessionRequest = new StringBuffer(Const.XML_HEAD);
-    cancelSessionRequest.append("<cancel_session_request query_id=\"");
-    cancelSessionRequest.append(query_id);
-    cancelSessionRequest.append("\" requester=\"");
-    cancelSessionRequest.append(getBindingSite().getAgentIdentifier().toString());
-    cancelSessionRequest.append("\"></cancel_session_request>");
-    sendMessage(createAggAddress(sourceCluster), cancelSessionRequest.toString());
-    System.out.println("AggPlugIn::cancelRemoteSession:  sent message:");
+  private void cancelRemoteSession (String queryId, String clusterId) {
+    sendMessage(createAggAddress(clusterId),
+      frameRequestXml("cancel_session_request", queryId, null, true, null));
   }
-
 
   /**
    * Receive a message.
@@ -296,18 +266,15 @@ System.out.println("Cancelling remote session at "+clusterString);
       System.err.println("Error receiving message");
       ex.printStackTrace();
     }
-
-
   }
 
   public MessageAddress getMessageAddress() {
     return myAddress;
   }
+
   public void serviceRevoked (ServiceRevokedEvent evt) {
     System.out.println("MessageTransportService Revoked.  Too bad.");
   }
-
-
 
   protected static class XMLMessage extends Message {
     private String text;
@@ -332,14 +299,9 @@ System.out.println("Cancelling remote session at "+clusterString);
     System.out.println("AggPlugins::sendMessage:  done");
   }
 
-
-
   protected static final MessageAddress createAggAddress(String agentName) {
     return new ClusterIdentifier(agentName + "-agg");
   }
-
-
-
 
   private static class QueryRAFinder implements UnaryPredicate
   {
@@ -363,27 +325,18 @@ System.out.println("Cancelling remote session at "+clusterString);
 
   private class PullTimerTask extends TimerTask {
     private QueryResultAdapter qra;
-    public PullTimerTask(QueryResultAdapter qra) {
+
+    public PullTimerTask (QueryResultAdapter qra) {
       this.qra = qra;
     }
-    public void run() {
-      StringBuffer updateRequest = new StringBuffer(Const.XML_HEAD);
-      updateRequest.append("<update_request query_id=\"");
-      updateRequest.append(qra.getID());
-      updateRequest.append("\" requester=\"");
-      updateRequest.append(getBindingSite().getAgentIdentifier().toString());
-      updateRequest.append("\">");
-      updateRequest.append("</update_request>");
-      String updateRequestString = updateRequest.toString();
 
-System.out.println("PULLTIMER: pulling "+qra.getID());
+    public void run () {
+      String reqStr = frameRequestXml(
+        "update_request", qra.getID(), null, true, null);
 
       Enumeration sources = qra.getQuery().getSourceClusters();
-      while (sources.hasMoreElements()) {
-        MessageAddress addr = createAggAddress((String)sources.nextElement());
-        sendMessage(addr, updateRequestString);
-      }
+      while (sources.hasMoreElements())
+        sendMessage(createAggAddress((String) sources.nextElement()), reqStr);
     }
   }
-
 }

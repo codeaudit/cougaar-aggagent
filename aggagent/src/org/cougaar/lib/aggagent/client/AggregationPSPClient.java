@@ -142,11 +142,11 @@ public class AggregationPSPClient
 
     if (aq.getType() == QueryType.PERSISTENT)
     {
-      response = XmlUtils.requestString(taggedURL, aq.toXML()).trim();
+      response = XmlUtils.requestString(taggedURL, aq.toXml()).trim();
     }
     else
     {
-      Element root = XmlUtils.requestXML(taggedURL, aq.toXML());
+      Element root = XmlUtils.requestXML(taggedURL, aq.toXml());
       response = new AggregationResultSet(root);
     }
 

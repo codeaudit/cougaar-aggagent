@@ -11,7 +11,8 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import org.cougaar.lib.aggagent.session.XmlTransferable;
-import org.cougaar.lib.aggagent.util.XmlUtils;
+import org.cougaar.lib.aggagent.util.InverseSax;
+// import org.cougaar.lib.aggagent.util.XmlUtils;
 
 public class ResultSetDataAtom implements XmlTransferable {
   public static String DATA_ATOM_TAG = "data_atom";
@@ -149,59 +150,32 @@ public class ResultSetDataAtom implements XmlTransferable {
     return new CompoundKey (l, identifiers);
   }
 
-  public String toString()
-  {
-    StringBuffer s = new StringBuffer();
-
-    synchronized (lock) {
-      s.append("[");
-      s.append(createNameValueString(identifiers.entrySet().iterator()));
-      s.append(" : ");
-      s.append(createNameValueString(values.entrySet().iterator()));
-      s.append("]");
-    }
-
-    return s.toString();
+  public String toString () {
+    return toXml();
   }
 
   public String toXml () {
-    StringBuffer xml = new StringBuffer();
+    InverseSax doc = new InverseSax();
+    includeXml(doc);
+    return doc.toString();
+  }
 
+  public void includeXml (InverseSax doc) {
     synchronized (lock) {
-      XmlUtils.appendOpenTag(DATA_ATOM_TAG, xml);
-      appendNameValueTags(ID_TAG, identifiers.entrySet().iterator(), xml);
-      appendNameValueTags(VALUE_TAG, values.entrySet().iterator(), xml);
-      XmlUtils.appendCloseTag(DATA_ATOM_TAG, xml);
+      doc.addElement(DATA_ATOM_TAG);
+      addNameValueTags(ID_TAG, identifiers.entrySet().iterator(), doc);
+      addNameValueTags(VALUE_TAG, values.entrySet().iterator(), doc);
+      doc.endElement();
     }
-
-    return xml.toString();
   }
 
-  private String createNameValueString(Iterator i)
-  {
-    StringBuffer s = new StringBuffer();
-
-    while(i.hasNext())
-    {
-      Map.Entry me = (Map.Entry)i.next();
-      s.append(me.getKey().toString());
-      s.append("=");
-      s.append(me.getValue().toString());
-      if (i.hasNext())
-        s.append(", ");
-    }
-
-    return s.toString();
-  }
-
-  private void appendNameValueTags (String tag, Iterator i, StringBuffer s) {
+  private void addNameValueTags (String tag, Iterator i, InverseSax doc) {
     while (i.hasNext()) {
-      Map.Entry me = (Map.Entry)i.next();
-      s.append("  <");
-      s.append(tag);
-      XmlUtils.appendAttribute(NAME_ATT, me.getKey().toString(), s);
-      XmlUtils.appendAttribute(VALUE_ATT, me.getValue().toString(), s);
-      s.append("/>\n");
+      Map.Entry me = (Map.Entry) i.next();
+      doc.addElement(tag);
+      doc.addAttribute(NAME_ATT, me.getKey().toString());
+      doc.addAttribute(VALUE_ATT, me.getValue().toString());
+      doc.endElement();
     }
   }
 

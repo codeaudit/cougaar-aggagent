@@ -8,7 +8,7 @@ import org.w3c.dom.*;
 import org.cougaar.lib.aggagent.script.PythAlert;
 import org.cougaar.lib.aggagent.script.SilkAlert;
 import org.cougaar.lib.aggagent.util.Enum.*;
-import org.cougaar.lib.aggagent.util.XmlUtils;
+import org.cougaar.lib.aggagent.util.InverseSax;
 
 /**
  * This is a client-side description of an alert.
@@ -99,9 +99,9 @@ public class AlertDescriptor extends Alert
     // never actually used as a functional alert
   }
 
-  protected void insertXmlBody (StringBuffer buf) {
+  protected void includeXmlBody (InverseSax doc) {
     if (alertSpec != null)
-      buf.append(alertSpec.toXml());
+      alertSpec.includeXml(doc);
   }
 
   /**

@@ -65,6 +65,17 @@ public class InverseSax {
     }
   }
 
+  /**
+   *  Set the lenient mode on or off.  In lenient mode, the tag and attribute
+   *  names are not checked for invalid characters.  This class accepts only
+   *  the Latin alphabet (upper- and lower-case) as letters and {0, 1, ..., 9}
+   *  as digits, and it does not allow the colon (used in XML namespaces).
+   *  There are many other sets of letters, digits, and punctuation characters
+   *  in the UNICODE spec that are allowed by standard XML.  To use these
+   *  characters or XML namespaces, lenient mode must be turned on.
+   *  <br><br>
+   *  Use at your own risk.
+   */
   public void setLenientMode (boolean b) {
     lenientMode = b;
   }
@@ -136,6 +147,26 @@ public class InverseSax {
   public void addTextElement (String tag, String text) {
     addElement(tag);
     addText(text);
+    endElement();
+  }
+
+  /**
+   *  Convenience method for adding an element with a single attribute and
+   *  no content.
+   */
+  public void addEltAtt (String tag, String att, String val) {
+    addEltAttText(tag, att, val, null);
+  }
+
+  /**
+   *  Convenience method for adding an element with a single attribute and
+   *  text for content.  Specify null for no content.
+   */
+  public void addEltAttText (String tag, String att, String val, String text) {
+    addElement(tag);
+    addAttribute(att, val);
+    if (text != null)
+      addText(text);
     endElement();
   }
 

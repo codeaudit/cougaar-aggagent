@@ -12,6 +12,7 @@ import org.w3c.dom.*;
 
 import org.cougaar.lib.aggagent.query.CompoundKey;
 import org.cougaar.lib.aggagent.query.ResultSetDataAtom;
+import org.cougaar.lib.aggagent.util.InverseSax;
 import org.cougaar.lib.aggagent.util.XmlUtils;
 
 /**
@@ -192,43 +193,37 @@ public class UpdateDelta {
    *  XmlTransferable interface.
    */
   public String toXml () {
-    StringBuffer buf = new StringBuffer();
-    appendHeader(buf);
+    InverseSax doc = new InverseSax();
+    includeXml(doc);
+    return doc.toString();
+  }
+
+  public void includeXml (InverseSax doc) {
+    doc.addElement(UPDATE_TAG);
+    doc.addAttribute(SESSION_ID, sessionKey);
+    doc.addAttribute(QUERY_ID, queryId);
+    doc.addAttribute(AGENT_ID, cougaarAgentId);
     if (isErrorReport()) {
-      XmlUtils.appendTextElement(ERROR_TAG, errorReport, buf);
+      doc.addTextElement(ERROR_TAG, errorReport);
     }
     else if (isReplacement()) {
-      sendBunch(addedList, REPLACEMENT_TAG, buf);
+      sendBunch(addedList, REPLACEMENT_TAG, doc);
     }
     else {
-      sendBunch(addedList, ADDED_TAG, buf);
-      sendBunch(changedList, CHANGED_TAG, buf);
-      sendBunch(removedList, REMOVED_TAG, buf);
+      sendBunch(addedList, ADDED_TAG, doc);
+      sendBunch(changedList, CHANGED_TAG, doc);
+      sendBunch(removedList, REMOVED_TAG, doc);
     }
-    XmlUtils.appendCloseTag(UPDATE_TAG, buf);
-
-    return buf.toString();
+    doc.endElement();
   }
 
-  private void appendHeader (StringBuffer buf) {
-    buf.append("<");
-    buf.append(UPDATE_TAG);
-    XmlUtils.appendAttribute(SESSION_ID, sessionKey, buf);
-    XmlUtils.appendAttribute(QUERY_ID, queryId, buf);
-    XmlUtils.appendAttribute(AGENT_ID, cougaarAgentId, buf);
-    buf.append(">\n");
-  }
-
-  private static void sendBunch (List c, String type, StringBuffer buf) {
-    if (c == null)
-      return;
-
-    XmlUtils.appendOpenTag(type, buf);
-
-    for (Iterator i = c.iterator(); i.hasNext(); )
-      buf.append(((XmlTransferable) i.next()).toXml());
-
-    XmlUtils.appendCloseTag(type, buf);
+  private static void sendBunch (List c, String type, InverseSax doc) {
+    if (c != null) {
+      doc.addElement(type);
+      for (Iterator i = c.iterator(); i.hasNext(); )
+        ((XmlTransferable) i.next()).includeXml(doc);
+      doc.endElement();
+    }
   }
 
   // - - - - - - - Testing Code - - - - - - - - - - - - - - - - - - - - - - - -

@@ -2,7 +2,8 @@
 package org.cougaar.lib.aggagent.query;
 
 import org.cougaar.lib.aggagent.session.XmlTransferable;
-import org.cougaar.lib.aggagent.util.XmlUtils;
+import org.cougaar.lib.aggagent.util.InverseSax;
+// import org.cougaar.lib.aggagent.util.XmlUtils;
 
 /**
  *  The Alert class is the abstract superclass of all result set monitors.
@@ -21,9 +22,9 @@ import org.cougaar.lib.aggagent.util.XmlUtils;
  */
 public abstract class Alert implements XmlTransferable {
   public static String ALERT_TAG = "alert";
-  public static String NAME_ATT = "name";
-  public static String QUERY_ATT = "query_id";
-  public static String ALERTED_ATT = "alerted";
+  private static String NAME_ATT = "name";
+  private static String QUERY_ATT = "query_id";
+  private static String ALERTED_ATT = "alerted";
 
   private boolean alerted = false;
   private QueryResultAdapter query = null;
@@ -105,21 +106,21 @@ public abstract class Alert implements XmlTransferable {
    *  Convert this Alert to an XML format for transfer to clients.
    */
   public String toXml () {
-    StringBuffer s = new StringBuffer("<");
-    s.append(ALERT_TAG);
-    XmlUtils.appendAttribute(NAME_ATT, getName(), s);
-    XmlUtils.appendAttribute(QUERY_ATT, getQueryId(), s);
-    XmlUtils.appendAttribute(ALERTED_ATT, String.valueOf(isAlerted()), s);
-    s.append(">\n");
-
-    insertXmlBody(s);
-
-    s.append("</alert>\n");
-
-    return s.toString();
+    InverseSax doc = new InverseSax();
+    includeXml(doc);
+    return doc.toString();
   }
 
-  protected void insertXmlBody (StringBuffer buf) {
+  public void includeXml (InverseSax doc) {
+    doc.addElement(ALERT_TAG);
+    doc.addAttribute(NAME_ATT, getName());
+    doc.addAttribute(QUERY_ATT, getQueryId());
+    doc.addAttribute(ALERTED_ATT, String.valueOf(isAlerted()));
+    includeXmlBody(doc);
+    doc.endElement();
+  }
+
+  protected void includeXmlBody (InverseSax doc) {
   }
 
   /**

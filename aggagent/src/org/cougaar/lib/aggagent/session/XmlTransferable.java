@@ -1,6 +1,8 @@
 
 package org.cougaar.lib.aggagent.session;
 
+import org.cougaar.lib.aggagent.util.InverseSax;
+
 /**
  *  This interface should be implemented by any object that can be transferred
  *  as an XML element within an UpdateDelta.  Nominally, only ResultSetDataAtom
@@ -10,7 +12,14 @@ package org.cougaar.lib.aggagent.session;
  */
 public interface XmlTransferable {
   /**
-   *  Convert this XmlTransferable Object to its XML representation.
+   *  Convert this XmlTransferable Object to its XML representation and return
+   *  the result as a String.
    */
   public String toXml ();
+
+  /**
+   *  Include the XML elements corresponding to this object as part of the
+   *  provided document.
+   */
+  public void includeXml (InverseSax doc);
 }

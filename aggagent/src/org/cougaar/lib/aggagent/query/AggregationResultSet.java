@@ -15,6 +15,7 @@ import java.util.StringTokenizer;
 
 import org.cougaar.lib.aggagent.session.UpdateDelta;
 import org.cougaar.lib.aggagent.session.XmlTransferable;
+import org.cougaar.lib.aggagent.util.InverseSax;
 import org.cougaar.lib.aggagent.util.XmlUtils;
 
 /**
@@ -31,6 +32,7 @@ public class AggregationResultSet implements XmlTransferable {
   private static String ID_ATT = "id";
 
   private static String CLUSTER_IDENTIFIER = "cluster";
+  private static String AGGREGATED_IDENTIFIER = "aggregated";
 
   private Object lock = new Object();
 
@@ -216,7 +218,7 @@ public class AggregationResultSet implements XmlTransferable {
     synchronized (lock) {
       removeAllAtoms();
       for (Iterator i = atoms.iterator(); i.hasNext(); )
-        update("aggregated", (ResultSetDataAtom) i.next());
+        update(AGGREGATED_IDENTIFIER, (ResultSetDataAtom) i.next());
     }
     fireObjectChanged();
   }
@@ -304,43 +306,39 @@ public class AggregationResultSet implements XmlTransferable {
   }
 
   public String toXml () {
-    StringBuffer s = new StringBuffer("<");
-    s.append(RESULT_SET_TAG);
+    InverseSax doc = new InverseSax();
+    includeXml(doc);
+    return doc.toString();
+  }
+
+  public void includeXml (InverseSax doc) {
+    doc.addElement(RESULT_SET_TAG);
     if (query != null)
-      XmlUtils.appendAttribute(QUERY_ID_ATT, query.getID(), s);
-    s.append(">\n");
+      doc.addAttribute(QUERY_ID_ATT, query.getID());
 
     synchronized (lock) {
       for (Iterator i = exceptionMap.entrySet().iterator(); i.hasNext(); ) {
         Map.Entry entry = (Map.Entry) i.next();
-        s.append("<");
-        s.append(EXCEPTION_TAG);
-        XmlUtils.appendAttribute(CLUSTER_ID_ATT, entry.getKey().toString(), s);
-        s.append(">\n");
-        s.append(XmlUtils.replaceIllegalChars(entry.getValue().toString()));
-        XmlUtils.appendCloseTag(EXCEPTION_TAG, s);
+        doc.addEltAttText(EXCEPTION_TAG, CLUSTER_ID_ATT,
+          entry.getKey().toString(), entry.getValue().toString());
       }
 
       for (Iterator i = clusterTable.entrySet().iterator(); i.hasNext(); ) {
         Map.Entry table = (Map.Entry) i.next();
-        s.append("<");
-        s.append(CLUSTER_TAG);
-        XmlUtils.appendAttribute(ID_ATT, table.getKey().toString(), s);
-        s.append(">\n");
+        doc.addElement(CLUSTER_TAG);
+        doc.addAttribute(ID_ATT, table.getKey().toString());
         for (Iterator j = ((Map) table.getValue()).entrySet().iterator();
             j.hasNext(); )
         {
           Map.Entry entry = (Map.Entry) j.next();
-          s.append(new ResultSetDataAtom(idNames, (CompoundKey) entry.getKey(),
-            (Map) entry.getValue()).toXml());
+          (new ResultSetDataAtom(idNames, (CompoundKey) entry.getKey(),
+            (Map) entry.getValue())).includeXml(doc);
         }
-        XmlUtils.appendCloseTag(CLUSTER_TAG, s);
+        doc.endElement();
       }
     }
 
-    XmlUtils.appendCloseTag(RESULT_SET_TAG, s);
-
-    return s.toString();
+    doc.endElement();
   }
 
   public Iterator getRespondingClusters() {

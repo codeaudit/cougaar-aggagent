@@ -12,6 +12,7 @@ import org.w3c.dom.*;
 import org.apache.xerces.parsers.DOMParser;
 import org.xml.sax.InputSource;
 
+import org.cougaar.lib.aggagent.util.InverseSax;
 import org.cougaar.lib.aggagent.util.XmlUtils;
 import org.cougaar.lib.aggagent.util.Enum.*;
 
@@ -165,39 +166,31 @@ public class AggregationQuery
       aggSpec = ss;
     }
 
-    public String toXML () {
-      StringBuffer xml = new StringBuffer();
-      xml.append("<");
-      xml.append(QUERY_TAG);
-      XmlUtils.appendAttribute(TYPE_ATT, queryType.toString(), xml);
-      XmlUtils.appendAttribute(UPDATE_ATT, updateMethod.toString(), xml);
-      XmlUtils.appendAttribute(PULL_RATE_ATT, String.valueOf(pullRate), xml);
-      XmlUtils.appendAttribute(NAME_ATT, userDefinedName, xml);
-      xml.append(">\n");
+    public String toXml () {
+      InverseSax doc = new InverseSax();
+      includeXml(doc);
+      return doc.toString();
+    }
+
+    public void includeXml (InverseSax doc) {
+      doc.addElement(QUERY_TAG);
+      doc.addAttribute(TYPE_ATT, queryType.toString());
+      doc.addAttribute(UPDATE_ATT, updateMethod.toString());
+      doc.addAttribute(PULL_RATE_ATT, String.valueOf(pullRate));
+      doc.addAttribute(NAME_ATT, userDefinedName);
 
       for (int i = 0; i < sourceClusters.size(); i++)
-        XmlUtils.appendTextElement(
-          CLUSTER_TAG, sourceClusters.elementAt(i).toString(), xml);
+        doc.addTextElement(CLUSTER_TAG, sourceClusters.elementAt(i).toString());
 
-      xml.append(scriptXML());
-      xml.append(aggXML());
-      XmlUtils.appendCloseTag(QUERY_TAG, xml);
-
-      return xml.toString();
-    }
-
-    /**
-     * Returns the guts of the query (the scripts); devoid of handling
-     * instructions
-     */
-    public String scriptXML() {
-      return predicateSpec.toXml() + "\n" + formatSpec.toXml() + "\n";
-    }
-
-    private String aggXML () {
+      includeScriptXml(doc);
       if (aggSpec != null)
-        return aggSpec.toXml() + "\n";
-      return "";
+        aggSpec.includeXml(doc);
+      doc.endElement();
+    }
+
+    public void includeScriptXml (InverseSax doc) {
+      predicateSpec.includeXml(doc);
+      formatSpec.includeXml(doc);
     }
 
     public String toString()
@@ -225,14 +218,14 @@ public class AggregationQuery
         aq.setFormatSpec(new ScriptSpec(
           Language.SILK, XmlFormat.XMLENCODER, "SOME OTHER SCRIPT"));
 
-        String xmlQuery = aq.toXML();
+        String xmlQuery = aq.toXml();
         System.out.println(xmlQuery);
 
         try
         {
           Element qr = XmlUtils.parse(xmlQuery);
           AggregationQuery aq2 = new AggregationQuery(qr);
-          System.out.println(aq2.toXML());
+          System.out.println(aq2.toXml());
         }
         catch (Exception e)
         {

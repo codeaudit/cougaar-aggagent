@@ -6,7 +6,8 @@ import java.util.*;
 
 import org.cougaar.lib.aggagent.session.UpdateDelta;
 import org.cougaar.lib.aggagent.session.XmlTransferable;
-import org.cougaar.lib.aggagent.util.XmlUtils;
+import org.cougaar.lib.aggagent.util.InverseSax;
+// import org.cougaar.lib.aggagent.util.XmlUtils;
 
 /**
  *  This adapter contains a query and links to some associated structures.
@@ -41,12 +42,13 @@ public class QueryResultAdapter implements XmlTransferable {
      */
     public QueryResultAdapter(Element qraRoot)
     {
-      id = qraRoot.getAttribute("id");
-      setQuery(new AggregationQuery(
-        (Element)qraRoot.getElementsByTagName("query").item(0)));
+      id = qraRoot.getAttribute(ID_ATT);
+      setQuery(new AggregationQuery((Element)
+        qraRoot.getElementsByTagName(AggregationQuery.QUERY_TAG).item(0)));
       setResultSet(new AggregationResultSet((Element)
-                   qraRoot.getElementsByTagName("result_set").item(0)));
-      NodeList alerts = qraRoot.getElementsByTagName("alert");
+        qraRoot.getElementsByTagName(
+          AggregationResultSet.RESULT_SET_TAG).item(0)));
+      NodeList alerts = qraRoot.getElementsByTagName(Alert.ALERT_TAG);
       for (int i = 0; i < alerts.getLength(); i++)
       {
         addAlert(new AlertDescriptor((Element)alerts.item(i)));
@@ -198,19 +200,23 @@ public class QueryResultAdapter implements XmlTransferable {
       return getResultSet().toXml();
     }
 
+    public void includeXml (InverseSax doc) {
+      getResultSet().includeXml(doc);
+    }
+
     public String toWholeXml () {
-      StringBuffer s = new StringBuffer("<");
-      s.append(QUERY_RESULT_TAG);
-      XmlUtils.appendAttribute(ID_ATT, id, s);
-      s.append(">\n");
-      s.append(aQuery.toXML());
-      s.append(getResultSet().toXml());
+      InverseSax doc = new InverseSax();
+      includeWholeXml(doc);
+      return doc.toString();
+    }
+
+    public void includeWholeXml (InverseSax doc) {
+      doc.addElement(QUERY_RESULT_TAG);
+      doc.addAttribute(ID_ATT, id);
+      aQuery.includeXml(doc);
+      getResultSet().includeXml(doc);
       for (Iterator i = alerts.iterator(); i.hasNext(); )
-      {
-        AlertDescriptor ad = new AlertDescriptor((Alert)i.next());
-        s.append(ad.toXml());
-      }
-      XmlUtils.appendCloseTag(QUERY_RESULT_TAG, s);
-      return s.toString();
+        (new AlertDescriptor((Alert) i.next())).includeXml(doc);
+      doc.endElement();
     }
 }
