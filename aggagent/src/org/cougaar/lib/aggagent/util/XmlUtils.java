@@ -83,6 +83,11 @@ public class XmlUtils {
       p.parse(in);
     } catch(SAXException e)
     {
+      // See if anything is recoverable
+      if ((p.getDocument() == null) ||
+          (p.getDocument().getDocumentElement() == null))
+        throw e;
+
       // find and return exception element
       NodeList nl =
         p.getDocument().getDocumentElement().getElementsByTagName("exception");
