@@ -94,7 +94,7 @@ public class RemoteSubscriptionPlugIn extends AggregationPlugIn implements Messa
     } catch (Exception ex) {
       ex.printStackTrace();
     } finally {
-      getBlackboardService().closeTransaction();
+      getBlackboardService().closeTransaction(false);
     }
   }
 
