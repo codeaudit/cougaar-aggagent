@@ -75,10 +75,12 @@ System.out.println("AggKeepAlivePSP: execute");
      *  subscription information is available.
      */
     public void subscriptionChanged (Subscription sub) {
-      this.data.subscriptionChanged();
-      if (out != null) {
-        sendUpdate(out);
-        endMessage(out);
+      synchronized (lock) {
+        data.subscriptionChanged();
+        if (out != null) {
+          sendUpdate(out);
+          endMessage(out);
+        }
       }
     }
   }

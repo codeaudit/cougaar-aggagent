@@ -118,6 +118,8 @@ public class Session implements UISubscriber {
    *  presumed to be the one encapsulated within the RemotePSPSubscription.
    */
   public void subscriptionChanged (Subscription sub) {
-    data.subscriptionChanged();
+    synchronized (lock) {
+      data.subscriptionChanged();
+    }
   }
 }
