@@ -10,6 +10,16 @@ In  examples/minitest this new PSP is located at:
 agg/demo/BLACKBOARD.PSP
 
 
+IMPORTANT NOTE:
+
+the previously used "agg/demo/TRACE.PSP" requires separate installation of 3rd party applet
+not contained with release.    consider the TRACE.PSP "deprecated".  S
+
+hould you wish to continue
+to use it, simply copy over applet code and install in /agg/demo subdirectory beneath working directory
+(ala self-contained AGG AGENT zips on alpine site).
+
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 Version 0.5 ChangeList
