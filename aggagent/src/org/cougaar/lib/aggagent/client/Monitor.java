@@ -73,6 +73,8 @@ import org.cougaar.lib.aggagent.util.XmlUtils;
     private Runnable keepAliveTask = new Runnable() {
         public void run()
         {
+          boolean sessionIdTag = true;
+          String sessionId = null;
           InputStream i = null;
           String monitorRequest = createMonitorRequest();
           if (monitorRequest == null)
@@ -110,13 +112,15 @@ import org.cougaar.lib.aggagent.util.XmlUtils;
 
               if (c == formFeed)
               {
-                // this reply does nothing.  I wish it worked so that the
-                // server could figure out when I'm no longer listening.
-                servicePrint.println("Got it.");
-                servicePrint.flush();
-
-                if (!updateMessage.toString().
-                    equals(Const.KEEP_ALIVE_ACK_MESSAGE))
+                if (sessionIdTag)
+                {
+                    // session id is sent first
+                    sessionIdTag = false;
+                    Element root = XmlUtils.parse(updateMessage.toString());
+                    sessionId = root.getAttribute("id");
+                }
+                else if (!updateMessage.toString().
+                         equals(Const.KEEP_ALIVE_ACK_MESSAGE))
                 {
                   Element root = XmlUtils.parse(updateMessage.toString());
                   updateMonitoredObjects(root);
@@ -127,9 +131,10 @@ import org.cougaar.lib.aggagent.util.XmlUtils;
             // close input stream to shutdown keep alive psp connection.
             i.close();
 
-            // this message does nothing.  See comment above.
-            servicePrint.println("CANCEL SESSION");
-            servicePrint.flush();
+            // send message to servlet to cancel keep alive
+            String cancelSessionURL =
+                serverURL + "&CANCEL_SESSION_ID=" + sessionId;
+            XmlUtils.requestString(cancelSessionURL, null);
           }
           catch (Exception e) {
             System.out.println("Error reading from keep alive.\n" +

@@ -27,6 +27,8 @@ import org.cougaar.lib.aggagent.util.Const;
  *  connection.
  */
 public class AggregationKeepAliveComponent extends BlackboardServletComponent {
+  private Map sessionMap = new HashMap();
+  private int sessionCounter = 0;
 
   /**
    * Constructor.
@@ -52,8 +54,35 @@ public class AggregationKeepAliveComponent extends BlackboardServletComponent {
     {
       System.out.println("AggKeepAliveServlet: doPut");
 
+      // check if this is a cancel request
+      String cancelSessionId = request.getParameter("CANCEL_SESSION_ID");
+      if (cancelSessionId != null)
+      {
+        synchronized (sessionMap)
+        {
+            sessionMap.put(cancelSessionId, Boolean.TRUE);
+        }
+        return; // done canceling session
+      }
+
+      //
+      // Handle Keep Alive Session Request
+      //
       PrintWriter out = response.getWriter();
       KeepAliveSession kaSession = null;
+
+      // establish session id, send to client
+      String thisSession;
+      synchronized (sessionMap)
+      {
+        thisSession = String.valueOf(sessionCounter++);
+        sessionMap.put(thisSession, new Boolean(false));
+      }
+      synchronized (out)
+      {
+        out.println("<session_created id=\"" + thisSession + "\" />");
+        endMessage(out);
+      }
 
       try {
         AggregationXMLInterface.MonitorRequestParser monitorRequest =
@@ -63,13 +92,20 @@ public class AggregationKeepAliveComponent extends BlackboardServletComponent {
                              monitorRequest.unaryPredicate,
                              new XmlIncrement(monitorRequest.xmlEncoder), out);
 
-        // this check will EVENTUALLY get triggered after the client drops the
-        // connection.  It would be nice if I could receive a cancel message
-        // from the client.
         boolean outputError = false;
-        while (!outputError)
+        boolean sessionCanceled = false;
+
+        // With the current servlet support, the checkError() method is
+        // unreleable.  PrintWriters are recycled by tomcat.  Once a
+        // PrintWriter is returning true for checkError(), it always does
+        // (even after it's recycled).
+        //
+        // Uncomment outputError check after this is fixed.
+        //
+        while /* ((!outputError) && */(!sessionCanceled)/*)*/
         {
-          System.out.println("---------Keep Alive Session is Alive---------");
+          System.out.println("---------Keep Alive Session " + thisSession +
+                             " is Alive---------");
           Thread.sleep(5000);
 
           // Without an ack message, a keep alive connection over which no
@@ -80,6 +116,16 @@ public class AggregationKeepAliveComponent extends BlackboardServletComponent {
             out.print(Const.KEEP_ALIVE_ACK_MESSAGE);
             endMessage(out);
             outputError= out.checkError();
+          }
+
+          synchronized (sessionMap)
+          {
+            sessionCanceled =
+                ((Boolean)sessionMap.get(thisSession)).booleanValue();
+            if (sessionCanceled)
+            {
+              sessionMap.remove(thisSession);
+            }
           }
         }
       }
