@@ -4,12 +4,12 @@ package org.cougaar.lib.aggagent.util;
 import java.util.*;
 
 /**
- *  Typesafe enumerated types used by AssessmentQuery
+ *  Typesafe enumerated types used by AggregationQuery
  */
 public class Enum {
   private final String enumName;
 
-  private Enum (String name) {
+  protected Enum (String name) {
     enumName = name;
   }
 
@@ -35,6 +35,7 @@ public class Enum {
 
     public static final ScriptType UNARY_PREDICATE = new ScriptType("unary_predicate");
     public static final ScriptType INCREMENT_FORMAT = new ScriptType("xml_encoder");
+    public static final ScriptType AGGREGATOR = new ScriptType("aggregator");
     public static final ScriptType ALERT = new ScriptType("alert_script");
 
     public static Collection getValidValues () {
@@ -141,6 +142,25 @@ public class Enum {
     public static Collection getValidValues()
     {
       return (Collection)validValues.clone();
+    }
+  }
+
+  public static class AggType extends Enum {
+    private static final LinkedList validValues = new LinkedList();
+    public static final AggType AGGREGATOR =  new AggType("Aggregator");
+    public static final AggType MELDER = new AggType("Melder");
+
+    private AggType (String name) {
+      super(name);
+      validValues.add(this);
+    }
+
+    public static AggType fromString (String enumName) {
+      return (AggType) findEnum(validValues, enumName);
+    }
+
+    public static Collection getValidValues () {
+      return (Collection) validValues.clone();
     }
   }
 }
