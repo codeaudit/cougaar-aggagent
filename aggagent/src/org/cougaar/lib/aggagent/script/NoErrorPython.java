@@ -32,14 +32,15 @@ public class NoErrorPython extends PythonInterpreter {
           // Add org.cougaar.install.path /lib and /sys to that list.  Also add org.cougaar.system.path for "3rd party" stuff.
           String cip = System.getProperty("org.cougaar.install.path");
           // always add lib and sys directories
-          String dirPath = cip+java.io.File.separator+"lib;"+cip+java.io.File.separator+"sys"+cip+java.io.File.separator+"plugins";
+          /*  This is causing problems.  Comment it out for now.
+          String dirPath = cip+java.io.File.separator+"lib,"+cip+java.io.File.separator+"sys,"+cip+java.io.File.separator+"plugins";
           String csp = System.getProperty("org.cougaar.system.path");
           if (csp != null)
               dirPath += java.io.File.pathSeparator + csp;
           
           System.setProperty("python.packages.directories", "org.cougaar.lib.aggagent.python.directories,java.ext.dirs");
           System.setProperty("org.cougaar.lib.aggagent.python.directories", dirPath);
-          
+          */
           
           // jython will write a cache of processed JAR files in "." unless we set "python.cachedir"
           // Set it here unless it is already set.
