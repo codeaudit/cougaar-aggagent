@@ -36,8 +36,13 @@ def encode (x, out):
   atom = ResultSetDataAtom()
   atom.addIdentifier("length", x.getLength())
   atom.addValue("value", x.getValue())
-  out.println(atom.toXML())
-  out.flush()
+  out.add(atom)
+def instantiate ():
+  return encode
+
+from java.lang import Exception
+def encode (x, out):
+  raise Exception("Gotcha!")
 def instantiate ():
   return encode
 
@@ -54,27 +59,19 @@ IncrementFormats:
         ((dataAtom (ResultSetDataAtom.)))
       (.addIdentifier dataAtom "name"  "NumberOfCycles")
       (.addValue      dataAtom "value" (.size (.getMembership sacc)))
-      (.add out dataAtom))))
+      (.setReplacement out #t)
+      (.add (.getReplacementList out) dataAtom))))
 
 
 --[JPython]--
 
-from java.io import PrintStream
 from org.cougaar.lib.aggagent.query import ResultSetDataAtom
-def header (ps, key, qId, cId):
-  ps.print('<update session_key="' + key + '" query_id="' + qId)
-  ps.println('" cluster_id="' + cId + '">');
-def encode (out, rs, key, qId, cId):
-  ps = PrintStream(out)
-  header(ps, key, qId, cId)
-  ps.println('<added>')
+def encode (out, sacc):
+  out.setReplacement(1)
   atom = ResultSetDataAtom()
-  atom.addIdentifier('name', 'NumberOfCycles')
-  atom.addValue('value', rs.getMembership().size())
-  ps.println(atom.toXML())
-  ps.println('</added>')
-  ps.println('</update>')
-  ps.flush()
+  atom.addIdentifier("name", "NumberOfCycles")
+  atom.addValue("value", sacc.getMembership().size())
+  out.getReplacementList().add(atom)
 def instantiate ():
   return encode
 
