@@ -17,7 +17,7 @@ import org.cougaar.core.cluster.*;
 import org.cougaar.lib.aggagent.session.IncrementFormat;
 import org.cougaar.lib.aggagent.session.XmlIncrement;
 import org.cougaar.lib.aggagent.session.RemotePSPSubscription;
-import org.cougaar.lib.aggagent.session.Session;
+import org.cougaar.lib.aggagent.session.PSPSession;
 import org.cougaar.lib.aggagent.util.Const;
 
 /**
@@ -69,7 +69,7 @@ System.out.println("AggKeepAlivePSP: execute");
     System.out.println("AggregationKeepAlivePSP::execute:  leaving");
   }
 
-  private static class KeepAliveSession extends Session {
+  private static class KeepAliveSession extends PSPSession {
     OutputStream out = null;
 
     KeepAliveSession(ServerPlugInSupport spis, UnaryPredicate predicate,
