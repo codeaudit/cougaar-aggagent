@@ -28,6 +28,8 @@ import org.cougaar.lib.aggagent.util.Const;
 public class AggregationKeepAlivePSP extends PSP_BaseAdapter
     implements PlanServiceProvider, KeepAlive
 {
+  private Object outputLock = new Object();
+
   /**
    *  Run a keep-alive session.  This method will continue to send lines of
    *  output to the provided PrintStream until an error is detected.
@@ -49,7 +51,16 @@ System.out.println("AggKeepAlivePSP: execute");
       while (!out.checkError())
       {
         System.out.println("---------Keep Alive Session is Alive---------");
-        Thread.sleep(10000);
+        Thread.sleep(5000);
+
+        // Without an ack message, a keep alive connection over which no
+        // updates are sent will never die
+        // (even without a client on the other end).
+        synchronized (out)
+        {
+          out.print(Const.KEEP_ALIVE_ACK_MESSAGE);
+          endMessage(out);
+        }
       }
     }
     catch (Exception done_in) {
@@ -67,8 +78,6 @@ System.out.println("AggKeepAlivePSP: execute");
       super("", "", format);
       start(spis, predicate);
       this.out = out;
-      sendUpdate(out);
-      endMessage(out);
     }
 
     /**
@@ -79,8 +88,10 @@ System.out.println("AggKeepAlivePSP: execute");
       synchronized (lock) {
         data.subscriptionChanged();
         if (out != null) {
-          sendUpdate(out);
-          endMessage(out);
+          synchronized (out) {
+            sendUpdate(out);
+            endMessage(out);
+          }
         }
       }
     }
@@ -96,16 +107,13 @@ System.out.println("AggKeepAlivePSP: execute");
     }
   }
 
-  // Without an ack message, a keep alive connection over which no updates are
-  // sent will never die (even without a client on the other end).
-  private static String
-    terminatedAckMessage = Const.KEEP_ALIVE_ACK_MESSAGE + '\f';
-
   /**
    *  Provide ack message to periodically send to keep alive client.
    */
   public String getConnectionACKMessage () {
-    return terminatedAckMessage;
+    // Manage the ack message ourselves so that we can synchronize with our
+    // update messages.
+    return null;
   }
 
   /**
