@@ -20,7 +20,6 @@ import org.cougaar.lib.aggagent.query.AlertDescriptor;
 import org.cougaar.lib.aggagent.query.AggregationQuery;
 import org.cougaar.lib.aggagent.query.QueryResultAdapter;
 import org.cougaar.lib.aggagent.session.SessionManager;
-import org.cougaar.lib.aggagent.session.HtmlIncrement;
 import org.cougaar.lib.aggagent.util.AdvancedHttpInput;
 import org.cougaar.lib.aggagent.util.Enum.*;
 
