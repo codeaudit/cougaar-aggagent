@@ -153,22 +153,17 @@ public abstract class AggregationServletInterface
   {
     class ChangeListener implements SubscriptionListener
     {
-      public Object localLock = new Object();
       public QueryResultAdapter changedQra = null;
 
-      public void waitForChange () {
-        synchronized (localLock) {
+      public synchronized void waitForChange () {
           try {
-            localLock.wait();
+            wait();
           }
           catch (InterruptedException bla) { }
-        }
       }
 
-      public void subscriptionChanged(Subscription s)
+      public synchronized void subscriptionChanged(Subscription s)
       {
-        synchronized(localLock)
-        {
           Enumeration changedList =
             ((IncrementalSubscription)s).getChangedList();
           if (changedList.hasMoreElements())
@@ -176,12 +171,11 @@ public abstract class AggregationServletInterface
             changedQra = (QueryResultAdapter)changedList.nextElement();
             if (allClustersResponded(changedQra)) {
               //System.out.println("All clusters checked in");
-              localLock.notify();
+              notify();
             } else {
               //System.out.println("Still waiting for some clusters");
             }
           }
-        }
       }
 
       private boolean allClustersResponded(QueryResultAdapter qra) {
@@ -205,12 +199,16 @@ public abstract class AggregationServletInterface
         s = blackboard.subscribe(queryMonitor);
         subscriptionMonitorSupport.setSubscriptionListener(s, cl);
     } finally {
-        blackboard.closeTransaction();
+        synchronized (cl) {  
+            // synchronized (cl) is necessary in the rare case that the agg is done 
+            // before I get to the waitForChange()
+            blackboard.closeTransaction();
+            // wait for a publish change event on the query result adapter
+            // and then get and return result set
+            cl.waitForChange();
+        }
     }
 
-    // wait for a publish change event on the query result adapter
-    // and then get and return result set
-    cl.waitForChange();
     unsubscribe(s);
     if (xml)
     {
