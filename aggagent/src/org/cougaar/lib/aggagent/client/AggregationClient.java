@@ -20,26 +20,22 @@
  */
 package org.cougaar.lib.aggagent.client;
 
-import java.io.InputStream;
-import java.io.PrintStream;
-import java.net.*;
+import java.net.URLEncoder;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Timer;
-import java.util.TimerTask;
 
-import org.w3c.dom.*;
-
-import org.cougaar.lib.aggagent.query.AlertDescriptor;
-import org.cougaar.lib.aggagent.query.Alert;
 import org.cougaar.lib.aggagent.query.AggregationQuery;
 import org.cougaar.lib.aggagent.query.AggregationResultSet;
+import org.cougaar.lib.aggagent.query.Alert;
+import org.cougaar.lib.aggagent.query.AlertDescriptor;
 import org.cougaar.lib.aggagent.query.QueryResultAdapter;
-import org.cougaar.lib.aggagent.util.Enum.*;
 import org.cougaar.lib.aggagent.util.XmlUtils;
-import org.cougaar.util.log.Logging;
+import org.cougaar.lib.aggagent.util.Enum.QueryType;
 import org.cougaar.util.log.Logger;
+import org.cougaar.util.log.Logging;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 /**
  * The AggregationPSPClient provides a client-side communication abstraction
