@@ -9,6 +9,11 @@ distributed with xalan version:
 
 xalan_1_2_D02
 
+which can be found at:
+
+http://www.apache.org/
+http://xml.apache.org/
+
 
 
         "This product includes software developed by the
