@@ -15,6 +15,20 @@ def getCycles (x):
 def instantiate ():
   return getCycles
 
+from org.cougaar.lib.aggagent.test import NumberCycle
+from org.cougaar.util import UnaryPredicate
+from java.lang import Exception
+class ErrorSometimes (UnaryPredicate):
+  i = 0
+  def execute (self, x):
+    self.i = self.i + 1
+    if (self.i == 31):
+      self.i = 0;
+      raise Exception("Gotcha!")
+    return isinstance(x, NumberCycle)
+def instantiate ():
+  return ErrorSometimes()
+
 --------------------------------------------------------
 XML Encoders:
 
