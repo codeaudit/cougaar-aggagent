@@ -19,16 +19,16 @@ public abstract class RemoteSession {
   private Collection newErrors = new LinkedList();
 
   // identify this session
-  protected String key = null;
+  private String key = null;
 
   // identify the query that spawned this session
-  protected String queryId = null;
+  private String queryId = null;
 
   // format the output for transmission
-  protected IncrementFormat formatter = null;
+  private IncrementFormat formatter = null;
 
   // ID of the local COUGAAR agent
-  protected String agentId = null;
+  private String agentId = null;
 
   /**
    *  Create a new RemoteSession instance.  It carries an ID for itself and
@@ -56,6 +56,16 @@ public abstract class RemoteSession {
    */
   public String getQueryId () {
     return queryId;
+  }
+
+  /**
+   *  For purposes of tabulation, this key identifies the session existing
+   *  between this Object and the remote client.  Requests concerning the
+   *  session (such as ending it, checking its status, etc.) should use this
+   *  key.
+   */
+  public String getKey () {
+    return key;
   }
 
   /**

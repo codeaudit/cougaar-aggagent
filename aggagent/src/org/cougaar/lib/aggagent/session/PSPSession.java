@@ -37,7 +37,7 @@ public class PSPSession extends RemoteSession implements UISubscriber {
    */
   public void start (ServerPlugInSupport s, UnaryPredicate p) {
     synchronized (lock) {
-      agentId = s.getClusterIDAsString();
+      setAgentId(s.getClusterIDAsString());
       data = new RemotePSPSubscription(s, p, this);
     }
   }
@@ -56,16 +56,6 @@ public class PSPSession extends RemoteSession implements UISubscriber {
    */
   public void endSession () {
     data.shutDown();
-  }
-
-  /**
-   *  For purposes of tabulation, this key identifies the session existing
-   *  between this Object and the remote client.  Requests concerning the
-   *  session (such as ending it, checking its status, etc.) should use this
-   *  key.
-   */
-  public String getKey () {
-    return key;
   }
 
   /**
