@@ -61,7 +61,7 @@ import org.cougaar.lib.aggagent.ldm.PlanObject;
 public class GenericAggServerQueryXML  extends GenericQueryXML
 {
 
-     private List myObjects = Collections.synchronizedList(new ArrayList());
+     private List myObjects = new ArrayList();
 
      public GenericAggServerQueryXML(){
          super();
@@ -179,9 +179,6 @@ public class GenericAggServerQueryXML  extends GenericQueryXML
                      tw.traverse(agg);
                  }
 
-
-                 // send document to client
-                 //doc.print(new PrintWriter(out));
           } catch (Exception ex ){
                  ex.printStackTrace();
           }
@@ -197,7 +194,7 @@ public class GenericAggServerQueryXML  extends GenericQueryXML
           **/
 
           // flush!
-          myObjects = Collections.synchronizedList(new ArrayList());
+          myObjects = new ArrayList();
      }
 
 }

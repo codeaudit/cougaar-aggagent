@@ -118,7 +118,7 @@ public class AggregatorPlugin extends SimplifiedPlugIn
         // may have failed and or are down (ie. non keep-alive)
         //
         List data = myConnectionManager.cycleAllAsynchronousConnections(true);
-        System.out.println("[AggregatorPlugin] total data List size=" + data.size());
+        System.out.println("[AggregatorPlugin] total data elements from Conn Mgr=" + data.size());
         Iterator it = data.iterator();
         while (it.hasNext() ) {
             Object obj = it.next();
@@ -158,57 +158,6 @@ public class AggregatorPlugin extends SimplifiedPlugIn
                 processDataFromConnection_asHTML(str_buf);
             }
 
-            /**
-               try{
-                    //ByteArrayInputStream bais = new ByteArrayInputStream(str.getBytes());
-                    //InputSource is = new InputSource(bais);
-                    StringReader sr = new StringReader(str.trim());
-                    InputSource is = new InputSource(sr);
-
-                    //System.err.println("str=" + str);
-                    //FileReader freader = new FileReader("task.xml");
-                    //InputSource is = new InputSource(freader);
-
-                    DOMParser domp = new DOMParser();
-                    domp.setErrorHandler(new ErrorHandler(){
-                          public void error(SAXParseException exception) {
-                             System.err.println("[ErrorHandler.error]: " + exception);
-                           }
-                           public void fatalError(SAXParseException exception) {
-                                 System.err.println("[ErrorHandler.fatalError]: " + exception);
-                           }
-                           public void warning(SAXParseException exception) {
-                                 System.err.println("[ErrorHandler.warning]: " + exception);
-                            }
-                        }
-                    );
-
-                    domp.parse(is);
-                    Document doc = domp.getDocument();
-
-                    System.out.println("Is XML");
-
-                    if( doc != null ) {
-                       PlanObject p = new PlanObject(doc);
-                       publishAdd(p);
-                    }
-                } catch ( SAXParseException sax) {
-                    //
-                    // if we see this, assume this is not valid XML
-                    //
-                    System.out.println("Not XML");
-                    System.out.println("\n[AggregatorPlugin] data=" + str + "\n");
-                } catch (Exception ex ){
-                    ex.printStackTrace();
-                }
-            **/
-            
-            /**
-            }else {
-                System.out.println("Not XML");
-                System.out.println("[AggregatorPlugin] data=" + str);
-            }
-            **/
             System.out.println("[AggregatorPlugin] data len=" + str_buf.length());
         }
 

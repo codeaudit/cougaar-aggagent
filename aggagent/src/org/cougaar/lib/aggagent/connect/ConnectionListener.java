@@ -40,9 +40,9 @@ public class ConnectionListener implements Runnable
     private long openConnectionTimestamp=0;
     private long connectionInterval=0;
     
-        // totalByteCount vs. lastByteCount
-        // These should be identical in case of non keep-alive tabulation...
-        // in Keep-alive case, lastbytecount = each increment size, total is cumulative
+    // totalByteCount vs. lastByteCount
+    // These should be identical in case of non keep-alive tabulation...
+    // in Keep-alive case, lastbytecount = each increment size, total is cumulative
     private long totalByteCount=0;
     private int lastByteCount=0;
 
@@ -86,6 +86,9 @@ public class ConnectionListener implements Runnable
        myThread.start();
     }
 
+    //------------------------------------------------------------
+    // THREAD EXECUTION
+    //------------------------------------------------------------
     public void run(){
         //System.out.print(".");
 
@@ -95,10 +98,6 @@ public class ConnectionListener implements Runnable
         totalByteCount=0;
 
         try{
-           // TESTING
-           //long rand = (long)(Math.random() * 20000);
-           //Thread.sleep(rand);
-
            openConnectionTimestamp = System.currentTimeMillis();
 
            /**
@@ -121,7 +120,7 @@ public class ConnectionListener implements Runnable
                int len = result.getBuffer().length();
                if( len > 0 ) {
                    synchronized( myDataPool ) {
-                       System.out.println("ADDing result,  len=" + len);
+                       System.out.println("ADDing result,  buflen=" + len);
                        myDataPool.add(result.getBuffer());
                        lastByteCount = len;
                        totalByteCount += len;
@@ -167,8 +166,9 @@ public class ConnectionListener implements Runnable
                         +       "<LI>Connexion Space: " + mySpaceKey
                         +       "<LI>Connection to: " + myURLConnexionProbe.toExternalForm()
                         +        "<LI>Duration: " +  this.connectionInterval
-                        +        "<LI>lastByteCount:" +    lastByteCount
-                        +        "<LI>totalByteCount:" + this.totalByteCount
+                        +        "<LI>lastByteCount      :" + lastByteCount
+                        +        "<LI>cumulativeByteCount:" + this.totalByteCount + " (keepalive)"
+                        +        "<LI>data pool size:" + myDataPool.size()
                         +    "</UL>"
                         +    "</UL>");
         System.out.println("activeSet removed called..." + activeSet.size() );

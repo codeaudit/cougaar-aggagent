@@ -15,14 +15,16 @@ import org.xml.sax.InputSource;
 
 import  org.cougaar.lib.aggagent.bsax.*;
 
-
+//
+// If encounters delimiter "&&&" will hold connection open but write data.
+// otherwise reads until connection closed.
+//
+// first case is for KeepAlive connections, 2nd cse is for polling connections
+//
 public class ConnexionParserByDelimiter implements ConnexionParser
 {
-    private SAXParser mySaxParser = new SAXParser();
-
     public ConnexionParserByDelimiter() {
     }
-
 
     //
     //  @return boolean true if connexion still open, else false

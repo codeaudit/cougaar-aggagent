@@ -17,6 +17,9 @@ public class URLConnexionProbeAdapter implements URLConnexionProbe
 
      public URLConnexionProbeAdapter(URL u ){
          setURL(u);
+         //
+         //  DEFAULT CONNECTION PARSER
+         //
          setParser(new ConnexionParserByDelimiter() ); // new ConnexionParserSAX() );
      }
      public void setURL( URL u ) {

@@ -54,6 +54,7 @@ public class SimpleTransformerPlugin extends SimplifiedPlugIn
 
     // Don't GC if time since last GC is less than this....
     private long GC_MIN_INTERVAL = 30000;
+    private long STATUS_MIN_INTERVAL = 15000;
 
 
 
@@ -89,17 +90,23 @@ public class SimpleTransformerPlugin extends SimplifiedPlugIn
     // Keep track last time did a GC
     private long timeStampLastGC = 0;
 
+    // Keep track of last status message
+    private long timeStampLastStatus=0;
+
     public void execute() {
 
+       long currTime= System.currentTimeMillis();
+       
        Enumeration en = mySubscription.getAddedList();
-
         while( en.hasMoreElements() ){
             Object obj = en.nextElement();
 
-            if( removeObjectsImmediately ) {
+            if( removeObjectsImmediately )
+            {
                 this.numberRemovedObjects++;
-                mySubscription.remove(obj);
-                long currTime= System.currentTimeMillis();
+                boolean status = mySubscription.remove(obj);
+                //System.out.println("Remove Status:" + status);
+
                 if( (currTime - timeStampLastGC) >  GC_MIN_INTERVAL )
                 {
                     System.gc();
@@ -110,7 +117,12 @@ public class SimpleTransformerPlugin extends SimplifiedPlugIn
                 watchedBlackboardObjects.add(obj);
             }
         }
-        printStatus( System.out);
+
+        if( (currTime - timeStampLastStatus) >  STATUS_MIN_INTERVAL )
+        {
+             printStatus( System.out);
+             timeStampLastStatus =  currTime;
+        }
         this.wakeAfter(POLL_INTERVAL);
     }
 

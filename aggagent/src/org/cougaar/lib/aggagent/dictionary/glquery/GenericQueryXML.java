@@ -157,7 +157,12 @@ public class GenericQueryXML  implements GenericQuery
           //
           String sbuf_sax = (String)preConfiguredParameters.get(this.paramkey_SAX);
           if( sbuf_sax != null) mySAXContentHandlerClassName = sbuf_sax.toString();
-          System.out.println(" mySAXContentHandlerClassName=" + mySAXContentHandlerClassName);
+          if( mySAXContentHandlerClassName != null) {
+             System.out.println("SAX HANDLER USED:" + mySAXContentHandlerClassName);
+          }
+          else {
+             System.out.println("SAX HANDLER NOT USED." );
+          }
 
           //#################################
           // XSL PROCESSING
@@ -178,9 +183,9 @@ public class GenericQueryXML  implements GenericQuery
                      if( odoc instanceof TXDocument) doc = (TXDocument)odoc;
                  }
                  //
-                 // this is TERRIBLE... converting DOM TO STRING TO APPLY XSL
-                 //  inefficient, but until old
-                 // ALP XML parser version can be updated, no choice...
+                 // this is TERRIBLE THING TO DO FOR NOW...
+                 //  converting DOM TO STRING TO APPLY XSL is v. inefficient,
+                 // but until old ALP XML parser version can be updated, no choice...
                  //
                  if( (myXSL != null) && ( doc != null) )
                  {
