@@ -230,11 +230,16 @@ public abstract class AggregationServletInterface
   // Remove the query from the logplan as well as any Alerts that depend on it
   protected void removeQuery (QueryResultAdapter q)
   {
-    blackboard.tryOpenTransaction();
-    for (Iterator i = q.getAlerts(); i.hasNext(); )
-      blackboard.publishRemove(i.next());
-    blackboard.publishRemove(q);
-    blackboard.closeTransaction();
+    try {
+      blackboard.openTransaction();
+      for (Iterator i = q.getAlerts(); i.hasNext(); )
+        blackboard.publishRemove(i.next());
+      blackboard.publishRemove(q);
+    } catch (Exception e) {
+      e.printStackTrace();
+    } finally {
+      blackboard.closeTransaction();
+    }
   }
 
   /**
