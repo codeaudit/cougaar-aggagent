@@ -12,6 +12,8 @@ import java.util.TreeMap;
 
 public class ResultSetDataAtom
 {
+  public static String DATA_ATOM_TAG = "data_atom";
+
   private Object lock = new Object();
 
   // the aggregation of all the identifiers defines how these values
@@ -161,10 +163,14 @@ public class ResultSetDataAtom
     StringBuffer xml = new StringBuffer();
 
     synchronized (lock) {
-      xml.append("<data_atom>\n");
+      xml.append("<");
+      xml.append(DATA_ATOM_TAG);
+      xml.append(">\n");
       xml.append(createNameValueTags("id", identifiers.entrySet().iterator()));
       xml.append(createNameValueTags("value", values.entrySet().iterator()));
-      xml.append("</data_atom>\n");
+      xml.append("</");
+      xml.append(DATA_ATOM_TAG);
+      xml.append(">\n");
     }
 
     return xml.toString();

@@ -153,9 +153,8 @@ public class AggregationResultSet
    *  to come from the specified cluster.  The data are presented in XML format
    *  and must be parsed into individual ResultSetDataAtoms.
    */
-  private void update(String clusterId, Element dataAtomsParent)
-  {
-    NodeList nl = dataAtomsParent.getElementsByTagName("data_atom");
+  private void update (String clusterId, Element atoms) {
+    NodeList nl = atoms.getElementsByTagName(ResultSetDataAtom.DATA_ATOM_TAG);
     for (int i = 0; i < nl.getLength(); i++)
       update(clusterId, new ResultSetDataAtom((Element) nl.item(i)));
   }
@@ -163,9 +162,8 @@ public class AggregationResultSet
   /**
    *  Remove a series of data from this result set.
    */
-  private void remove(String clusterId, Element dataAtomsParent)
-  {
-    NodeList nl = dataAtomsParent.getElementsByTagName("data_atom");
+  private void remove (String clusterId, Element atoms) {
+    NodeList nl = atoms.getElementsByTagName(ResultSetDataAtom.DATA_ATOM_TAG);
     for (int i = 0; i < nl.getLength(); i++)
       remove(clusterId, new ResultSetDataAtom((Element) nl.item(i)));
   }
