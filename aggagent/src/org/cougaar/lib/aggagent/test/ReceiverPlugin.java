@@ -78,4 +78,10 @@ public class ReceiverPlugin extends ComponentPlugin {
       getServiceBroker().releaseService(
         ear, MessageTransportService.class, messenger);
   }
+
+  public void setupSubscriptions () {
+  }
+
+  public void execute () {
+  }
 }

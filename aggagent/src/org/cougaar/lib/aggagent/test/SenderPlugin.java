@@ -74,7 +74,7 @@ public class SenderPlugin extends ReceiverPlugin {
     delayedSend();
   }
 
-  protected void setupSubscriptions () {
+  public void setupSubscriptions () {
     delayedSend();
   }
 }
