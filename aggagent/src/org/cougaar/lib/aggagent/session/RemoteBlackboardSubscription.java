@@ -144,7 +144,6 @@ public class RemoteBlackboardSubscription implements SubscriptionAccess {
    *  is allowed to succeed.
    */
   public void open () {
-System.out.println("RBS: open");
     synchronized (lock) {
       checkDead("open");
       checkOpened("open");
@@ -167,7 +166,6 @@ System.out.println("RBS: open");
    *  there is no transaction in progress have no effect.
    */
   public void close () {
-System.out.println("RBS: close");
     synchronized (lock) {
       opened = false;
       added = null;
@@ -268,10 +266,6 @@ System.out.println("RBS: close");
    *  </p>
    */
   public void subscriptionChanged () {
-System.out.println("RBS: Subscription changed "+
-subs.getAddedCollection().size()+":"+
-subs.getChangedCollection().size()+":"+
-subs.getRemovedCollection().size());
     synchronized (lock) {
       if (dead) {
         System.out.println(
