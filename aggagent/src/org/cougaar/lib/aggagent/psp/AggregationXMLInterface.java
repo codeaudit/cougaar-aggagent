@@ -61,6 +61,8 @@ public class AggregationXMLInterface extends AggregationPSPInterface
       cancelPassiveSession(ahi, out);
     else if (ahi.hasParameter("REQUEST_UPDATE"))
       requestUpdate(ahi, out);
+    else if (ahi.hasParameter("GET_SYSTEM_PROPERTY"))
+      getSystemProperty(ahi, out);
     else if (ahi.hasParameter("CHECK_URL"))
       checkUrl(out);
 
@@ -257,6 +259,15 @@ public class AggregationXMLInterface extends AggregationPSPInterface
     String sessionId = in.getParameter("SESSION_ID");
     man.cancelSession(sessionId);
     out.println("done");
+  }
+
+  /**
+   * return local system property to client
+   */
+  private void getSystemProperty(AdvancedHttpInput in, PrintStream out)
+  {
+    String propertyName = in.getParameter("PROPERTY_NAME");
+    out.println(System.getProperty(propertyName));
   }
 
   /**
