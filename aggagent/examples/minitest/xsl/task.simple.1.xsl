@@ -4,7 +4,9 @@
   <xsl:template match="LogPlan">
     <LogPlan> 
        <xsl:for-each select="Task">
-          <Task verb="{verb}"
+          <Task 
+             ContainerEvent="{Subscription/@Event}"
+             verb="{verb}"
              ID="{ID/UID}"
              source="{source}"
              destination="{destination/address}"
