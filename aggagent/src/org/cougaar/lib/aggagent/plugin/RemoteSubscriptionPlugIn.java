@@ -20,7 +20,7 @@ import org.cougaar.core.cluster.*;
 public class RemoteSubscriptionPlugIn extends AggregationPlugIn implements MessageTransportClient
 {
   private static final boolean debug = false;
-
+  private Object lock = new Object();
 
   public void setupSubscriptions()
   {
@@ -41,11 +41,14 @@ public class RemoteSubscriptionPlugIn extends AggregationPlugIn implements Messa
 
 
   public void execute () {
-    Iterator iter = queryMap.keySet().iterator();
-    while (iter.hasNext()) {
-      IncrementalSubscription sub = (IncrementalSubscription) iter.next();
-      if (sub.hasChanged())
-        ((BBSession) queryMap.get(sub)).subscriptionChanged();
+    synchronized (lock)
+    {
+      Iterator iter = queryMap.keySet().iterator();
+      while (iter.hasNext()) {
+        IncrementalSubscription sub = (IncrementalSubscription) iter.next();
+        if (sub.hasChanged())
+          ((BBSession) queryMap.get(sub)).subscriptionChanged();
+      }
     }
   }
 
@@ -204,10 +207,12 @@ System.out.println("RemotePlugin: Got message: "+requestName+":"+root.toString()
         String k, String q, IncrementFormat f, String r, UnaryPredicate p)
     {
       super(k, q, f, r);
-      rawData = subscribeIncr(new ErrorTrapPredicate(p));
-      data = new SubscriptionWrapper(rawData);
-
-      queryMap.put(rawData, this);
+      synchronized (lock)
+      {
+        rawData = subscribeIncr(new ErrorTrapPredicate(p));
+        data = new SubscriptionWrapper(rawData);
+        queryMap.put(rawData, this);
+      }
     }
 
     public void cancel () {
