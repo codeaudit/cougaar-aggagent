@@ -44,7 +44,8 @@ maintain a significant long-lived subscription to meaningfully observe
 these events.
 
 /////////////////////////////////////////////////////////////////////////////////////////////
-
+// (natec)
+//
 Latest checkins turn-on the <pollInterval/> parameter wrt to Aggregator
 Queries.
 
@@ -61,7 +62,8 @@ org.cougaar.lib.aggagent.plugin.AggregatorPlugin(file=scripts/aggregator_que
 ries.xml,default_poll_rate=10000)
 
 /////////////////////////////////////////////////////////////////////////////////////////////
-
+// (natec)
+//
 New query type has been added to Agg Agent repetoire:  "Stateful query by
 polling".  
 
@@ -111,6 +113,8 @@ b.)
 query session mgmt function (delete, count)  for query sessions
 
 /////////////////////////////////////////////////////////////////////////////////////////////
+// (natec)
+//
 Version 0.6 ChangeList
 
 1.)  SimpleTransfomerPlugin added.   Its a "shell" implementation which currently only purpose is to grab 
@@ -144,6 +148,8 @@ per query will override default settings.
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////
+// (natec)
+//
 Version 0.55 ChangeList
 
 1.) added new "light-weight" HTML PSP to use to view contents of Agg Agent blackboard.  
@@ -164,6 +170,8 @@ to use it, simply copy over applet code and install in /agg/demo subdirectory be
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////
+// (natec)
+//
 Version 0.5 ChangeList
 
 1.) Repackaged to match Cougaar 7.0 PACKAGES/MODULES.
@@ -192,7 +200,8 @@ src/org/cougaar/lib/aggagent/psp
 
 
 #########################################################################
-
+// (natec)
+//
 package org.cougaar.core.util;
 
 public interface XMLObjectProvider
@@ -231,6 +240,8 @@ public interface XMLObjectProvider
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////
+// (natec)
+//
 Version 0.4 ChangeList
 
 
@@ -305,6 +316,8 @@ Version 0.4 ChangeList
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////
+// (natec)
+//
 Version 0.3 ChangeList
 
 -) Updated alp_workspace to Cougaar 6.8
@@ -338,6 +351,8 @@ Version 0.3 ChangeList
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////
+// (natec)
+//
 Version 0.2 ChangeList
 11/22/00
 
