@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xml>
+   <source name="Yahoo" ignore="false">
+        <pollInterval>1000</pollInterval>
+        <url>http://www.yahoo.com</url>
+   </source>
+   <source name="MSN" ignore="false">
+        <pollInterval>1000</pollInterval>
+        <url>http://www.msn.com</url>
+   </source>
+</xml>

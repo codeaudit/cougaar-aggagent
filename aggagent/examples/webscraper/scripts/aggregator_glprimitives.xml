@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xml>
+      <glquery>
+          <keyname>QUERY_SIMPLE_SAX</keyname>
+          <sax>org.cougaar.lib.aggagent.bsax.samples.SampleHandler_1</sax>
+          <predicate>
+               <instanceof>java.lang.Object</instanceof>  <!-- use exclusive w/domnode -->
+          </predicate>
+          <adapter>org.cougaar.lib.aggagent.dictionary.glquery.GenericQueryXML</adapter>
+      </glquery>
+</xml>
