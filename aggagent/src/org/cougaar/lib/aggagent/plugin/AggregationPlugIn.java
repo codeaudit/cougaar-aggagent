@@ -266,7 +266,8 @@ System.out.println("Cancelling remote session at "+clusterString);
         QueryResultAdapter qra = (QueryResultAdapter)updatedQueries.next();
 
         // update query result set based on reported changes
-        qra.getResultSet().incrementalUpdate(updatedCluster, root);
+        qra.getRawResultSet().incrementalUpdate(updatedCluster, root);
+        qra.aggregate();
 
         // publish changes to blackboard
         getBlackboardService().openTransaction();

@@ -3,7 +3,15 @@ package org.cougaar.lib.aggagent.query;
 
 import org.w3c.dom.*;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.StringTokenizer;
 
 import org.cougaar.lib.aggagent.util.XmlUtils;
 
@@ -18,13 +26,13 @@ public class AggregationResultSet
   private Object lock = new Object();
 
   private QueryResultAdapter query = null;
-  private LinkedList idNames = new LinkedList();
+  private List idNames = new LinkedList();
   private boolean firstUpdate = true;
   private Map clusterTable = new HashMap();
   private Map exceptionMap = new HashMap();
   private Set respondingClusters = new HashSet();
   private UpdateObservable updateObservable = new UpdateObservable();
-  private LinkedList resultSetChangeListeners = new LinkedList();
+  private List resultSetChangeListeners = new LinkedList();
 
   /**
    * Default Constructor
@@ -198,6 +206,19 @@ public class AggregationResultSet
     }
   }
 
+  private void removeAllAtoms () {
+    clusterTable.clear();
+  }
+
+  public void replaceAggregated (List atoms) {
+    synchronized (lock) {
+      removeAllAtoms();
+      for (Iterator i = atoms.iterator(); i.hasNext(); )
+        update("aggregated", (ResultSetDataAtom) i.next());
+    }
+    fireObjectChanged();
+  }
+
   /**
    * Update this result set to match passed in result set
    */
@@ -262,69 +283,22 @@ public class AggregationResultSet
   }
 
   public Iterator getAllAtoms () {
-    return new AtomIterator(true);
-  }
-
-  private class AtomIterator implements Iterator {
-    private Iterator clusterIds = null;
-    private Object clusterId = null;
-    private Iterator valueEntries = null;
-    private Map.Entry currentCluster = null;
-
-    private boolean includeClusters = false;
-
-    public AtomIterator () {
-      synchronized (lock) {
-        clusterIds = new LinkedList(clusterTable.entrySet()).iterator();
-      }
-      getNextCluster();
-    }
-
-    public AtomIterator (boolean clusters) {
-      this();
-      includeClusters = clusters;
-    }
-
-    private void getNextCluster () {
-      if (clusterIds.hasNext()) {
-        synchronized (lock) {
-          currentCluster = (Map.Entry) clusterIds.next();
-          valueEntries =
-            new LinkedList(
-              ((Map) currentCluster.getValue()).entrySet()
-            ).iterator();
+    List l = new LinkedList();
+    synchronized (lock) {
+      for (Iterator c = clusterTable.entrySet().iterator(); c.hasNext(); ) {
+        Map.Entry cluster = (Map.Entry) c.next();
+        Object name = cluster.getKey();
+        Map atoms = (Map) cluster.getValue();
+        for (Iterator v = atoms.entrySet().iterator(); v.hasNext(); ) {
+          Map.Entry pair = (Map.Entry) v.next();
+          ResultSetDataAtom a = new ResultSetDataAtom(
+            idNames, (CompoundKey) pair.getKey(), (Map) pair.getValue());
+          a.addIdentifier(CLUSTER_IDENTIFIER, name);
+          l.add(a);
         }
       }
-      else {
-        valueEntries = null;
-      }
     }
-
-    public boolean hasNext () {
-      while (valueEntries != null) {
-        if (valueEntries.hasNext())
-          return true;
-        getNextCluster();
-      }
-      return false;
-    }
-
-    public Object next () {
-      if (hasNext())
-        return makeAtom((Map.Entry) valueEntries.next());
-      return null;
-    }
-
-    private ResultSetDataAtom makeAtom (Map.Entry pair) {
-      ResultSetDataAtom ret = new ResultSetDataAtom(
-        idNames, (CompoundKey) pair.getKey(), (Map) pair.getValue());
-      if (includeClusters)
-        ret.addIdentifier(CLUSTER_IDENTIFIER, currentCluster.getKey());
-      return ret;
-    }
-
-    public void remove () {
-    }
+    return l.iterator();
   }
 
   public String toXML()
