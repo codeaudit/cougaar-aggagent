@@ -48,6 +48,8 @@ import org.cougaar.lib.aggagent.util.XmlUtils;
      */
     public static final int KEEP_ALIVE_METHOD = 1;
 
+    private Object lock = new Object();
+    private boolean notifyKeepAliveExit = false;
     private int updateMethod;
     private boolean monitorAllObjects = false;
     private HashMap monitoredObjectMap = new HashMap();
@@ -127,27 +129,39 @@ import org.cougaar.lib.aggagent.util.XmlUtils;
                 }
               }
             }
-
-            // close input stream to shutdown keep alive psp connection.
-            i.close();
-
-            // send message to servlet to cancel keep alive
-            String cancelSessionURL =
-                serverURL + "&CANCEL_SESSION_ID=" + sessionId;
-            XmlUtils.requestString(cancelSessionURL, null);
           }
           catch (Exception e) {
             System.out.println("Error reading from keep alive.\n" +
                                "Exiting monitor with request:\n" +
                                monitorRequest);
-
+          } finally {
             // close input stream to shutdown keep alive psp connection.
             if (i != null)
+            {
               try {
                 i.close();
-              } catch (Exception e2) {/* I tried */}
+              } catch (Exception e) {/* I tried */}
+            }
+
+            // send message to servlet to cancel keep alive
+            if (sessionId != null)
+            {
+              String cancelSessionURL =
+                  serverURL + "&CANCEL_SESSION_ID=" + sessionId;
+              XmlUtils.requestString(cancelSessionURL, null);
+            }
+
+            // notify canceler that deed has been done
+            synchronized (lock)
+            {
+              if (notifyKeepAliveExit)
+              {
+                notifyKeepAliveExit = false;
+                lock.notify();
+              }
             }
           }
+        }
       };
 
     /**
@@ -268,9 +282,21 @@ import org.cougaar.lib.aggagent.util.XmlUtils;
         cancelPassiveSession();
         return r;
       }
-      else if (updateMethod == KEEP_ALIVE_METHOD)
+      else if ((updateMethod == KEEP_ALIVE_METHOD) &&
+               (keepAliveThread != null))
       {
-        keepAliveThread = null;
+        synchronized (lock)
+        {
+          notifyKeepAliveExit = true;
+          keepAliveThread = null; // will end keep alive thread
+
+          // wait for thread to end
+          try {
+            lock.wait(10000);
+          } catch (InterruptedException e) {
+          }
+        }
+
         return true;
       }
       return false;
