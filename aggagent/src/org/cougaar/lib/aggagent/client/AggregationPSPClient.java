@@ -155,7 +155,7 @@ public class AggregationPSPClient
   {
     String response = null;
     String taggedURL = aggregationPSPURL + "?CREATE_ALERT";
-    response = XmlUtils.requestString(taggedURL, ad.toXML()).trim();
+    response = XmlUtils.requestString(taggedURL, ad.toXml()).trim();
 
     return response.equals("0");
   }
