@@ -19,6 +19,7 @@ import java.io.PrintStream;
 import java.io.StringWriter;
 import java.util.Collection;
 import java.util.Enumeration;
+import java.util.ArrayList;
 import java.util.Iterator;
 
 
@@ -74,7 +75,10 @@ import org.cougaar.lib.aggagent.dictionary.glquery.GenericQuery;
 public class PSP_GenericReaderWriter_KeepAlive extends PSP_GenericReaderWriter
                implements  KeepAlive, UseDirectSocketOutputStream
 {
-  private Vector myIncomingItems = new Vector();
+  // private Vector myIncomingItems = new Vector();
+  private List myAddContainer=  new ArrayList();
+  private List myRemoveContainer=  new ArrayList();
+  private List myChangeContainer=  new ArrayList();
 
 
   public PSP_GenericReaderWriter_KeepAlive()
@@ -102,21 +106,42 @@ public class PSP_GenericReaderWriter_KeepAlive extends PSP_GenericReaderWriter
   {
       System.out.println("[PSP_GenericReaderWriter.KeepAlive._execute()] ENTER!!!");
 
-      Subscription subscription = psc.getServerPluginSupport().subscribe(this, queryObj.getPredicate());
-      Collection container = ((CollectionSubscription)subscription).getCollection();   // Doesn't block
+      IncrementalSubscription subscription =
+            (IncrementalSubscription)psc.getServerPluginSupport().getDirectDelegate().subscribe(queryObj.getPredicate()); //.subscribe(this, queryObj.getPredicate());
+      //Collection subContainer = ((CollectionSubscription)subscription).getCollection();   // Doesn't block
+
+      //#######################################################
+      psc.getServerPlugInSupport().openLogPlanTransaction();
+      this.subscriptionChanged(subscription);
+      psc.getServerPluginSupport().closeLogPlanTransaction();
+      //#######################################################
+
 
       while(true) {
-         if( container.size() > 0 ) {
-             synchronizedExecute (out, query_parameters, psc, psu, my_gl_dict, container, queryObj);
-             System.out.println("[PSP_GenericReaderWriter.KeepAlive._execute()] SYNCHEXECUTE!!! container.size=" + container.size());
-             container.clear(); // remove all objects - they have been handled
+         if( (myAddContainer.size() > 0) || (myRemoveContainer.size()>0) || (myChangeContainer.size()>0) ) {
+             synchronizedExecute (out, query_parameters, psc, psu, my_gl_dict,
+                           myAddContainer,
+                           myChangeContainer,
+                           myRemoveContainer,
+                           queryObj);
+
+             System.out.println("[PSP_GenericReaderWriter.KeepAlive._execute()] SYNCHEXECUTE!!!" +
+                                " myAddContainer.size=" + myAddContainer.size() +
+                                 " myChangeContainer.size=" + myChangeContainer.size() +
+                                 " myRemoveContainer.size=" + myRemoveContainer.size()
+                                );
+            // remove all objects - they have been handled
+             myAddContainer.clear();
+             myChangeContainer.clear();
+             myRemoveContainer.clear();
+
              out.println(delimiter);
              out.flush();
              System.out.println("[PSP_GenericReaderWriter.KeepAlive._execute()] FLUSH!!!");
          }
-         Object obj = nextItem(true);  // nextItem() => waits if nothing to process...
-         container.add(obj);
-         System.out.println("[PSP_GenericReaderWriter.KeepAlive._execute()] CONTAINER ADD!!!");
+         waitUntilNextItem();  // => waits if nothing to process...
+         //container.add(obj);
+         //System.out.println("[PSP_GenericReaderWriter.KeepAlive._execute()] CONTAINER ADD!!!");
       } // end - while()
   }
 
@@ -127,8 +152,17 @@ public class PSP_GenericReaderWriter_KeepAlive extends PSP_GenericReaderWriter
    * @param alert Alert to add to list
    *
    */
-  synchronized public void addItem(Object obj) {
-      myIncomingItems.addElement(obj);
+  synchronized public void addAddItem(Object obj) {
+      //myIncomingItems.addElement(obj);
+      myAddContainer.add(obj);
+      notifyAll();
+  }
+  synchronized public void addRemoveItem(Object obj) {
+      myRemoveContainer.add(obj);
+      notifyAll();
+  }
+  synchronized public void addChangeItem(Object obj) {
+      myChangeContainer.add(obj);
       notifyAll();
   }
 
@@ -136,12 +170,12 @@ public class PSP_GenericReaderWriter_KeepAlive extends PSP_GenericReaderWriter
    * nextAlert - returns the next alert on the list. If no alerts and wait is true,
    * suspends thread until an alert is added. Otherwise returns null.
    *
-   * @param wait boolean controls whether call blocks
-   *
    * @return alert Alert next alert on the list.
    */
-  synchronized public Object nextItem(boolean wait) {
-    while (myIncomingItems.size() == 0) {
+  synchronized public void waitUntilNextItem()
+  {
+    boolean wait = true;
+    while( (myAddContainer.size() == 0) && (myChangeContainer.size() == 0) && (myRemoveContainer.size()==0) ) {
       if (wait) {
         try {
           wait();
@@ -150,17 +184,13 @@ public class PSP_GenericReaderWriter_KeepAlive extends PSP_GenericReaderWriter
           e.printStackTrace();
         }
       } else {
-        return null;
+        return;
       }
     }
-
-    Object obj = myIncomingItems.firstElement();
-    myIncomingItems.remove(0);
-    return obj;
   }
 
+
   /**
-   * subscriptionChanged - adds new subscriptions to myIncomingAlerts.
    *
    * @param subscription Subscription
    */
@@ -168,8 +198,19 @@ public class PSP_GenericReaderWriter_KeepAlive extends PSP_GenericReaderWriter
       Enumeration e = ((IncrementalSubscription)subscription).getAddedList();
       while (e.hasMoreElements()) {
          Object obj = e.nextElement();
-         addItem(obj);
+         addAddItem(obj);
+      }
+      e = ((IncrementalSubscription)subscription).getChangedList();
+      while (e.hasMoreElements()) {
+         Object obj = e.nextElement();
+         addChangeItem(obj);
+      }
+      e = ((IncrementalSubscription)subscription).getRemovedList();
+      while (e.hasMoreElements()) {
+         Object obj = e.nextElement();
+         addRemoveItem(obj);
       }
   }
-  
+
+
 }

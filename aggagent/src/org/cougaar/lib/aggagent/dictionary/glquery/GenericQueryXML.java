@@ -146,10 +146,11 @@ public class GenericQueryXML  implements GenericQuery
                             (XMLObjectProvider)myObjectProviderMap.get(collectionType);
 
                    synchronized( myObjectProvider ) {
-                         if( collectionType.equals(GenericLogic.collectionType_ADD) ) {
-                            System.out.println("[GenericQueryXML.execute] addObject() used.");
+                        // if( collectionType.equals(GenericLogic.collectionType_ADD) ) {
+                            System.out.println("[GenericQueryXML.execute] Placing Object in ObjectProvider:"
+                                               + collectionType);
                             addObject(o, myObjectProvider);
-                         }
+                        // }
                    }
               }
            }
@@ -536,10 +537,10 @@ public class GenericQueryXML  implements GenericQuery
                                  elem.setAttribute("Event","ADD");
                              }
                              else if( collectionType.equals(GenericLogic.collectionType_CHANGE)){
-                                 elem.setAttribute("Event","CHANGED");
+                                 elem.setAttribute("Event","CHANGE");
                              }
                              else if( collectionType.equals(GenericLogic.collectionType_REMOVE)){
-                                 elem.setAttribute("Event","REMOVED");
+                                 elem.setAttribute("Event","REMOVE");
                              } else
                                  elem.setAttribute("Event","UNKNOWN");
 

@@ -70,13 +70,20 @@ import org.cougaar.lib.aggagent.xml.XMLParseCommon;
 import org.cougaar.lib.aggagent.xml.HTMLize;
 import org.cougaar.lib.aggagent.dictionary.GLDictionary;
 import org.cougaar.lib.aggagent.dictionary.glquery.GenericQuery;
+import org.cougaar.lib.aggagent.dictionary.GenericLogic;
 
 
 
-public class PSP_GenericReaderWriter extends PSP_BaseAdapter implements PlanServiceProvider, UISubscriber
+public class PSP_GenericReaderWriter extends PSP_BaseAdapter implements PlanServiceProvider //, UISubscriber
 {
-   // null cluster_id = load all...
-   //private GLDictionary myGLDictionary = null;
+  // QUERY SESSION IMPLEMENTATION DEFS
+  private HashMap myQuerySessions = new HashMap();
+
+  // Enumeration of Subscription Events
+  public final int QUERY_SESSION_ADD_UPDATES    =1;
+  public final int QUERY_SESSION_CHANGE_UPDATES =2;
+  public final int QUERY_SESSION_REMOVE_UPDATES =3;
+
 
    public UnaryPredicate getAllPredicate() {
          UnaryPredicate pred = new UnaryPredicate() {
@@ -193,29 +200,54 @@ public class PSP_GenericReaderWriter extends PSP_BaseAdapter implements PlanServ
       }
       if( qsession_id != null ){
             //
-            // Query Session poll query -- state
+            // Query Session query -- test for query results state
             //
-            List updates = this.getQuerySessionUpdates(qsession_id);
-            Collection container = null;
-            if( updates == null)
+            boolean isSession = existsMyQuerySession(qsession_id);
+
+            List add_container=  new ArrayList();
+            List remove_container=  new ArrayList();
+            List change_container=  new ArrayList();
+
+            if( isSession == false)
             {
                  // set it up -- we'll poll later for updates.
                   QuerySessionUISubscriber qsession_subscriber = this.instantiateQuerySession(qsession_id);
                   Subscription subscription = psc.getServerPluginSupport().subscribe(qsession_subscriber, queryObj.getPredicate());
+
+                 //#######################################################
+                 psc.getServerPlugInSupport().openLogPlanTransaction();
+                 this.grabSubscriptionDeltas(subscription, add_container, change_container, remove_container);
+                 psc.getServerPluginSupport().closeLogPlanTransaction();
+                 //#######################################################
+
                   //
                   // don't process container directly here!  - because contents will
                   // show up at QuerySession container -- so we get duplicate entries.
                   // we'll be handling these objects from QuerySession instance
                   //
                   //container =((CollectionSubscription)subscription).getCollection();   // Doesn't block
-                  container=  this.getQuerySessionUpdates(qsession_id);
+
             }
             else {
-               container = updates;
+                 this.getQuerySessionUpdates(qsession_id, QUERY_SESSION_ADD_UPDATES, add_container);
+                 this.getQuerySessionUpdates(qsession_id, QUERY_SESSION_REMOVE_UPDATES, remove_container);
+                 this.getQuerySessionUpdates(qsession_id, QUERY_SESSION_CHANGE_UPDATES, change_container);
             }
-            if( container != null) {
-                if(container.size() > 0) {
-                     synchronizedExecute (out, query_parameters, psc, psu, my_gl_dict, container, queryObj);
+
+            if( isSession == true ) {
+                int totalchanges =   add_container.size() + remove_container.size() + change_container.size();
+                if( totalchanges > 0)
+                {
+                     synchronizedExecute(
+                           out,
+                           query_parameters,
+                           psc,
+                           psu,
+                           my_gl_dict,
+                           add_container,
+                           change_container,
+                           remove_container,
+                           queryObj);
                 }
             }
       }
@@ -223,10 +255,52 @@ public class PSP_GenericReaderWriter extends PSP_BaseAdapter implements PlanServ
            //
            // normal poll query -- no state
            //
-           Subscription subscription = psc.getServerPluginSupport().subscribe(this, queryObj.getPredicate());
-           CollectionSubscription collsub = ((CollectionSubscription)subscription);   // Doesn't block
-           Collection container = collsub.getCollection();   // Doesn't block
-           synchronizedExecute (out, query_parameters, psc, psu, my_gl_dict, container, queryObj);
+           IncrementalSubscription subscription =
+               (IncrementalSubscription)psc.getServerPluginSupport().getDirectDelegate().subscribe(queryObj.getPredicate());
+           //Collection container = ((CollectionSubscription)subscription).getCollection();   // Doesn't block
+
+
+           List add_container = new ArrayList();
+           List change_container = new ArrayList();
+           List remove_container = new ArrayList();
+
+           //#######################################################
+           psc.getServerPlugInSupport().openLogPlanTransaction();
+           this.grabSubscriptionDeltas(subscription, add_container, change_container, remove_container);
+           psc.getServerPluginSupport().closeLogPlanTransaction();
+           //#######################################################
+
+
+           //#######################################################
+           /**
+           psc.getServerPlugInSupport().openLogPlanTransaction();
+
+           Enumeration en = subscription.getAddedList();
+           while( en.hasMoreElements() ) {
+               add_container.add(en.nextElement());
+           }
+
+           en = subscription.getChangedList();
+           while( en.hasMoreElements() ) {
+               change_container.add(en.nextElement());
+           }
+
+           en = subscription.getRemovedList();
+           while( en.hasMoreElements() ) {
+               System.out.println("RECEIVED REMOVE ITEM");
+               Thread.dumpStack();
+               remove_container.add(en.nextElement());
+           }
+           psc.getServerPluginSupport().closeLogPlanTransaction();
+           **/
+           //#######################################################
+
+           synchronizedExecute (
+                           out, query_parameters, psc, psu, my_gl_dict,
+                           add_container,
+                           change_container,
+                           remove_container,
+                           queryObj);
       }
   }
 
@@ -238,7 +312,9 @@ public class PSP_GenericReaderWriter extends PSP_BaseAdapter implements PlanServ
       PlanServiceContext psc,
       PlanServiceUtilities psu,
       GLDictionary my_gl_dict,
-      Collection container,
+      Collection add_container,
+      Collection change_container,
+      Collection remove_container,
       GenericQuery queryObj
       ) throws Exception
   {
@@ -260,18 +336,7 @@ public class PSP_GenericReaderWriter extends PSP_BaseAdapter implements PlanServ
            out.println("</BODY></HTML>");
            return;
       }
-      /**
-      v = query_parameters.getParameterTokens("XSL_ALIAS", '=');
-      String myXSL_Alias = null;
-      if( v != null ){
-           myXSL_Alias=(String)v.get(0);
-           System.out.println("XSL_ALIAS=" + myXSL_Alias);
-      }
-      **/
 
-      //GenericQuery queryObj =
-      //          (GenericQuery)my_gl_dict.match(query_parameters,
-      //                                              my_gl_dict.MATCH_MODE_QUERY);
 
       if( queryObj != null )
       {
@@ -283,13 +348,24 @@ public class PSP_GenericReaderWriter extends PSP_BaseAdapter implements PlanServ
           }
           else printOut = out;
 
-          System.out.println("[PSP_GenericReaderWriter] using GenericQuery instance=" + queryObj);
+          System.out.println("[PSP_GenericReaderWriter] using GenericQuery instance="
+                             + queryObj
+                             + " add_container.size=" + add_container.size()
+                             + " change_container.size=" + change_container.size()
+                             + " remove_container.size=" + remove_container.size()
+                             );
 
           //Subscription subscription = psc.getServerPluginSupport().subscribe(this, queryObj.getPredicate());
           //Collection container = ((CollectionSubscription)subscription).getCollection();
 
-          queryObj.execute(container, queryObj.collectionType_ADD);
-          queryObj.returnVal(printOut ); // my_gl_dict.getXSL(myXSL_Alias));
+          queryObj.execute(add_container, GenericLogic.collectionType_ADD);
+          queryObj.returnVal(printOut );
+
+          queryObj.execute(change_container, GenericLogic.collectionType_CHANGE);
+          queryObj.returnVal(printOut );
+
+          queryObj.execute(remove_container, GenericLogic.collectionType_REMOVE);
+          queryObj.returnVal(printOut );
 
           if(useHTML )
           {
@@ -332,9 +408,31 @@ public class PSP_GenericReaderWriter extends PSP_BaseAdapter implements PlanServ
   }
 
 
-  public void subscriptionChanged(Subscription subscription) {
-  }
+  /**
+   *
+   * @param subscription Subscription
+   */
+  //public void subscriptionChanged(Subscription subscription ){
+  //}
 
+  public void grabSubscriptionDeltas(Subscription subscription,
+                             List add_container, List change_container, List remove_container) {
+      Enumeration e = ((IncrementalSubscription)subscription).getAddedList();
+      while (e.hasMoreElements()) {
+         Object obj = e.nextElement();
+         add_container.add(obj);
+      }
+      e = ((IncrementalSubscription)subscription).getChangedList();
+      while (e.hasMoreElements()) {
+         Object obj = e.nextElement();
+         change_container.add(obj);
+      }
+      e = ((IncrementalSubscription)subscription).getRemovedList();
+      while (e.hasMoreElements()) {
+         Object obj = e.nextElement();
+         remove_container.add(obj);
+      }
+  }
 
   /**
 	public  void applyXSL(String xml, String xsl)
@@ -393,25 +491,34 @@ public class PSP_GenericReaderWriter extends PSP_BaseAdapter implements PlanServ
 
   //##########################################################################
 
-  private HashMap myQuerySessions = new HashMap();
 
-  // @return List of updates from Query Session.
+  public boolean existsMyQuerySession(String query_session_id) {
+       return myQuerySessions.get(query_session_id) != null;
+  }
+
+  // @return Add List of updates from Query Session.
   //    Updates with respect to last time checked (via this method)
   //    If returns null then QuerySession is not defined.
   //
-  public List  getQuerySessionUpdates(String query_session_id) {
+  public List  getQuerySessionUpdates(String query_session_id, int mode, List updates) {
        synchronized(myQuerySessions){
             QuerySessionUISubscriber subscriber = (QuerySessionUISubscriber)myQuerySessions.get(query_session_id);
             if( subscriber != null ){
                  synchronized( subscriber )
                  {
-                    List updates = subscriber.grabUpdates();
+                    if( mode == QUERY_SESSION_ADD_UPDATES )
+                         subscriber.grabAddUpdates(updates);
+                    else if( mode == QUERY_SESSION_CHANGE_UPDATES )
+                         subscriber.grabChangeUpdates(updates);
+                    else if( mode == QUERY_SESSION_REMOVE_UPDATES )
+                         subscriber.grabRemoveUpdates(updates);
                     return updates;
                  }
             }
        }
        return null;
   }
+
   public QuerySessionUISubscriber instantiateQuerySession( String query_session_id)
   {
       QuerySessionUISubscriber qsession = null;
