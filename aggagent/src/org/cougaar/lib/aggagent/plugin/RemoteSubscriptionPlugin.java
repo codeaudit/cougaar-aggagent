@@ -167,7 +167,7 @@ public class RemoteSubscriptionPlugin extends ComponentPlugin
   private void createPushSession (Element root, AggRelay relay)
     throws Exception {
     String queryId = root.getAttribute("query_id");
-    String requester = root.getAttribute("requester");
+//    String requester = root.getAttribute("requester");
 
     UnaryPredicate seeker = ScriptSpec.makeUnaryPredicate(
       XmlUtils.getChildElement(root, "unary_predicate"));
@@ -346,7 +346,7 @@ public class RemoteSubscriptionPlugin extends ComponentPlugin
   private void createPullSession (Element root, AggRelay relay)
     throws Exception {
     String queryId = root.getAttribute("query_id");
-    String requester = root.getAttribute("requester");
+//    String requester = root.getAttribute("requester");
 
     UnaryPredicate seeker = ScriptSpec.makeUnaryPredicate(
       XmlUtils.getChildElement(root, "unary_predicate"));

@@ -109,11 +109,11 @@ public class CycleSizeAlert extends Alert {
 
   // look for alerts on the logplan with this UnaryPredicate class.
   private static class ActiveAlertSeeker implements UnaryPredicate {
-    public boolean execute (Object o) {
+    public boolean execute(Object o) {
       if (o instanceof Alert) {
-        Alert a = (Alert) o;
+//        Alert a = (Alert) o;
+//        return a.isAlerted();
         return true;
-        // return a.isAlerted();
       }
       return false;
     }

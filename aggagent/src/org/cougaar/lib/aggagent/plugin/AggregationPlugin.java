@@ -297,7 +297,7 @@ public class AggregationPlugin extends ComponentPlugin
       if (log != null && log.isDebugEnabled()) log.debug("AggPlugin:("+me+"):receiveMessage");
       XMLMessage xmsg = (XMLMessage)relay.getResponse();
       Element root = XmlUtils.parse(xmsg.getText());
-      String requestName = root.getNodeName();
+//      String requestName = root.getNodeName();
 
       //
       // Handle a response to one of my previous queries

@@ -149,7 +149,7 @@ public class EffortWaster extends ComponentPlugin {
   private void wakeAfter(long pauseInterval) {
     long now = System.currentTimeMillis();
     long wakeAt = now + pauseInterval;
-    Alarm alarm = new PluginAlarm(now + pauseInterval);
+    Alarm alarm = new PluginAlarm(wakeAt);
     getAlarmService().addRealTimeAlarm(alarm);
   }
 
