@@ -4,11 +4,16 @@ import org.w3c.dom.*;
 
 import java.util.*;
 
+import org.cougaar.lib.aggagent.session.XmlTransferable;
+import org.cougaar.lib.aggagent.util.XmlUtils;
+
 /**
  *  This adapter contains a query and links to some associated structures.
  */
-public class QueryResultAdapter
-{
+public class QueryResultAdapter implements XmlTransferable {
+    public static String QUERY_RESULT_TAG = "query_result_adapter";
+    public static String ID_ATT = "id";
+
     private static int uniqueIdCounter = 0;
     private String id = null;
     private AggregationQuery aQuery = null;
@@ -74,12 +79,17 @@ public class QueryResultAdapter
       }
     }
 
+    public void updateResults (UpdateDelta delta) {
+      rawResultSet.incrementalUpdate(delta);
+      aggregate();
+    }
+
     /**
      *  Use the local Aggregator (if there is one) to derive an aggregated
      *  result set from the raw data supplied by the query.  If no Aggregator
      *  is present, then the call is ignored.
      */
-    public void aggregate () {
+    private void aggregate () {
       if (agg != null) {
         List atoms = new LinkedList();
         try {
@@ -177,18 +187,30 @@ public class QueryResultAdapter
       return getQuery().getName() + " (" + getID() + ")";
     }
 
-    public String toXML()
-    {
-      StringBuffer s = new StringBuffer("<query_result_adapter");
-      s.append(" id=\"" + id + "\">\n");
+    /**
+     *  Convert this QueryResultAdapter to an XML format.  For most purposes,
+     *  this means giving a summary of the resident result set.  For a complete
+     *  document describing the query, result set, alerts, etc., use method
+     *  toWholeXml().
+     */
+    public String toXml () {
+      return getResultSet().toXml();
+    }
+
+    public String toWholeXml () {
+      StringBuffer s = new StringBuffer("<");
+      s.append(QUERY_RESULT_TAG);
+      XmlUtils.appendAttribute(ID_ATT, id, s);
+      s.append(">\n");
       s.append(aQuery.toXML());
-      s.append(getResultSet().toXML());
+      s.append(getResultSet().toXml());
       for (Iterator i = alerts.iterator(); i.hasNext(); )
       {
         AlertDescriptor ad = new AlertDescriptor((Alert)i.next());
-        s.append(ad.toXML());
+        s.append(ad.toXml());
       }
-      s.append("</query_result_adapter>");
+      XmlUtils.appendCloseTag(QUERY_RESULT_TAG, s);
+
       System.out.println(s);
 
       return s.toString();
