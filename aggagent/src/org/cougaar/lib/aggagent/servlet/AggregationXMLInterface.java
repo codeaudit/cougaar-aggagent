@@ -48,6 +48,7 @@ import org.cougaar.lib.aggagent.session.XMLEncoder;
 import org.cougaar.lib.aggagent.session.XmlIncrement;
 import org.cougaar.lib.aggagent.util.Enum.*;
 import org.cougaar.lib.aggagent.util.XmlUtils;
+import org.cougaar.core.service.UIDService;
 
 public class AggregationXMLInterface extends AggregationServletInterface
 {
@@ -59,8 +60,8 @@ public class AggregationXMLInterface extends AggregationServletInterface
                                   SubscriptionMonitorSupport sms,
                                   String agentId,
                                   WhitePagesService wps,
-                                  SessionManager man) {
-    super(bs, sms);
+                                  SessionManager man, UIDService uidService) {
+    super(bs, sms, uidService);
     this.agentId = agentId;
     this.wps = wps;
     this.man = man;
@@ -132,7 +133,7 @@ public class AggregationXMLInterface extends AggregationServletInterface
   }
 
   /**
-   * return all clusters on society (except for this one)
+   * return all agents and node agents on society (except for this one)
    */
   private void getClusters(PrintWriter out)
   {
@@ -142,7 +143,8 @@ public class AggregationXMLInterface extends AggregationServletInterface
     for (Iterator i = clusterIds.iterator(); i.hasNext();)
     {
       Object clusterId = i.next();
-      if (!clusterId.equals(agentId))
+      // filter out this agent and any communities
+      if (!clusterId.equals(agentId) && !clusterId.toString().endsWith(".comm"))
       {
         out.println("<cluster_id>");
         out.println(clusterId);
@@ -172,7 +174,7 @@ public class AggregationXMLInterface extends AggregationServletInterface
     try {
       Element root = XmlUtils.parse(request.getInputStream());
       AggregationQuery aq = new AggregationQuery(root);
-      QueryResultAdapter qra = new QueryResultAdapter(aq);
+      QueryResultAdapter qra = new QueryResultAdapter(aq, getUIDService().nextUID());
       publishAdd(qra);
 
       if (aq.getType() == QueryType.PERSISTENT)

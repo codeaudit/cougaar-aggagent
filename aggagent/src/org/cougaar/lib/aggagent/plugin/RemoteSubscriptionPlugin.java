@@ -57,6 +57,13 @@ public class RemoteSubscriptionPlugin extends ComponentPlugin
   {
     me = getAgentIdentifier();
     messageSub = subscribeIncr(new MessageSeeker(false));
+    
+    // Get the list of queries that already exist.  We need to rehandle these
+    Collection currARs = getBlackboardService().query(new MessageSeeker(false));
+    if (!currARs.isEmpty())  {
+      AggRelay relay = (AggRelay) currARs.iterator().next();
+      receiveMessage(relay);
+    }
   }
 
 
@@ -180,7 +187,7 @@ public class RemoteSubscriptionPlugin extends ComponentPlugin
 
   private int idCounter = 0;
   private HashMap queryMap = new HashMap();
-
+  
   // "BB" stands for "Blackboard".  This is the abstract base class for the
   // RemoteSession implementations used by this Plugin.  It adds the ability
   // to cancel, to respond to subscription events from the host agent, and send
@@ -387,5 +394,5 @@ public class RemoteSubscriptionPlugin extends ComponentPlugin
   protected IncrementalSubscription subscribeIncr (UnaryPredicate p) {
     return (IncrementalSubscription) getBlackboardService().subscribe(p);
   }
-  
+
 }

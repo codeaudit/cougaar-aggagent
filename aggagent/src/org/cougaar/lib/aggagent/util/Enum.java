@@ -22,13 +22,14 @@
 package org.cougaar.lib.aggagent.util;
 
 import java.io.Serializable;
+import java.io.ObjectInputStream;
 import java.util.*;
 
 /**
  *  Typesafe enumerated types used by AggregationQuery
  */
-public class Enum implements Serializable {
-  private final String enumName;
+public abstract class Enum implements Serializable {
+  private String enumName;
 
   protected Enum (String name) {
     enumName = name;
@@ -38,8 +39,22 @@ public class Enum implements Serializable {
     return enumName;
   }
 
+  protected abstract String getStringObject(String name);
+  
   public boolean equals (Object obj) {
-    return (obj == this);
+    if (obj == this)
+      return true;
+
+    // Can't just return true if objects are == because one may have been serialized.
+    if (!(obj instanceof Enum))
+      return false;
+
+    return (((Enum)obj).enumName == enumName);
+  }
+
+  private void readObject (ObjectInputStream ois) throws java.io.IOException, ClassNotFoundException { 
+    enumName = (String) ois.readObject();
+    enumName = getStringObject(enumName);
   }
 
   protected static Object findEnum (Collection col, String name) {
@@ -61,6 +76,12 @@ public class Enum implements Serializable {
 
     public static Collection getValidValues () {
       return new LinkedList(validValues);
+    }
+
+    protected String getStringObject(String enumName)
+    {
+      Enum enum = (Enum) findEnum(validValues, enumName);
+      return enum == null ? null : enum.toString();
     }
 
     public static ScriptType fromString (String enumName) {
@@ -85,6 +106,12 @@ public class Enum implements Serializable {
       validValues.add(this);
     }
 
+    protected String getStringObject(String enumName)
+    {
+      Enum enum = (Enum) findEnum(validValues, enumName);
+      return enum == null ? null : enum.toString();
+    }
+    
     public static QueryType fromString(String enumName)
     {
       return (QueryType)findEnum(validValues, enumName);
@@ -106,6 +133,12 @@ public class Enum implements Serializable {
     {
       super(name);
       validValues.add(this);
+    }
+
+    protected String getStringObject(String enumName)
+    {
+      Enum enum = (Enum) findEnum(validValues, enumName);
+      return enum == null ? null : enum.toString();
     }
 
     public static UpdateMethod fromString(String enumName)
@@ -132,6 +165,12 @@ public class Enum implements Serializable {
       validValues.add(this);
     }
 
+    protected String getStringObject(String enumName)
+    {
+      Enum enum = (Enum) findEnum(validValues, enumName);
+      return enum == null ? null : enum.toString();
+    }
+
     public static Language fromString(String enumName)
     {
       return (Language)findEnum(validValues, enumName);
@@ -155,6 +194,12 @@ public class Enum implements Serializable {
       validValues.add(this);
     }
 
+    protected String getStringObject(String enumName)
+    {
+      Enum enum = (Enum) findEnum(validValues, enumName);
+      return enum == null ? null : enum.toString();
+    }
+
     public static XmlFormat fromString(String enumName)
     {
       return (XmlFormat)findEnum(validValues, enumName);
@@ -174,6 +219,12 @@ public class Enum implements Serializable {
     private AggType (String name) {
       super(name);
       validValues.add(this);
+    }
+
+    protected String getStringObject(String enumName)
+    {
+      Enum enum = (Enum) findEnum(validValues, enumName);
+      return enum == null ? null : enum.toString();
     }
 
     public static AggType fromString (String enumName) {

@@ -45,7 +45,7 @@ implements Relay.Source, Relay.Target
   private transient Set _targets;
 
   /** Holds value of property local. */
-  private transient boolean local = false;
+  private boolean local = false;
   
   /**
    * @param content initial content
@@ -105,8 +105,10 @@ implements Relay.Source, Relay.Target
         MessageAddress source, 
         Object content,
         Token token) {
-      return new AggRelay(
+      AggRelay ar =  new AggRelay(
           uid, source, null, (XMLMessage)content, null);
+      ar.setLocal(false);
+      return ar;
     }
 
     private Object readResolve() {

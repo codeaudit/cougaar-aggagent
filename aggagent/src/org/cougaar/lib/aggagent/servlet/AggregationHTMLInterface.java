@@ -40,6 +40,7 @@ import org.cougaar.lib.aggagent.query.AggregationQuery;
 import org.cougaar.lib.aggagent.query.QueryResultAdapter;
 import org.cougaar.lib.aggagent.session.SessionManager;
 import org.cougaar.lib.aggagent.util.Enum.*;
+import org.cougaar.core.service.UIDService;
 
 import org.cougaar.lib.aggagent.test.CycleSizeAlert;
 
@@ -49,8 +50,8 @@ public class AggregationHTMLInterface extends AggregationServletInterface
 
   public AggregationHTMLInterface (BlackboardService bs,
                                    SubscriptionMonitorSupport sms,
-                                   String servletName) {
-    super(bs, sms);
+                                   String servletName, UIDService uidService) {
+    super(bs, sms, uidService);
 
     // remove first forward slash
     this.servletName = servletName.trim().substring(1);
@@ -173,7 +174,7 @@ public class AggregationHTMLInterface extends AggregationServletInterface
   //
   private void addDefaultAlert (PrintWriter out) {
     QueryResultAdapter qra =
-      new QueryResultAdapter(CycleSizeAlert.createDefaultQuery());
+      new QueryResultAdapter(CycleSizeAlert.createDefaultQuery(), getUIDService().nextUID());
     Alert ale = CycleSizeAlert.getDefaultAlert();
     qra.addAlert(ale);
     publishAdd(qra);
@@ -185,7 +186,7 @@ public class AggregationHTMLInterface extends AggregationServletInterface
                                  PrintWriter out) {
     // parse form post request
     AggregationQuery aq = HTMLPresenter.processQueryForm(request);
-    QueryResultAdapter qra = new QueryResultAdapter(aq);
+    QueryResultAdapter qra = new QueryResultAdapter(aq, getUIDService().nextUID());
     publishAdd(qra);
 
     if (aq.getType() == QueryType.PERSISTENT)

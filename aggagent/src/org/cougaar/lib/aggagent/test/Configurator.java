@@ -133,7 +133,6 @@ public class Configurator {
   {
     PrintStream out = new PrintStream(new FileOutputStream(f));
     out.println("[ Cluster ]");
-    out.println("class = org.cougaar.core.agent.ClusterImpl");
     out.println("uic = UIC/" + name);
     out.println();
     out.println("[ Plugins ]");

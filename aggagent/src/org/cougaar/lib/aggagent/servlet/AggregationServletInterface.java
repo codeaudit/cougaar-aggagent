@@ -36,19 +36,23 @@ import org.cougaar.lib.aggagent.session.RemoteBlackboardSubscription;
 import org.cougaar.lib.aggagent.session.SessionManager;
 import org.cougaar.lib.aggagent.query.AggregationResultSet;
 import org.cougaar.lib.aggagent.query.AggregationQuery;
+import org.cougaar.core.service.UIDService;
 
 public abstract class AggregationServletInterface
 {
   private BlackboardService blackboard;
   private SubscriptionMonitorSupport subscriptionMonitorSupport;
   private long timeoutDefault = 0;  // this can be overridden by argument to waitForAndReturnResults
+  private UIDService uidService = null;
   
   public AggregationServletInterface (
                         BlackboardService blackboard,
-                        SubscriptionMonitorSupport subscriptionMonitorSupport)
+                        SubscriptionMonitorSupport subscriptionMonitorSupport,
+                        UIDService uidService)
   {
     this.blackboard = blackboard;
     this.subscriptionMonitorSupport = subscriptionMonitorSupport;
+    this.uidService = uidService;
     String timeoutStr = System.getProperty("org.cougaar.lib.aggagent.timeout");
     if (timeoutStr != null) {
       try {
@@ -60,6 +64,10 @@ public abstract class AggregationServletInterface
     }
   }
 
+  protected UIDService getUIDService() {
+    return uidService;
+  }
+  
   public abstract void handleRequest(PrintWriter out,
                                      HttpServletRequest request);
 

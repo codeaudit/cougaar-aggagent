@@ -20,7 +20,9 @@
  */
 package org.cougaar.lib.aggagent.test;
 
-public class NumberCycle {
+import java.io.Serializable;
+
+public class NumberCycle implements Serializable {
   private int length = 0;
   private int value = 0;
 

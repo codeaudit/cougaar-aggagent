@@ -35,10 +35,9 @@ import org.cougaar.core.util.UniqueObject;
 /**
  *  This adapter contains a query and links to some associated structures.
  */
-public class QueryResultAdapter implements XmlTransferable, Serializable {
+public class QueryResultAdapter implements XmlTransferable, Serializable, UniqueObject {
     public static String QUERY_RESULT_TAG = "query_result_adapter";
     public static String ID_ATT = "id";
-    UID uid;
 
     private static int uniqueIdCounter = 0;
     private String id = null;
@@ -47,6 +46,7 @@ public class QueryResultAdapter implements XmlTransferable, Serializable {
     private List alerts = new LinkedList();
     private Vector addedClusters = new Vector();
     private Vector removedClusters = new Vector();
+    private UID uid;
 
     private Aggregator agg;
     private AggregationResultSet aggResultSet;
@@ -58,9 +58,15 @@ public class QueryResultAdapter implements XmlTransferable, Serializable {
      */
     public QueryResultAdapter(AggregationQuery q)
     {
+      this(q, (UID) null);
+    }
+    
+    public QueryResultAdapter(AggregationQuery q, UID uid)
+    {
       id = String.valueOf(uniqueIdCounter++);
       setQuery(q);
       setResultSet(new AggregationResultSet());
+      this.uid = uid;
     }
 
     /**
@@ -86,7 +92,13 @@ public class QueryResultAdapter implements XmlTransferable, Serializable {
      */
     public QueryResultAdapter(AggregationQuery q, String id)
     {
+      this(q, id, null);
+    }
+    
+    public QueryResultAdapter(AggregationQuery q, String id, UID uid)
+    {
       this.id = id;
+      this.uid = uid;
       setQuery(q);
       setResultSet(new AggregationResultSet());
     }

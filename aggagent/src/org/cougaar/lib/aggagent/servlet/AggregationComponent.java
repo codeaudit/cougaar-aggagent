@@ -29,6 +29,8 @@ import javax.servlet.http.*;
 import org.cougaar.core.servlet.*;
 import org.cougaar.core.service.wp.WhitePagesService;
 import org.cougaar.lib.aggagent.session.SessionManager;
+import org.cougaar.core.service.UIDService;
+
 
 /**
  *  The AggregationComponent provides external access (via HTTP) to the
@@ -41,6 +43,8 @@ public class AggregationComponent extends BlackboardServletComponent
   private WhitePagesService wps = null;
   private AggregationServletInterface htmlInterface = null;
   private AggregationServletInterface xmlInterface = null;
+
+  private UIDService UIDService;
 
   /**
    * Constructor.
@@ -55,6 +59,20 @@ public class AggregationComponent extends BlackboardServletComponent
     this.wps = wps;
   }
 
+  /** Getter for property UIDService.
+   * @return Value of property UIDService.
+   */
+  public UIDService getUIDService() {
+      return this.UIDService;
+  }
+  
+  /** Setter for property UIDService.
+   * @param UIDService New value of property UIDService.
+   */
+  public void setUIDService(UIDService UIDService) {
+      this.UIDService = UIDService;
+  }
+
   /**
    * When this class is created the "load()" method will
    * be called, at which time we'll register our Servlet.
@@ -67,10 +85,10 @@ public class AggregationComponent extends BlackboardServletComponent
                                             createSubscriptionSupport());
     htmlInterface =
         new AggregationHTMLInterface(blackboard, createSubscriptionSupport(),
-                                     myPath);
+                                     myPath, getUIDService());
     xmlInterface =
       new AggregationXMLInterface(blackboard, createSubscriptionSupport(),
-                                  agentId.toString(), wps, man);
+                                  agentId.toString(), wps, man, getUIDService());
   }
 
   /**
