@@ -45,7 +45,7 @@ public class PushSession extends Session {
    *  information is available.  This class reports immediately if the timing
    *  model deems it ready.  Otherwise, it waits for another event.
    */
-  public void subscriptionChanged () {
+  public void subscriptionChanged (Subscription sub) {
     if (timer == null)
       pushUpdate();
     else

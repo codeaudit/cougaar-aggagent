@@ -253,7 +253,7 @@ System.out.println("RBS: close");
    *  If this method should happen to be called after shutDown, it is ignored.
    *  </p>
    */
-  public void subscriptionChanged (Subscription ignored) {
+  public void subscriptionChanged () {
 System.out.println("RBS: Subscription changed "+
 subs.getAddedCollection().size()+":"+
 subs.getChangedCollection().size()+":"+
