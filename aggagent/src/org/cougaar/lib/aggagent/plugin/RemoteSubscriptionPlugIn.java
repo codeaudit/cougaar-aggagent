@@ -208,7 +208,9 @@ System.out.println("RemotePlugin: Got message: "+requestName+":"+root.toString()
   private class RemotePullSession extends RemotePushSession {
     private RemoteBlackboardSubscription rbs;
 
-    public RemotePullSession (String k, String queryId, IncrementFormat f, String requester, RemoteBlackboardSubscription sub) {
+    public RemotePullSession (String k, String queryId, IncrementFormat f,
+        String requester, RemoteBlackboardSubscription sub)
+    {
       super(k, queryId, f, requester, sub.getSubscription());
       this.rbs = sub;
     }
@@ -269,8 +271,10 @@ System.out.println("RemotePlugin: Got message: "+requestName+":"+root.toString()
     if (formatter == null)
       throw new Exception("Could not create formatter");
 
-    RemoteBlackboardSubscription rbs = new RemoteBlackboardSubscription(getBlackboardService(), objectSeeker);
-    RemotePullSession ps = new RemotePullSession(String.valueOf(idCounter++),queryId, formatter, requester, rbs);
+    RemoteBlackboardSubscription rbs = new RemoteBlackboardSubscription(
+      getBlackboardService(), objectSeeker);
+    RemotePullSession ps = new RemotePullSession(String.valueOf(idCounter++),
+      queryId, formatter, requester, rbs);
 
     System.out.println("Pull session created");
     queryMap.put(rbs.getSubscription(), ps);
