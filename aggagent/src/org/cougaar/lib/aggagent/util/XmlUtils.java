@@ -172,8 +172,18 @@ public class XmlUtils {
     String response = null;
 
     try {
+      if (debug)
+      {
+        System.out.println("requestString:");
+        System.out.println("     url: " + urlString);
+        System.out.println("     request: " + request);
+      }
       InputStream is = sendRequest(urlString, request);
       response = readToString(is);
+      if (debug)
+      {
+        System.out.println("     response: " + response);
+      }
     }
     catch (MalformedURLException mfe) {
       System.out.println("Failed to send request:  bad URL<br>");
@@ -203,7 +213,8 @@ public class XmlUtils {
     PrintStream servicePrint = new PrintStream(os);
 
     // send request
-    servicePrint.println(request);
+    if (request != null)
+      servicePrint.println(request);
 
     return uc.getInputStream();
   }
