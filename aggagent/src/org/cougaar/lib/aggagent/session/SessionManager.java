@@ -37,7 +37,7 @@ public class SessionManager {
       UnaryPredicate p, IncrementFormat f, String queryId)
   {
     String k = String.valueOf(id_counter++);
-    Session s = new Session(k, queryId, f);
+    PSPSession s = new PSPSession(k, queryId, f);
     s.start(spis, p);
 
     sessions.put(k, s);
@@ -51,17 +51,17 @@ public class SessionManager {
       System.out.println(
         "SessionManager::cancelSession:  called on \"" + k + "\"");
     }
-    Session sess = (Session) sessions.remove(k);
+    PSPSession sess = (PSPSession) sessions.remove(k);
     sess.endSession();
   }
 
 
-  private Session getSession (String k) {
-    return (Session) sessions.get(k);
+  private PSPSession getSession (String k) {
+    return (PSPSession) sessions.get(k);
   }
 
   public void sendUpdate(String k, OutputStream out) {
-    Session s = getSession(k);
+    PSPSession s = getSession(k);
     if (s != null)
       s.sendUpdate(out);
   }

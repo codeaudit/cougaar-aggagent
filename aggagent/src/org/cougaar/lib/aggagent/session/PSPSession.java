@@ -1,3 +1,4 @@
+
 package org.cougaar.lib.aggagent.session;
 
 import java.io.*;
@@ -15,25 +16,9 @@ import org.cougaar.lib.aggagent.util.XmlUtils;
  *  In the context of a PSP, this class can be used to manage remote access to
  *  the local Blackboard through the RemotePSPSubscription API.
  */
-public class Session implements UISubscriber {
+public class PSPSession extends RemoteSession implements UISubscriber {
   protected Object lock = new Object();
-
-  private String key = null;
-  private String queryId = null;
-  protected String clusterId = null;
-  private IncrementFormat sender = null;
-
   protected RemotePSPSubscription data = null;
-
-  /**
-   *  Create a new Session with the specified session ID.  This constructor
-   *  should only be called by subclasses, where other required initializations
-   *  will be implemented.
-   */
-  protected Session (String k, String queryId) {
-    key = k;
-    this.queryId = queryId;
-  }
 
   /**
    *  Create a new Session with the specified session ID to search the
@@ -41,9 +26,8 @@ public class Session implements UISubscriber {
    *  ServerPlugInSupport argument is included so that the RemoteSubscription
    *  may be created.
    */
-  public Session (String k, String queryId, IncrementFormat f) {
-    this(k, queryId);
-    sender = f;
+  public PSPSession (String k, String queryId, IncrementFormat f) {
+    super(k, queryId, f);
   }
 
   /**
@@ -53,9 +37,18 @@ public class Session implements UISubscriber {
    */
   public void start (ServerPlugInSupport s, UnaryPredicate p) {
     synchronized (lock) {
-      clusterId = s.getClusterIDAsString();
+      agentId = s.getClusterIDAsString();
       data = new RemotePSPSubscription(s, p, this);
     }
+  }
+
+  /**
+   *  Get the SubscriptionAccess implementation containing the data to be
+   *  encoded and sent to a client.  In the case of a PSPSession, we have a
+   *  RemotePSPSubscription.
+   */
+  protected SubscriptionAccess getData () {
+    return data;
   }
 
   /**
@@ -84,27 +77,15 @@ public class Session implements UISubscriber {
   }
 
   /**
-   *  Specify the IncrementFormat (q.v.) used to transmit data gathered by the
-   *  RemoteSubscription for this Session.
-   */
-  public void setIncrementFormat (IncrementFormat f) {
-    sender = f;
-  }
-
-  /**
    *  Send an update of recent changes to the resident RemoteSubscription
    *  through the provided OutputStream.  An IncrementFormat instance is used
    *  to encode the data being sent.
    */
   public void sendUpdate (OutputStream out) {
-    UpdateDelta del = new UpdateDelta(clusterId, queryId, key);
+    UpdateDelta del = null;
     synchronized (lock) {
       data.open();
-      try {
-        sender.encode(del, data);
-      } catch (Exception e) {
-        XmlUtils.sendException(queryId, clusterId, e, new PrintStream(out));
-      }
+      del = createUpdateDelta();
       data.close();
     }
     PrintStream ps = new PrintStream(out);

@@ -15,14 +15,20 @@ import org.cougaar.util.UnaryPredicate;
  *  scripts.
  */
 public abstract class RemoteSession {
-  private Object lock = new Object();
-
+  // collecting error reports
   private Collection newErrors = new LinkedList();
 
-  private String key = null;
-  private String queryId = null;
-  private IncrementFormat formatter = null;
-  private String agentId = null;
+  // identify this session
+  protected String key = null;
+
+  // identify the query that spawned this session
+  protected String queryId = null;
+
+  // format the output for transmission
+  protected IncrementFormat formatter = null;
+
+  // ID of the local COUGAAR agent
+  protected String agentId = null;
 
   /**
    *  Create a new RemoteSession instance.  It carries an ID for itself and
@@ -37,6 +43,9 @@ public abstract class RemoteSession {
     formatter = f;
   }
 
+  /**
+   *  Specify the name of the local COUGAAR agent.
+   */
   protected void setAgentId (String a) {
     agentId = a;
   }
@@ -84,18 +93,14 @@ public abstract class RemoteSession {
 
   // called during update processing--return errors and clear them out
   private Collection getErrorCollection () {
-    synchronized (lock) {
-      Collection errors = newErrors;
-      newErrors = new LinkedList();
-      return errors;
-    }
+    Collection errors = newErrors;
+    newErrors = new LinkedList();
+    return errors;
   }
 
   // called by the ErrorTrapPredicate to record errors
   private void error (Throwable err) {
-    synchronized (lock) {
-      newErrors.add(err);
-    }
+    newErrors.add(err);
   }
 
   /**
