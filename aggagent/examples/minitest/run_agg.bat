@@ -20,6 +20,22 @@ set LIBPATHS=%LIBPATHS%;%COUGAAR_INSTALL_PATH%\lib\xml4j_2_0_11.jar
 
 
 set MYPROPERTIES=  -Dalp.domain.AGG=alp.ui.aggserver.ldm.Domain
+
+
+REM
+REM Appending Properties list...
+@echo ON
+@ECHO ################################################################
+@ECHO Resetting ConfigFile reader property == to look in ./scripts
+@ECHO then glm/configs/minitestconfig THEN glm/configs/common for 
+@ECHO config files not found here.
+@ECHO Only config files which have been altered are replicated here.
+@ECHO ################################################################
+@echo OFF
+
+set MYPROPERTIES=%MYPROPERTIES% -Dorg.cougaar.config.path=.;.\scripts;%COUGAAR_INSTALL_PATH%\glm\configs\minitestconfig;%COUGAAR_INSTALL_PATH%\glm\configs\common
+
+
 set MYMEMORY=
 set MYCLASSES=org.cougaar.core.society.Node
 set MYARGUMENTS= -c -n %NODE%
