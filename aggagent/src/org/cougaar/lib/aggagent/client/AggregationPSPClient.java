@@ -77,7 +77,8 @@ public class AggregationPSPClient
     Element root =
       XmlUtils.requestXML(aggregationPSPURL + "?GET_QUERIES", null);
 
-    NodeList queryNodes = root.getElementsByTagName("query_result_adapter");
+    NodeList queryNodes =
+      root.getElementsByTagName(QueryResultAdapter.QUERY_RESULT_TAG);
 
     LinkedList queries = new LinkedList();
     for (int i = 0; i < queryNodes.getLength(); i++)
@@ -104,7 +105,7 @@ public class AggregationPSPClient
     Element root =
       XmlUtils.requestXML(aggregationPSPURL + "?GET_ALERTS", null);
 
-    NodeList alertNodes = root.getElementsByTagName("alert");
+    NodeList alertNodes = root.getElementsByTagName(Alert.ALERT_TAG);
 
     LinkedList alerts = new LinkedList();
     for (int i = 0; i < alertNodes.getLength(); i++)
@@ -196,7 +197,7 @@ public class AggregationPSPClient
   {
     String loadedURL = aggregationPSPURL + "?GET_RESULT_SET?QUERY_ID=" +queryId;
     Element root = XmlUtils.requestXML(loadedURL, null);
-    if (root.getNodeName().equals("result_set"))
+    if (root.getNodeName().equals(AggregationResultSet.RESULT_SET_TAG))
       return new AggregationResultSet(root);
 
     // result set not found
