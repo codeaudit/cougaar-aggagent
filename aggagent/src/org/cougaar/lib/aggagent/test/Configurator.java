@@ -6,6 +6,10 @@ import java.util.*;
 
 /**
  *  <p>
+ *  Note:  this class is broken; it needs to be updated to accomodate the new
+ *  AggAgent methodology.
+ *  </p>
+ *  <p>
  *  The Configurator is a utility for producing test configurations of
  *  arbitrary size.  When run as a standalone application (which is the most
  *  likely scenario), this class requires an initialization file, which may be
@@ -13,7 +17,7 @@ import java.util.*;
  *  output, which is placed in the specified destination directory (see below),
  *  consists of directories named cfgAssess and cfgNode<it>n</it>, where
  *  <it>n</it> ranges from 0 to one less than the number of specified source
- *  Nodes.  The former contains the AssessmentAgent Node config., and each of
+ *  Nodes.  The former contains the AggregationAgent Node config., and each of
  *  the latter is a source Node configuration.  All of these nodes should be
  *  executed as part of a single society for purposes of testing.
  *  </p><p>
@@ -92,19 +96,19 @@ public class Configurator {
     sinkPlugIns.add(
       "org.cougaar.lib.planserver.PlanServerPlugIn(file=sink.psps.xml)");
     sinkPlugIns.add(
-      "org.cougaar.lib.aggagent.plugin.AssessmentPlugIn");
+      "org.cougaar.lib.aggagent.plugin.AggregationPlugIn");
     sinkPlugIns.add(
       "org.cougaar.lib.aggagent.plugin.AlertPlugIn");
 
 
     sinkPsps.add(new Psp(
-      "org.cougaar.lib.aggagent.plugin.AssessmentPSP",
+      "org.cougaar.lib.aggagent.psp.AggregationPSP",
       "assessment.psp"));
+    // sinkPsps.add(new Psp(
+    //   "org.cougaar.lib.aggagent.plugin.ResultSetPSP",
+    //   "resultset.psp"));
     sinkPsps.add(new Psp(
-      "org.cougaar.lib.aggagent.plugin.ResultSetPSP",
-      "resultset.psp"));
-    sinkPsps.add(new Psp(
-      "org.cougaar.lib.aggagent.plugin.AssessmentKeepAlivePSP",
+      "org.cougaar.lib.aggagent.psp.AggregationKeepAlivePSP",
       "assessmentkeepalive.psp"));
 
     jarFiles.add("core.jar");

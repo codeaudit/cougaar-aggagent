@@ -45,7 +45,7 @@ public class CycleSizeAlert extends Alert {
 
   /**
    *  Because I am supremely lazy, this method automatically feeds suitable
-   *  SILK scripts into an AssessmentQuery instance.
+   *  SILK scripts into an AggregationQuery instance.
    */
   public static AggregationQuery createDefaultQuery () {
     AggregationQuery q =
