@@ -185,23 +185,44 @@ public class PSP_GenericReaderWriter extends PSP_BaseAdapter implements PlanServ
      // public List  getQuerySessionUpdates(String query_session_id);
      // public boolean instantiateQuerySession(
      //                                     String query_session_id);
-     Vector v = query_parameters.getParameterTokens("QSESSION", '=');
+     Vector v = query_parameters.getParameterTokens("QUERYSESSION", '=');
      String qsession_id=null;
      if( v != null ){
            qsession_id =(String)v.get(0);
-           System.out.println("QSESSION=" + qsession_id);
+           System.out.println("QUERYSESSION=" + qsession_id);
       }
       if( qsession_id != null ){
+            //
+            // Query Session poll query -- state
+            //
             List updates = this.getQuerySessionUpdates(qsession_id);
+            Collection container = null;
             if( updates == null)
             {
                  // set it up -- we'll poll later for updates.
                   QuerySessionUISubscriber qsession_subscriber = this.instantiateQuerySession(qsession_id);
                   Subscription subscription = psc.getServerPluginSupport().subscribe(qsession_subscriber, queryObj.getPredicate());
-                  Collection container = ((CollectionSubscription)subscription).getCollection();   // Doesn't block
+                  //
+                  // don't process container directly here!  - because contents will
+                  // show up at QuerySession container -- so we get duplicate entries.
+                  // we'll be handling these objects from QuerySession instance
+                  //
+                  //container =((CollectionSubscription)subscription).getCollection();   // Doesn't block
+                  container=  this.getQuerySessionUpdates(qsession_id);
+            }
+            else {
+               container = updates;
+            }
+            if( container != null) {
+                if(container.size() > 0) {
+                     synchronizedExecute (out, query_parameters, psc, psu, my_gl_dict, container, queryObj);
+                }
             }
       }
       else {
+           //
+           // normal poll query -- no state
+           //
            Subscription subscription = psc.getServerPluginSupport().subscribe(this, queryObj.getPredicate());
            Collection container = ((CollectionSubscription)subscription).getCollection();   // Doesn't block
            synchronizedExecute (out, query_parameters, psc, psu, my_gl_dict, container, queryObj);
@@ -220,13 +241,19 @@ public class PSP_GenericReaderWriter extends PSP_BaseAdapter implements PlanServ
       GenericQuery queryObj
       ) throws Exception
   {
-      System.out.println("[PSP_GenericReaderWriter] +++> start execution @" + psc.getServerPluginSupport().getClusterIDAsString() );
-
       boolean useHTML =
          (boolean)query_parameters.existsParameter("HTML");
 
-      Vector v = query_parameters.getParameterTokens("TELLME", '=');
-      if( v != null ){
+      boolean tellME =
+         (boolean)query_parameters.existsParameter("TELLME");
+
+      System.out.println("[PSP_GenericReaderWriter] +++> start execution @"
+                         + psc.getServerPluginSupport().getClusterIDAsString()
+                         + " useHTML=" + useHTML
+                         );
+
+
+      if(tellME ){
            out.println("<HTML><BODY><H3>Generic Reader/Writer PSP TELL</H3>");
            out.println("Dictionary=" + my_gl_dict.toHTMLString());
            out.println("</BODY></HTML>");
@@ -264,18 +291,18 @@ public class PSP_GenericReaderWriter extends PSP_BaseAdapter implements PlanServ
 
           queryObj.returnVal(printOut ); // my_gl_dict.getXSL(myXSL_Alias));
 
-          if(useHTML ) {
-
-           StringBuffer sb = HTMLize.layoutXML(
+          if(useHTML )
+          {
+              StringBuffer sb = HTMLize.layoutXML(
                    new StringBuffer(new String(bufOut.toByteArray())),
                    new HashMap(),
                    true
                    );
 
-           out.print("<HTML><BODY><PRE><BLOCKQUOTE>" +
+              out.print("<HTML><BODY><PRE><BLOCKQUOTE>" +
                        sb.toString()
                        + "</BLOCKQUOTE></PRE></BODY></HTML>"
-                       );
+                   );
          }
       }
       out.flush();

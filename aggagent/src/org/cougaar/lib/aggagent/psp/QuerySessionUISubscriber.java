@@ -34,6 +34,7 @@ public class QuerySessionUISubscriber implements UISubscriber
   // updates this QuerySession
   //
   public void subscriptionChanged(Subscription subscription) {
+      System.out.println("[QuerySessionUISubscriber] query_session=" + myQuerySessionID + " {.subscriptionChanged()} called");
       Enumeration e = ((IncrementalSubscription)subscription).getAddedList();
       while (e.hasMoreElements()) {
          Object obj = e.nextElement();
@@ -55,6 +56,8 @@ public class QuerySessionUISubscriber implements UISubscriber
   //    Updates are with respect to last time this method was called.
   //
   public ArrayList grabUpdates(){
+     System.out.println("[QuerySessionUISubscriber] query_session=" + myQuerySessionID
+                        + " {.grabUpdates()} called, size=" + myIncomingItems.size());
       ArrayList old =null;
       synchronized( myIncomingItems ){
           old= myIncomingItems;

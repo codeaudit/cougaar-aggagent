@@ -172,8 +172,9 @@ public class AggregatorPlugin extends SimplifiedPlugIn
                   char[] dst = new char[dst_len];
                   data.getChars(0,dst_len,dst,0);
                   String str = new String(dst);
-                  if( str.toLowerCase().trim().startsWith("<html") == true)
+                  if( str.toLowerCase().trim().startsWith("<html") == true) {
                        return true;
+                  }
              }
         }
         return false;

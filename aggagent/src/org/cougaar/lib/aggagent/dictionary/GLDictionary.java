@@ -278,7 +278,7 @@ public class GLDictionary extends DictionaryBase
        **/
       public GenericLogic match( HttpInput urlinfo,  int mode)
       {
-           System.out.print(">>>>>>>>>>>...ENTER MATCH");
+           //System.out.print(">>>>>>>>>>>...ENTER MATCH");
            Map inputs = parseURLArgs( urlinfo );
            Object [] copy = myGenericLogicUnits.toArray();
 
@@ -291,7 +291,7 @@ public class GLDictionary extends DictionaryBase
                   while(itk.hasNext())
                   { // for each keyword
                         String k = (String)itk.next();
-                        System.out.print(">>>>>>>>>>>...test KEY: " + k);
+                        System.out.print("[GLDictionary] matched on KEY: " + k);
 
                         if( (mode==MATCH_MODE_QUERY) && k.equals(GLPrimitives.GLQ_KEY_QUERY_PLAN_WILDCARD) ) {
                             // Automatically accept this
@@ -306,7 +306,7 @@ public class GLDictionary extends DictionaryBase
                   }
                   // check if matched all keywords...
                   if( match == true) {
-                           System.out.print(">>>>>>>>>>>>>>>>>>..FOUND ENTRY!");
+                           System.out.println(">>>>FOUND ENTRY!");
                            return (GenericLogic)ge.entry; // FOUND ONE!!!
                   }
            }
@@ -319,36 +319,38 @@ public class GLDictionary extends DictionaryBase
            str = "<TABLE>";
            synchronized( myGenericLogicUnits )
            {
-             Iterator it = myGenericLogicUnits.iterator();
-             while(it.hasNext()) {
-                str += "<TR><TD>";
-                GLEntry ge = (GLEntry)it.next();
-                List keys = ge.keywords;
-                Iterator itk = keys.iterator();
-                while(itk.hasNext()){ // for each keyword
+              Iterator it = myGenericLogicUnits.iterator();
+              while(it.hasNext())
+              {
+                  str += "<TR><TD>";
+                  GLEntry ge = (GLEntry)it.next();
+                  List keys = ge.keywords;
+                  Iterator itk = keys.iterator();
+                  while(itk.hasNext()){ // for each keyword
                         String k = (String)itk.next();
                         str += "keyword= <FONT COLOR=RED SIZE=+1>" + k + "</FONT> ";
-                }
-                str += "</TD>"; str += "</TR>";
+                  }
+                  str += "</TD>"; str += "</TR>";
 
-                str += "<TR><TD>";
-                StringBuffer sbuf = ((StringBuffer)ge.entry.getParam("XSL"));
-                str += "XSL <FONT COLOR=GREEN SIZE=-1>:";
-                if( sbuf != null ) // can be null if user-defined non-xsl GU
-                {
-                    str += XMLParseCommon.filterXMLtoHTML(sbuf).toString();
-                } else  {
-                    str += "NULL XSL";
-                }
-                str += "</FONT>";
+                  str += "<TR><TD>";
+                  StringBuffer sbuf = ((StringBuffer)ge.entry.getParam("XSL"));
+                  str += "XSL <FONT COLOR=GREEN SIZE=-1>:";
+                  if( sbuf != null ) // can be null if user-defined non-xsl GU
+                  {
+                       str += XMLParseCommon.filterXMLtoHTML(sbuf).toString();
+                  } else  {
+                       str += "NULL XSL";
+                  }
+                  str += "</FONT>";
 
-                str += "<P>UnaryPredicate <FONT COLOR=BLUE SIZE=-1>:";
-                if( ge.entry.getPredicate() instanceof UnaryPredicateGLWrapper ) {
-                    UnaryPredicateGLWrapper w = (UnaryPredicateGLWrapper)ge.entry.getPredicate();
-                    str+= "<PRE><BLOCKQUOTE>" + w.getAnnotation()  + "</PRE></BLOCKQUOTE>";
-                }
-                str += "</FONT></P>";
-                str += "</TD></TR>";
+                  str += "<P>UnaryPredicate <FONT COLOR=BLUE SIZE=-1>:";
+                  if( ge.entry.getPredicate() instanceof UnaryPredicateGLWrapper )
+                  {
+                       UnaryPredicateGLWrapper w = (UnaryPredicateGLWrapper)ge.entry.getPredicate();
+                       str+= "<PRE><BLOCKQUOTE>" + w.getAnnotation()  + "</PRE></BLOCKQUOTE>";
+                  }
+                  str += "</FONT></P>";
+                  str += "</TD></TR>";
              }
              str += "</TABLE>";
              return str;

@@ -132,9 +132,14 @@ public class GenericQueryXML  implements GenericQuery
 
      protected XSLTInputSource getXSLFromParameter(){
           XSLTInputSource xslis = null;
-          StringBuffer sbuf_xsl = (StringBuffer)preConfiguredParameters.get(this.paramkey_XSL);
-          if( sbuf_xsl != null) xslis =  new XSLTInputSource(new StringReader(sbuf_xsl.toString()));
-          System.out.println("XSL script read, string length=" + sbuf_xsl.length());
+          StringBuffer sbuf_xsl = (StringBuffer)this.getParam(this.paramkey_XSL);
+          if( sbuf_xsl != null) {
+               System.out.println("[GenericQueryXML] XSL script read, string length=" + sbuf_xsl.length());
+               xslis =  new XSLTInputSource(new StringReader(sbuf_xsl.toString()));
+          } else
+          {
+               System.out.println("[GenericQueryXML] XSL script read: null");
+          }
           return xslis;
      }
 
@@ -147,7 +152,7 @@ public class GenericQueryXML  implements GenericQuery
      //
      public void  returnVal( OutputStream out)
      {
-          System.out.print("[GenericQueryXML.returnVal] called.");
+          System.out.println("[GenericQueryXML.returnVal] Called.");
           XMLObjectProvider   myObjectProvider = (XMLObjectProvider)this.getParam(this.paramkey_XML_SERVICE);
 
           XSLTInputSource  myXSL = null;
@@ -158,6 +163,13 @@ public class GenericQueryXML  implements GenericQuery
           //
           myXSL=getXSLFromParameter();
 
+          if( myXSL != null) {
+               System.out.println("[GenericQueryXML.returnVal] XSL USED:" + myXSL);
+          } else {
+               System.out.println("[GenericQueryXML.returnVal] XSL NOT USED.");
+          }
+
+
           //StringBuffer sbuf_xsl = (StringBuffer)preConfiguredParameters.get(this.paramkey_XSL);
           //if( sbuf_xsl != null) myXSL =  new XSLTInputSource(new StringReader(sbuf_xsl.toString()));
           //System.out.println(" myXSL=" + myXSL);
@@ -165,13 +177,13 @@ public class GenericQueryXML  implements GenericQuery
           //
           // SAX CONTENTHANDLER PARAMETER?
           //
-          String sbuf_sax = (String)preConfiguredParameters.get(this.paramkey_SAX);
+          String sbuf_sax = (String)this.getParam(this.paramkey_SAX);
           if( sbuf_sax != null) mySAXContentHandlerClassName = sbuf_sax.toString();
           if( mySAXContentHandlerClassName != null) {
-             System.out.println("SAX HANDLER USED:" + mySAXContentHandlerClassName);
+              System.out.println("[GenericQueryXML.returnVal] SAX HANDLER USED:" + mySAXContentHandlerClassName);
           }
           else {
-             System.out.println("SAX HANDLER NOT USED." );
+              System.out.println("[GenericQueryXML.returnVal] SAX HANDLER NOT USED." );
           }
 
           //#################################
@@ -193,10 +205,9 @@ public class GenericQueryXML  implements GenericQuery
                      if( odoc instanceof TXDocument) doc = (TXDocument)odoc;
                  }
                  //
-                 // this is TERRIBLE THING TO DO FOR NOW...
-                 //  converting DOM TO STRING TO APPLY XSL is v. inefficient,
-                 // but until old ALP XML parser version can be updated, no choice...
-                 // soon.
+                 // This is TERRIBLE THING TO DO ...FOR NOW...
+                 // converting TO STRING TO APPLY XSL is v. inefficient.
+                 // When COUGAAR XML parser version is updated, will go away.
                  //
                  if( (myXSL != null) && ( doc != null) )
                  {
