@@ -355,27 +355,7 @@ public class GLDictionary extends DictionaryBase
            } // end synchronized ( myGenericLogicUnits )
       }
 
-      /**
-  public static StringBuffer filterXMLtoHTML(StringBuffer dataout)
-  {
-       int srcend = dataout.length();
-       char csrc[] = new char[srcend];
-       dataout.toString().getChars(0,srcend,csrc,0);
 
-       //StringWriter sw = new StringWriter(srcend);
-       StringBuffer buf = new StringBuffer(srcend);
-
-       int i;
-       int sz = dataout.length();
-       for(i=0;i<sz;i++){
-           char c = csrc[i];
-           if( c == '<' ) buf.append("&lt");
-           else if( c == '>' ) buf.append("&gt");
-           else buf.append(c);
-       }
-       return buf;
-  }
-**/
    //
    //   Pattern with example values...
    //

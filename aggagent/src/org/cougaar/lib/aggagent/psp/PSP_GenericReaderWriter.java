@@ -65,6 +65,7 @@ import org.apache.xalan.xslt.XSLTProcessor;
 import org.apache.xalan.xslt.XSLTInputSource;
 
 
+import org.cougaar.lib.aggagent.XMLParseCommon;
 import org.cougaar.lib.aggagent.dictionary.GLDictionary;
 import org.cougaar.lib.aggagent.dictionary.glquery.GenericQuery;
 
@@ -231,7 +232,7 @@ public class PSP_GenericReaderWriter extends PSP_BaseAdapter implements PlanServ
 
           if(useHTML ) {
 
-           StringBuffer sb = filterXMLtoHTML(new StringBuffer(new String(bufOut.toByteArray())));
+           StringBuffer sb = XMLParseCommon.filterXMLtoHTML_withIndentation(new StringBuffer(new String(bufOut.toByteArray())));
 
            out.print("<HTML><BODY><PRE><BLOCKQUOTE>" +
                        sb.toString()
@@ -245,6 +246,7 @@ public class PSP_GenericReaderWriter extends PSP_BaseAdapter implements PlanServ
       System.out.println("[PSP_GenericReaderWriter] <+++ leave execution @" + psc.getServerPluginSupport().getClusterIDAsString() );
   }
 
+/**
  // ################################################################################
  protected StringBuffer filterXMLtoHTML(StringBuffer dataout)
   {
@@ -293,7 +295,7 @@ public class PSP_GenericReaderWriter extends PSP_BaseAdapter implements PlanServ
        }
        return buf;
   }
-
+**/
 
 
   /**
