@@ -35,6 +35,7 @@ import org.cougaar.core.blackboard.IncrementalSubscription;
 import org.cougaar.core.blackboard.Subscription;
 import org.cougaar.core.service.BlackboardService;
 import org.cougaar.core.service.NamingService;
+import org.cougaar.core.servlet.*;
 import org.cougaar.util.UnaryPredicate;
 
 import org.cougaar.lib.aggagent.query.Alert;
@@ -150,22 +151,7 @@ public class AggregationXMLInterface extends AggregationServletInterface
 
   // copied from SimpleServletSupportImpl
   public List getAllEncodedAgentNames() {
-    List toList = new LinkedList();
-
-    try {
-      javax.naming.directory.DirContext d = namingService.getRootContext();
-      d = (javax.naming.directory.DirContext)d.lookup("WEBSERVERS");
-      javax.naming.NamingEnumeration en = d.list("");
-      while (en.hasMoreElements()) {
-        javax.naming.NameClassPair ncp =
-            (javax.naming.NameClassPair) en.nextElement();
-        toList.add(ncp.getName());
-      }
-    } catch (Exception e) {
-      throw new RuntimeException(e.getMessage());
-    }
-
-    return toList;
+    return NSUtil.getAllEncodedAgentNames(namingService);
   }
 
   /**
