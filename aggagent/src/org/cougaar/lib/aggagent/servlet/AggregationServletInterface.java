@@ -259,10 +259,10 @@ public abstract class AggregationServletInterface
 
     // Set any unresponding agents as exceptions on the result set
     Set responded = cl.changedQra.getRawResultSet().getRespondingClusters();
-    Enumeration enum = cl.changedQra.getQuery().getSourceClusters();
+    Enumeration en = cl.changedQra.getQuery().getSourceClusters();
     AggregationResultSet results = cl.changedQra.getResultSet();
-    while (enum.hasMoreElements()) {
-      String clusterID = (String) enum.nextElement();
+    while (en.hasMoreElements()) {
+      String clusterID = (String) en.nextElement();
       if (!responded.contains(clusterID))
         results.setException(clusterID, "Agent " + clusterID + " did not respond to query before timeout occurred");
     }

@@ -87,8 +87,8 @@ public abstract class Enum implements Serializable {
 
     protected String getStringObject(String enumName)
     {
-      Enum enum = (Enum) findEnum(validValues, enumName);
-      return enum == null ? null : enum.toString();
+      Enum en = (Enum) findEnum(validValues, enumName);
+      return en == null ? null : en.toString();
     }
 
     public static ScriptType fromString (String enumName) {
@@ -115,8 +115,8 @@ public abstract class Enum implements Serializable {
 
     protected String getStringObject(String enumName)
     {
-      Enum enum = (Enum) findEnum(validValues, enumName);
-      return enum == null ? null : enum.toString();
+      Enum en = (Enum) findEnum(validValues, enumName);
+      return en == null ? null : en.toString();
     }
     
     public static QueryType fromString(String enumName)
@@ -144,8 +144,8 @@ public abstract class Enum implements Serializable {
 
     protected String getStringObject(String enumName)
     {
-      Enum enum = (Enum) findEnum(validValues, enumName);
-      return enum == null ? null : enum.toString();
+      Enum en = (Enum) findEnum(validValues, enumName);
+      return en == null ? null : en.toString();
     }
 
     public static UpdateMethod fromString(String enumName)
@@ -174,8 +174,8 @@ public abstract class Enum implements Serializable {
 
     protected String getStringObject(String enumName)
     {
-      Enum enum = (Enum) findEnum(validValues, enumName);
-      return enum == null ? null : enum.toString();
+      Enum en = (Enum) findEnum(validValues, enumName);
+      return en == null ? null : en.toString();
     }
 
     public static Language fromString(String enumName)
@@ -203,8 +203,8 @@ public abstract class Enum implements Serializable {
 
     protected String getStringObject(String enumName)
     {
-      Enum enum = (Enum) findEnum(validValues, enumName);
-      return enum == null ? null : enum.toString();
+      Enum en = (Enum) findEnum(validValues, enumName);
+      return en == null ? null : en.toString();
     }
 
     public static XmlFormat fromString(String enumName)
@@ -230,8 +230,8 @@ public abstract class Enum implements Serializable {
 
     protected String getStringObject(String enumName)
     {
-      Enum enum = (Enum) findEnum(validValues, enumName);
-      return enum == null ? null : enum.toString();
+      Enum en = (Enum) findEnum(validValues, enumName);
+      return en == null ? null : en.toString();
     }
 
     public static AggType fromString (String enumName) {

@@ -231,9 +231,9 @@ public class QueryResultAdapter implements XmlTransferable, Serializable, Unique
       
       Set responded = rawResultSet.getRespondingClusters();
 
-      Enumeration enum = getQuery().getSourceClusters();
-      while (enum.hasMoreElements())
-        if (!responded.contains(enum.nextElement()))
+      Enumeration en = getQuery().getSourceClusters();
+      while (en.hasMoreElements())
+        if (!responded.contains(en.nextElement()))
           return false;
 
       return true;
