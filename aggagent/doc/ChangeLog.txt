@@ -1,5 +1,27 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////
+Version 0.6 ChangeList
+
++)  SimpleTransfomerPlugin added.   Its a "shell" implementation which currently only purpose is to grab 
+    objects off the blackboard and remove them (optionally by .ini file parameter):
+
+# plugin = org.cougaar.lib.aggagent.plugin.SimpleTransformerPlugin(remove=false)
+# plugin = org.cougaar.lib.aggagent.plugin.SimpleTransformerPlugin(remove=true)
+
+ Periodically it outputs metrics to console:
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! SimpleTransformer status
+! num watched objects (blackboard)=0
+! num removed objects (blackboard)=6
+! VM free memory=3256512
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
++) "webscraper" example and stress testing scenario added.   This configuration issues URL "queries" and places HTML content on blackboard in addtion to XmL.
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////
 Version 0.55 ChangeList
 
 1.) added new "light-weight" HTML PSP to use to view contents of Agg Agent blackboard.  
