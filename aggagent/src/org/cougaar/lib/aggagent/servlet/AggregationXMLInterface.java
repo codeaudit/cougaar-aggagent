@@ -26,6 +26,7 @@ import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.Vector;
 import javax.servlet.http.HttpServletRequest;
 
@@ -33,9 +34,9 @@ import org.w3c.dom.*;
 
 import org.cougaar.core.blackboard.IncrementalSubscription;
 import org.cougaar.core.blackboard.Subscription;
+import org.cougaar.core.wp.ListAllAgents;
 import org.cougaar.core.service.BlackboardService;
-import org.cougaar.core.service.NamingService;
-import org.cougaar.core.servlet.*;
+import org.cougaar.core.service.wp.WhitePagesService;
 import org.cougaar.util.UnaryPredicate;
 
 import org.cougaar.lib.aggagent.query.Alert;
@@ -52,16 +53,16 @@ public class AggregationXMLInterface extends AggregationServletInterface
 {
   private SessionManager man = null;
   private String agentId = null;
-  private NamingService namingService = null;
+  private WhitePagesService wps = null;
 
   public AggregationXMLInterface (BlackboardService bs,
                                   SubscriptionMonitorSupport sms,
                                   String agentId,
-                                  NamingService namingService,
+                                  WhitePagesService wps,
                                   SessionManager man) {
     super(bs, sms);
     this.agentId = agentId;
-    this.namingService = namingService;
+    this.wps = wps;
     this.man = man;
   }
 
@@ -149,9 +150,17 @@ public class AggregationXMLInterface extends AggregationServletInterface
     out.println("</clusters>");
   }
 
-  // copied from SimpleServletSupportImpl
   public List getAllEncodedAgentNames() {
-    return NSUtil.getAllEncodedAgentNames(namingService);
+    try {
+      // do full WP list (deprecated!)
+      Set s = ListAllAgents.listAllAgents(wps);
+      // URLEncode the names and sort
+      List l = ListAllAgents.encodeAndSort(s);
+      return l;
+    } catch (Exception e) {
+      throw new RuntimeException(
+          "List all agents failed", e);
+    }
   }
 
   /**

@@ -33,6 +33,7 @@ import org.cougaar.core.blackboard.Subscription;
 import org.cougaar.core.component.*;
 import org.cougaar.core.plugin.ComponentPlugin;
 import org.cougaar.core.service.*;
+import org.cougaar.core.service.wp.WhitePagesService;
 import org.cougaar.core.servlet.*;
 import org.cougaar.lib.aggagent.session.SessionManager;
 import org.cougaar.util.UnaryPredicate;
@@ -72,7 +73,7 @@ public abstract class BlackboardServletComponent extends ComponentPlugin
    * Needed since this servlet needs to be able to acquire a list of all
    * available agents.
    */
-  protected NamingService naming = null;
+  protected WhitePagesService wps = null;
 
   /** Holds value of property loggingService. */
   protected LoggingService log;
@@ -205,15 +206,15 @@ public abstract class BlackboardServletComponent extends ComponentPlugin
           myPath+"\": "+e.getMessage());
     }
 
-    // get the naming service (for "listAgentNames")
-    naming = (NamingService)
+    // get the white pages service (for "listAgentNames")
+    wps = (WhitePagesService)
       serviceBroker.getService(
           this,
-          NamingService.class,
+          WhitePagesService.class,
           null);
-    if (naming == null) {
+    if (wps == null) {
       throw new RuntimeException(
-          "Unable to obtain naming service");
+          "Unable to obtain white pages service");
     }
   }
 
@@ -223,10 +224,10 @@ public abstract class BlackboardServletComponent extends ComponentPlugin
    * This will automatically unregister our Servlet.
    */
   public void unload() {
-    // release naming service
-    if (naming != null) {
+    // release white pages service
+    if (wps != null) {
       serviceBroker.releaseService(
-          this, NamingService.class, naming);
+          this, WhitePagesService.class, wps);
     }
 
     // release our servlet service

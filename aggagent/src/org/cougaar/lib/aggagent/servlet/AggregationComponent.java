@@ -27,6 +27,7 @@ import javax.servlet.*;
 import javax.servlet.http.*;
 
 import org.cougaar.core.servlet.*;
+import org.cougaar.core.service.wp.WhitePagesService;
 import org.cougaar.lib.aggagent.session.SessionManager;
 
 /**
@@ -37,6 +38,7 @@ import org.cougaar.lib.aggagent.session.SessionManager;
 public class AggregationComponent extends BlackboardServletComponent
 {
   private Object lock = new Object();
+  private WhitePagesService wps = null;
   private AggregationServletInterface htmlInterface = null;
   private AggregationServletInterface xmlInterface = null;
 
@@ -47,6 +49,10 @@ public class AggregationComponent extends BlackboardServletComponent
   {
     super();
     myServlet = new AggregationServlet();
+  }
+
+  public void setWhitePagesService(WhitePagesService wps) {
+    this.wps = wps;
   }
 
   /**
@@ -64,7 +70,7 @@ public class AggregationComponent extends BlackboardServletComponent
                                      myPath);
     xmlInterface =
       new AggregationXMLInterface(blackboard, createSubscriptionSupport(),
-                                  agentId.toString(), naming, man);
+                                  agentId.toString(), wps, man);
   }
 
   /**
