@@ -23,11 +23,11 @@ package org.cougaar.lib.aggagent.script;
 
 import java.util.List;
 
-import silk.Procedure;
-import silk.SI;
-
 import org.cougaar.lib.aggagent.query.CompoundKey;
 import org.cougaar.lib.aggagent.query.DataAtomMelder;
+
+import silk.Procedure;
+import silk.SI;
 
 public class SilkMelder implements DataAtomMelder {
   private Procedure silkProcedure;

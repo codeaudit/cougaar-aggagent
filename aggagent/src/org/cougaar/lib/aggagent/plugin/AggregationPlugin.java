@@ -20,28 +20,26 @@
  */
 package org.cougaar.lib.aggagent.plugin;
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
+import java.util.Collection;
+import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.TimerTask;
+import java.util.Vector;
 
-import org.w3c.dom.*;
-import org.apache.xerces.parsers.DOMParser;
-import org.xml.sax.InputSource;
-
-import org.cougaar.core.mts.*;
-import org.cougaar.core.agent.*;
-import org.cougaar.core.domain.*;
-import org.cougaar.core.blackboard.*;
-import org.cougaar.core.plugin.*;
-import org.cougaar.core.service.*;
-import org.cougaar.core.mts.*;
-import org.cougaar.core.component.*;
+import org.cougaar.core.blackboard.IncrementalSubscription;
+import org.cougaar.core.mts.MessageAddress;
+import org.cougaar.core.plugin.ComponentPlugin;
+import org.cougaar.core.service.LoggingService;
+import org.cougaar.core.service.UIDService;
+import org.cougaar.lib.aggagent.query.AggregationQuery;
+import org.cougaar.lib.aggagent.query.QueryResultAdapter;
+import org.cougaar.lib.aggagent.session.UpdateDelta;
+import org.cougaar.lib.aggagent.util.InverseSax;
+import org.cougaar.lib.aggagent.util.XmlUtils;
+import org.cougaar.lib.aggagent.util.Enum.QueryType;
+import org.cougaar.lib.aggagent.util.Enum.UpdateMethod;
 import org.cougaar.util.UnaryPredicate;
-
-import org.cougaar.lib.aggagent.query.*;
-import org.cougaar.lib.aggagent.session.*;
-import org.cougaar.lib.aggagent.util.*;
-import org.cougaar.lib.aggagent.util.Enum.*;
+import org.w3c.dom.Element;
 
 /**
  * Receives aggregation requests in the form of QueryResultAdapter objects.

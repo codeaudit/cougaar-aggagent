@@ -22,7 +22,8 @@ package org.cougaar.lib.aggagent.client;
 
 import java.util.Iterator;
 import java.util.Vector;
-import javax.swing.table.*;
+
+import javax.swing.table.AbstractTableModel;
 
 import org.cougaar.lib.aggagent.query.AggregationResultSet;
 import org.cougaar.lib.aggagent.query.ResultSetDataAtom;

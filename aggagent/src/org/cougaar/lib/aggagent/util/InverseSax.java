@@ -21,7 +21,10 @@
 
 package org.cougaar.lib.aggagent.util;
 
-import org.w3c.dom.*;
+import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 /**
  *  InverseSax is a class that acts as the reverse of a SAX parser.  In other

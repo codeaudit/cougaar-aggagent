@@ -24,10 +24,10 @@ package org.cougaar.lib.aggagent.script;
 import java.util.Iterator;
 import java.util.List;
 
+import org.cougaar.lib.aggagent.query.Aggregator;
+
 import silk.Procedure;
 import silk.SI;
-
-import org.cougaar.lib.aggagent.query.Aggregator;
 
 public class SilkAggregator implements Aggregator {
   private Procedure silkProcedure;

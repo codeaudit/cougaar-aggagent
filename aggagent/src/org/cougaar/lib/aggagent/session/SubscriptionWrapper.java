@@ -21,6 +21,7 @@
 package org.cougaar.lib.aggagent.session;
 
 import java.util.Collection;
+
 import org.cougaar.core.blackboard.IncrementalSubscription;
 
 // Wrap an IncrementalSubscription within the SubscriptionAccess interface.

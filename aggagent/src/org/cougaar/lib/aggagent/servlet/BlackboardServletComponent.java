@@ -20,23 +20,19 @@
  */
 package org.cougaar.lib.aggagent.servlet;
 
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.List;
-import javax.servlet.*;
-import javax.servlet.http.*;
 
-import org.cougaar.core.mts.MessageAddress;
+import javax.servlet.Servlet;
+
 import org.cougaar.core.blackboard.Subscription;
-import org.cougaar.core.component.*;
+import org.cougaar.core.component.BindingSite;
+import org.cougaar.core.component.ServiceBroker;
 import org.cougaar.core.plugin.ComponentPlugin;
-import org.cougaar.core.service.*;
+import org.cougaar.core.service.LoggingService;
+import org.cougaar.core.service.ServletService;
 import org.cougaar.core.service.wp.WhitePagesService;
-import org.cougaar.core.servlet.*;
-import org.cougaar.lib.aggagent.session.SessionManager;
-import org.cougaar.util.UnaryPredicate;
 
 /**
  *  The Blackboard Servlet Component provides services required for both

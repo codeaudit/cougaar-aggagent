@@ -20,7 +20,7 @@
  */
 package org.cougaar.lib.aggagent.test;
 
-import java.util.*;
+import java.util.Enumeration;
 
 import org.cougaar.core.blackboard.IncrementalSubscription;
 import org.cougaar.planning.plugin.legacy.SimplePlugin;

@@ -20,27 +20,25 @@
  */
 package org.cougaar.lib.aggagent.plugin;
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
+import java.util.Collection;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Iterator;
 
-import org.w3c.dom.*;
-
-import org.cougaar.lib.aggagent.util.*;
-import org.cougaar.lib.aggagent.query.*;
-import org.cougaar.lib.aggagent.session.*;
-
-import org.cougaar.util.*;
-import org.cougaar.core.mts.*;
-import org.cougaar.core.node.*;
-import org.cougaar.core.mts.*;
-import org.cougaar.core.component.*;
-import org.cougaar.core.mts.*;
-import org.cougaar.core.agent.*;
-import org.cougaar.core.service.*;
+import org.cougaar.core.blackboard.IncrementalSubscription;
+import org.cougaar.core.mts.MessageAddress;
 import org.cougaar.core.plugin.ComponentPlugin;
-import org.cougaar.core.domain.*;
-import org.cougaar.core.blackboard.*;
+import org.cougaar.core.service.LoggingService;
+import org.cougaar.lib.aggagent.query.ScriptSpec;
+import org.cougaar.lib.aggagent.session.IncrementFormat;
+import org.cougaar.lib.aggagent.session.RemoteBlackboardSubscription;
+import org.cougaar.lib.aggagent.session.RemoteSession;
+import org.cougaar.lib.aggagent.session.SubscriptionAccess;
+import org.cougaar.lib.aggagent.session.SubscriptionWrapper;
+import org.cougaar.lib.aggagent.session.UpdateDelta;
+import org.cougaar.lib.aggagent.util.XmlUtils;
+import org.cougaar.util.UnaryPredicate;
+import org.w3c.dom.Element;
 
 /**
  * This Plugin services remote subscription requests.  It sends data back to an aggregation 

@@ -21,21 +21,19 @@
 package org.cougaar.lib.aggagent.query;
 
 import java.io.Serializable;
-import java.io.StringReader;
-import java.util.Collection;
 import java.util.Enumeration;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.Timer;
 import java.util.Vector;
 
-import org.w3c.dom.*;
-import org.apache.xerces.parsers.DOMParser;
-import org.xml.sax.InputSource;
-
 import org.cougaar.lib.aggagent.util.InverseSax;
 import org.cougaar.lib.aggagent.util.XmlUtils;
-import org.cougaar.lib.aggagent.util.Enum.*;
+import org.cougaar.lib.aggagent.util.Enum.Language;
+import org.cougaar.lib.aggagent.util.Enum.QueryType;
+import org.cougaar.lib.aggagent.util.Enum.ScriptType;
+import org.cougaar.lib.aggagent.util.Enum.UpdateMethod;
+import org.cougaar.lib.aggagent.util.Enum.XmlFormat;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 /**
  *  Instances of this class represent generalized "queries" in the sense of the

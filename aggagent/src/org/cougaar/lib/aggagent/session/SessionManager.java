@@ -20,14 +20,13 @@
  */
 package org.cougaar.lib.aggagent.session;
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
+import java.io.PrintWriter;
+import java.util.HashMap;
+import java.util.Set;
 
 import org.cougaar.core.service.BlackboardService;
-import org.cougaar.util.UnaryPredicate;
-
 import org.cougaar.lib.aggagent.servlet.SubscriptionMonitorSupport;
+import org.cougaar.util.UnaryPredicate;
 
 /**
  *  A SessionManager is a container for Sessions (q.v.), which may be created,

@@ -21,12 +21,17 @@
 
 package org.cougaar.lib.aggagent.test;
 
-import java.util.*;
+import java.util.Iterator;
 
+import org.cougaar.lib.aggagent.query.AggregationQuery;
+import org.cougaar.lib.aggagent.query.Alert;
+import org.cougaar.lib.aggagent.query.ResultSetDataAtom;
+import org.cougaar.lib.aggagent.query.ScriptSpec;
+import org.cougaar.lib.aggagent.util.Enum.Language;
+import org.cougaar.lib.aggagent.util.Enum.QueryType;
+import org.cougaar.lib.aggagent.util.Enum.ScriptType;
+import org.cougaar.lib.aggagent.util.Enum.XmlFormat;
 import org.cougaar.util.UnaryPredicate;
-
-import org.cougaar.lib.aggagent.query.*;
-import org.cougaar.lib.aggagent.util.Enum.*;
 
 /**
  *  For testing Alert functionality with the old NumberCycle test scaffolding.

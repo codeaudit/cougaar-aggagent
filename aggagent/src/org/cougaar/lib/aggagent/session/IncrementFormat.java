@@ -20,7 +20,6 @@
  */
 package org.cougaar.lib.aggagent.session;
 
-import java.io.*;
 
 /**
  *  IncrementFormat is the interface implemented by Objects that convert local

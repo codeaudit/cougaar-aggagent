@@ -21,22 +21,23 @@
 package org.cougaar.lib.aggagent.servlet;
 
 import java.io.PrintWriter;
-import java.util.*;
+import java.util.Collection;
+import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.Set;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.cougaar.core.blackboard.IncrementalSubscription;
 import org.cougaar.core.blackboard.Subscription;
-import org.cougaar.core.blackboard.SubscriptionWatcher;
 import org.cougaar.core.service.BlackboardService;
-import org.cougaar.util.UnaryPredicate;
-
+import org.cougaar.core.service.UIDService;
+import org.cougaar.lib.aggagent.query.AggregationQuery;
+import org.cougaar.lib.aggagent.query.AggregationResultSet;
 import org.cougaar.lib.aggagent.query.Alert;
 import org.cougaar.lib.aggagent.query.QueryResultAdapter;
-import org.cougaar.lib.aggagent.session.RemoteBlackboardSubscription;
-import org.cougaar.lib.aggagent.session.SessionManager;
-import org.cougaar.lib.aggagent.query.AggregationResultSet;
-import org.cougaar.lib.aggagent.query.AggregationQuery;
-import org.cougaar.core.service.UIDService;
+import org.cougaar.util.UnaryPredicate;
 
 public abstract class AggregationServletInterface
 {

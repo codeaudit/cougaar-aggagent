@@ -23,17 +23,16 @@ package org.cougaar.lib.aggagent.session;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-
-import org.w3c.dom.*;
 
 import org.cougaar.lib.aggagent.query.CompoundKey;
 import org.cougaar.lib.aggagent.query.ResultSetDataAtom;
 import org.cougaar.lib.aggagent.util.InverseSax;
 import org.cougaar.lib.aggagent.util.XmlUtils;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 /**
  *  The UpdateDelta class represents the communication strategy used for

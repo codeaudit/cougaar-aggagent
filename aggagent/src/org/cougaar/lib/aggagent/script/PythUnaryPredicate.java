@@ -21,12 +21,11 @@
 
 package org.cougaar.lib.aggagent.script;
 
+import org.cougaar.util.UnaryPredicate;
 import org.python.core.PyFunction;
 import org.python.core.PyInteger;
 import org.python.core.PyObject;
 import org.python.util.PythonInterpreter;
-
-import org.cougaar.util.UnaryPredicate;
 
 /**
  *  An implementation of UnaryPredicate that derives its functionality from

@@ -21,9 +21,11 @@
 
 package org.cougaar.lib.aggagent.test;
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
 
 public class AggressiveClient implements Runnable {
   private static String DEFAULT_URL = "http://localhost:5555/$Target/test.psp";

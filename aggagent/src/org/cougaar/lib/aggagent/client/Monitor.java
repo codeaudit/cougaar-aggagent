@@ -30,12 +30,13 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.TimerTask;
 
-import org.w3c.dom.*;
-
 import org.cougaar.lib.aggagent.query.UpdateListener;
 import org.cougaar.lib.aggagent.query.UpdateObservable;
 import org.cougaar.lib.aggagent.util.Const;
 import org.cougaar.lib.aggagent.util.XmlUtils;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
   /**
    * Abstract base class for result set and alert monitors.  Provides support

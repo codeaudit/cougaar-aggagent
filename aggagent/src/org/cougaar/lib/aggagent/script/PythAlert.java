@@ -21,15 +21,13 @@
 
 package org.cougaar.lib.aggagent.script;
 
-import org.python.core.PyFunction;
-import org.python.core.PyInteger;
-import org.python.core.PyObject;
-import org.python.util.PythonInterpreter;
-
+import org.cougaar.lib.aggagent.query.AggregationQuery;
 import org.cougaar.lib.aggagent.query.Alert;
 import org.cougaar.lib.aggagent.query.QueryResultAdapter;
-
-import org.cougaar.lib.aggagent.query.*;
+import org.cougaar.lib.aggagent.query.ResultSetDataAtom;
+import org.python.core.PyFunction;
+import org.python.core.PyObject;
+import org.python.util.PythonInterpreter;
 
 /**
  *  An implementation of the Alert class that derives its functionality from a

@@ -23,18 +23,37 @@ package org.cougaar.lib.aggagent.query;
 
 import java.io.Serializable;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.StringTokenizer;
 
-import org.w3c.dom.*;
-
-import org.cougaar.util.UnaryPredicate;
-
-import org.cougaar.lib.aggagent.query.Alert;
-import org.cougaar.lib.aggagent.script.*;
-import org.cougaar.lib.aggagent.session.*;
-import org.cougaar.lib.aggagent.util.Enum.*;
+import org.cougaar.lib.aggagent.script.PythAggregator;
+import org.cougaar.lib.aggagent.script.PythAlert;
+import org.cougaar.lib.aggagent.script.PythIncrementFormat;
+import org.cougaar.lib.aggagent.script.PythMelder;
+import org.cougaar.lib.aggagent.script.PythUnaryPredicate;
+import org.cougaar.lib.aggagent.script.PythXMLEncoder;
+import org.cougaar.lib.aggagent.script.SilkAggregator;
+import org.cougaar.lib.aggagent.script.SilkAlert;
+import org.cougaar.lib.aggagent.script.SilkIncrementFormat;
+import org.cougaar.lib.aggagent.script.SilkMelder;
+import org.cougaar.lib.aggagent.script.SilkUnaryPredicate;
+import org.cougaar.lib.aggagent.script.SilkXMLEncoder;
+import org.cougaar.lib.aggagent.session.IncrementFormat;
+import org.cougaar.lib.aggagent.session.XMLEncoder;
+import org.cougaar.lib.aggagent.session.XmlIncrement;
 import org.cougaar.lib.aggagent.util.InverseSax;
 import org.cougaar.lib.aggagent.util.XmlUtils;
+import org.cougaar.lib.aggagent.util.Enum.AggType;
+import org.cougaar.lib.aggagent.util.Enum.Language;
+import org.cougaar.lib.aggagent.util.Enum.ScriptType;
+import org.cougaar.lib.aggagent.util.Enum.XmlFormat;
+import org.cougaar.util.UnaryPredicate;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 /**
  *  An instance of this class may be used to represent a script, including the

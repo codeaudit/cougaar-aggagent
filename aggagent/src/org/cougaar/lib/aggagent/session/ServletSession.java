@@ -20,21 +20,13 @@
  */
 package org.cougaar.lib.aggagent.session;
 
-import java.io.*;
-import java.util.*;
+import java.io.PrintWriter;
 
-import org.cougaar.core.mts.*;
-import org.cougaar.core.agent.*;
 import org.cougaar.core.blackboard.Subscription;
-import org.cougaar.core.domain.*;
-import org.cougaar.core.mts.Message;
-import org.cougaar.core.mts.MessageAddress;
 import org.cougaar.core.service.BlackboardService;
-import org.cougaar.util.UnaryPredicate;
-
 import org.cougaar.lib.aggagent.servlet.SubscriptionListener;
 import org.cougaar.lib.aggagent.servlet.SubscriptionMonitorSupport;
-import org.cougaar.lib.aggagent.util.XmlUtils;
+import org.cougaar.util.UnaryPredicate;
 
 /**
  *  A Session is a handler for instances of the RemoteBlackboardSubscription

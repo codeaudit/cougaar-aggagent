@@ -20,17 +20,21 @@
  */
 package org.cougaar.lib.aggagent.query;
 
-import org.w3c.dom.*;
-
 import java.io.Serializable;
-import java.util.*;
-
-import org.cougaar.lib.aggagent.session.UpdateDelta;
-import org.cougaar.lib.aggagent.session.XmlTransferable;
-import org.cougaar.lib.aggagent.util.InverseSax;
+import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
+import java.util.Vector;
 
 import org.cougaar.core.util.UID;
 import org.cougaar.core.util.UniqueObject;
+import org.cougaar.lib.aggagent.session.UpdateDelta;
+import org.cougaar.lib.aggagent.session.XmlTransferable;
+import org.cougaar.lib.aggagent.util.InverseSax;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 /**
  *  This adapter contains a query and links to some associated structures.

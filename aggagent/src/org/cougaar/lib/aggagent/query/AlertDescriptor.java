@@ -20,15 +20,11 @@
  */
 package org.cougaar.lib.aggagent.query;
 
-import java.util.Iterator;
-import java.util.LinkedList;
-
-import org.w3c.dom.*;
-
-import org.cougaar.lib.aggagent.script.PythAlert;
-import org.cougaar.lib.aggagent.script.SilkAlert;
-import org.cougaar.lib.aggagent.util.Enum.*;
 import org.cougaar.lib.aggagent.util.InverseSax;
+import org.cougaar.lib.aggagent.util.Enum.Language;
+import org.cougaar.lib.aggagent.util.Enum.ScriptType;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 /**
  * This is a client-side description of an alert.

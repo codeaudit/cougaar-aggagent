@@ -20,12 +20,12 @@
  */
 package org.cougaar.lib.aggagent.script;
 
-import java.io.StringReader;
 import java.util.Collection;
-import silk.Procedure;
-import silk.SI;
 
 import org.cougaar.lib.aggagent.session.XMLEncoder;
+
+import silk.Procedure;
+import silk.SI;
 
 public class SilkXMLEncoder implements XMLEncoder
 {

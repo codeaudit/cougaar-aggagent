@@ -20,8 +20,8 @@
  */
 package org.cougaar.lib.aggagent.client;
 
-import org.w3c.dom.*;
 import org.cougaar.lib.aggagent.query.AggregationResultSet;
+import org.w3c.dom.Element;
 
   /**
    * Provides support for event driven monitoring of active

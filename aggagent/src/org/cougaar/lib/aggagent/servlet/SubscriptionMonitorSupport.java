@@ -21,10 +21,7 @@
 
 package org.cougaar.lib.aggagent.servlet;
 
-import java.util.*;
-
 import org.cougaar.core.blackboard.Subscription;
-import org.cougaar.util.UnaryPredicate;
 
 /**
  * This interface defines the subscription monitoring support which the Plugin

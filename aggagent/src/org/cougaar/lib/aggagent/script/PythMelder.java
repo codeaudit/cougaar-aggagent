@@ -23,13 +23,11 @@ package org.cougaar.lib.aggagent.script;
 
 import java.util.List;
 
-import org.python.core.PyFunction;
-import org.python.core.PyInteger;
-import org.python.core.PyObject;
-import org.python.util.PythonInterpreter;
-
 import org.cougaar.lib.aggagent.query.CompoundKey;
 import org.cougaar.lib.aggagent.query.DataAtomMelder;
+import org.python.core.PyFunction;
+import org.python.core.PyObject;
+import org.python.util.PythonInterpreter;
 
 /**
  *  An implementation of DataAtomMelder that derives its functionality from a

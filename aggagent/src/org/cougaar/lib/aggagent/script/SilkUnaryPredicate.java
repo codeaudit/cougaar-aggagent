@@ -20,8 +20,8 @@
  */
 package org.cougaar.lib.aggagent.script;
 
-import java.io.StringReader;
 import org.cougaar.util.UnaryPredicate;
+
 import silk.Procedure;
 import silk.SI;
 

@@ -21,9 +21,11 @@
 
 package org.cougaar.lib.aggagent.util;
 
-import java.io.Serializable;
 import java.io.ObjectInputStream;
-import java.util.*;
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.LinkedList;
 
 /**
  *  Typesafe enumerated types used by AggregationQuery

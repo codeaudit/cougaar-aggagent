@@ -20,7 +20,7 @@
  */
 package org.cougaar.lib.aggagent.plugin;
 
-import java.io.*;
+import java.io.Serializable;
 
 /**
  * This class encapsulates the XML messages for the aggregation agent.

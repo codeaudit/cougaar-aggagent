@@ -21,14 +21,15 @@
 
 package org.cougaar.lib.aggagent.plugin;
 
-import java.util.*;
+import java.util.Enumeration;
+import java.util.Iterator;
 
 import org.cougaar.core.blackboard.IncrementalSubscription;
 import org.cougaar.core.plugin.ComponentPlugin;
 import org.cougaar.core.service.BlackboardService;
+import org.cougaar.lib.aggagent.query.Alert;
+import org.cougaar.lib.aggagent.query.QueryResultAdapter;
 import org.cougaar.util.UnaryPredicate;
-
-import org.cougaar.lib.aggagent.query.*;
 
 /**
  *  This Plugin serves a dual purpose.  It notices when queries have changed

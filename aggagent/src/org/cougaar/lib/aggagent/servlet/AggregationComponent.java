@@ -22,14 +22,14 @@ package org.cougaar.lib.aggagent.servlet;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.List;
-import javax.servlet.*;
-import javax.servlet.http.*;
 
-import org.cougaar.core.servlet.*;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.cougaar.core.service.UIDService;
 import org.cougaar.core.service.wp.WhitePagesService;
 import org.cougaar.lib.aggagent.session.SessionManager;
-import org.cougaar.core.service.UIDService;
 
 
 /**

@@ -21,9 +21,9 @@
 
 package org.cougaar.lib.aggagent.script;
 
-import org.python.util.PythonInterpreter;
-import org.python.core.*;
 import org.python.core.BytecodeLoader;
+import org.python.core.Py;
+import org.python.util.PythonInterpreter;
 
 /**
  *  The purpose of the NoErrorPython class is to be a directly instantiable

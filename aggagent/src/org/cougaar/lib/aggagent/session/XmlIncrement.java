@@ -20,10 +20,9 @@
  */
 package org.cougaar.lib.aggagent.session;
 
-import java.io.*;
-import java.util.*;
-
-import org.cougaar.lib.aggagent.session.UpdateDelta;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  *  XmlIncrement is an IncrementFormat implementation that uses the XMLEncoder

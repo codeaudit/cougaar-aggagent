@@ -20,11 +20,11 @@
  */
 package org.cougaar.lib.aggagent.test;
 
-import java.util.*;
+import java.util.Iterator;
+import java.util.Vector;
 
-import org.cougaar.core.plugin.*;
-import org.cougaar.core.service.*;
-import org.cougaar.core.agent.service.alarm.*;
+import org.cougaar.core.agent.service.alarm.Alarm;
+import org.cougaar.core.plugin.ComponentPlugin;
 
 public class EffortWaster extends ComponentPlugin {
   // Parameters of performance for the EffortWaster Plugin.  The variables are

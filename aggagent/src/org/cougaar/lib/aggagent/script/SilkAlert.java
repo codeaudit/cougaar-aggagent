@@ -21,12 +21,13 @@
 
 package org.cougaar.lib.aggagent.script;
 
-import java.io.StringReader;
+import org.cougaar.lib.aggagent.query.AggregationQuery;
 import org.cougaar.lib.aggagent.query.Alert;
+import org.cougaar.lib.aggagent.query.QueryResultAdapter;
+import org.cougaar.lib.aggagent.query.ResultSetDataAtom;
+
 import silk.Procedure;
 import silk.SI;
-
-import org.cougaar.lib.aggagent.query.*;
 
 /**
  *  A concrete implementation of the Alert class that uses a SILK script as its

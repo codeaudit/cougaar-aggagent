@@ -23,12 +23,10 @@ package org.cougaar.lib.aggagent.script;
 
 import java.util.Collection;
 
+import org.cougaar.lib.aggagent.session.XMLEncoder;
 import org.python.core.PyFunction;
-import org.python.core.PyInteger;
 import org.python.core.PyObject;
 import org.python.util.PythonInterpreter;
-
-import org.cougaar.lib.aggagent.session.XMLEncoder;
 
 /**
  *  An implementation of XMLEncoder that derives its functionality from

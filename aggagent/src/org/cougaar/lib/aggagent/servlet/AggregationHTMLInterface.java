@@ -23,26 +23,18 @@ package org.cougaar.lib.aggagent.servlet;
 import java.io.PrintWriter;
 import java.net.URLEncoder;
 import java.util.Collection;
-import java.util.Enumeration;
 import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.Vector;
+
 import javax.servlet.http.HttpServletRequest;
 
-import org.cougaar.core.blackboard.IncrementalSubscription;
-import org.cougaar.core.blackboard.Subscription;
 import org.cougaar.core.service.BlackboardService;
-import org.cougaar.util.UnaryPredicate;
-
+import org.cougaar.core.service.UIDService;
+import org.cougaar.lib.aggagent.query.AggregationQuery;
 import org.cougaar.lib.aggagent.query.Alert;
 import org.cougaar.lib.aggagent.query.AlertDescriptor;
-import org.cougaar.lib.aggagent.query.AggregationQuery;
 import org.cougaar.lib.aggagent.query.QueryResultAdapter;
-import org.cougaar.lib.aggagent.session.SessionManager;
-import org.cougaar.lib.aggagent.util.Enum.*;
-import org.cougaar.core.service.UIDService;
-
 import org.cougaar.lib.aggagent.test.CycleSizeAlert;
+import org.cougaar.lib.aggagent.util.Enum.QueryType;
 
 public class AggregationHTMLInterface extends AggregationServletInterface
 {

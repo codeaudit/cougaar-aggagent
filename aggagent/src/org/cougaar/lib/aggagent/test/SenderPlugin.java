@@ -21,13 +21,12 @@
 
 package org.cougaar.lib.aggagent.test;
 
-import java.util.*;
+import java.util.Iterator;
+
 import org.cougaar.core.agent.service.alarm.Alarm;
+import org.cougaar.core.blackboard.IncrementalSubscription;
 import org.cougaar.core.mts.MessageAddress;
-import org.cougaar.core.mts.Message;
-import org.cougaar.core.mts.MessageAddress;
-import org.cougaar.core.plugin.*;
-import org.cougaar.core.blackboard.*;
+import org.cougaar.core.plugin.ComponentPlugin;
 
 /**
  *  This is an example demonstrating the use of the Relay mechanism.

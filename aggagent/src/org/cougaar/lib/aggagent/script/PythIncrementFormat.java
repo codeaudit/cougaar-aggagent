@@ -21,14 +21,12 @@
 
 package org.cougaar.lib.aggagent.script;
 
-import org.python.core.PyFunction;
-import org.python.core.PyInteger;
-import org.python.core.PyObject;
-import org.python.util.PythonInterpreter;
-
-import org.cougaar.lib.aggagent.session.UpdateDelta;
 import org.cougaar.lib.aggagent.session.IncrementFormat;
 import org.cougaar.lib.aggagent.session.SubscriptionAccess;
+import org.cougaar.lib.aggagent.session.UpdateDelta;
+import org.python.core.PyFunction;
+import org.python.core.PyObject;
+import org.python.util.PythonInterpreter;
 
 /**
  *  An implementation of IncrementFormat that derives its functionality from

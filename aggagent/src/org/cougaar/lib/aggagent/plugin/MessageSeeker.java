@@ -20,8 +20,7 @@
  */
 package org.cougaar.lib.aggagent.plugin;
 
-import org.cougaar.util.*;
-import org.cougaar.core.mts.*;
+import org.cougaar.util.UnaryPredicate;
 
 class MessageSeeker implements UnaryPredicate {
     private boolean wantLocal;

@@ -24,12 +24,10 @@ package org.cougaar.lib.aggagent.script;
 import java.util.Iterator;
 import java.util.List;
 
+import org.cougaar.lib.aggagent.query.Aggregator;
 import org.python.core.PyFunction;
-import org.python.core.PyInteger;
 import org.python.core.PyObject;
 import org.python.util.PythonInterpreter;
-
-import org.cougaar.lib.aggagent.query.Aggregator;
 
 /**
  *  An implementation of Aggregator that derives its functionality from a

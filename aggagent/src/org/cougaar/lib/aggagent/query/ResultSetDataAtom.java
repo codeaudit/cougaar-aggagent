@@ -20,19 +20,18 @@
  */
 package org.cougaar.lib.aggagent.query;
 
-import org.w3c.dom.*;
-
 import java.io.Serializable;
-import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 
 import org.cougaar.lib.aggagent.session.XmlTransferable;
 import org.cougaar.lib.aggagent.util.InverseSax;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 // import org.cougaar.lib.aggagent.util.XmlUtils;
 
 public class ResultSetDataAtom implements XmlTransferable, Serializable {

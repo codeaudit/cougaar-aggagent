@@ -20,21 +20,25 @@
  */
 package org.cougaar.lib.aggagent.servlet;
 
-import java.io.*;
+import java.io.PrintWriter;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.StringTokenizer;
+
 import javax.servlet.http.HttpServletRequest;
 
-import org.cougaar.lib.aggagent.query.Alert;
-import org.cougaar.lib.aggagent.query.AlertDescriptor;
 import org.cougaar.lib.aggagent.query.AggregationQuery;
 import org.cougaar.lib.aggagent.query.AggregationResultSet;
+import org.cougaar.lib.aggagent.query.Alert;
+import org.cougaar.lib.aggagent.query.AlertDescriptor;
 import org.cougaar.lib.aggagent.query.QueryResultAdapter;
 import org.cougaar.lib.aggagent.query.ResultSetDataAtom;
 import org.cougaar.lib.aggagent.query.ScriptSpec;
-import org.cougaar.lib.aggagent.util.*;
-import org.cougaar.lib.aggagent.util.Enum.*;
+import org.cougaar.lib.aggagent.util.Enum.Language;
+import org.cougaar.lib.aggagent.util.Enum.QueryType;
+import org.cougaar.lib.aggagent.util.Enum.ScriptType;
+import org.cougaar.lib.aggagent.util.Enum.UpdateMethod;
+import org.cougaar.lib.aggagent.util.Enum.XmlFormat;
 
 /**
  * HTML utilities to assist with HTML presentation and form post interpretation

@@ -21,12 +21,12 @@
 
 package org.cougaar.lib.aggagent.script;
 
-import silk.Procedure;
-import silk.SI;
-
-import org.cougaar.lib.aggagent.session.UpdateDelta;
 import org.cougaar.lib.aggagent.session.IncrementFormat;
 import org.cougaar.lib.aggagent.session.SubscriptionAccess;
+import org.cougaar.lib.aggagent.session.UpdateDelta;
+
+import silk.Procedure;
+import silk.SI;
 
 /**
  *  An implementation of the IncrementFormat interface that derives its

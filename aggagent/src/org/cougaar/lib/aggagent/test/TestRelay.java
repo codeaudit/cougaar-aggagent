@@ -20,10 +20,13 @@
  */
 package org.cougaar.lib.aggagent.test;
 
-import java.util.Set;
 import java.util.Collections;
-import org.cougaar.core.relay.*;
+import java.util.Set;
+
 import org.cougaar.core.mts.MessageAddress;
+import org.cougaar.core.relay.Relay;
+import org.cougaar.core.relay.Relay.TargetFactory;
+import org.cougaar.core.relay.Relay.Token;
 import org.cougaar.core.util.UID;
 
 /**

@@ -22,33 +22,29 @@ package org.cougaar.lib.aggagent.servlet;
 
 import java.io.PrintWriter;
 import java.util.Collection;
-import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import java.util.Vector;
+
 import javax.servlet.http.HttpServletRequest;
 
-import org.w3c.dom.*;
-
-import org.cougaar.core.blackboard.IncrementalSubscription;
-import org.cougaar.core.blackboard.Subscription;
-import org.cougaar.core.wp.ListAllAgents;
 import org.cougaar.core.service.BlackboardService;
+import org.cougaar.core.service.UIDService;
 import org.cougaar.core.service.wp.WhitePagesService;
-import org.cougaar.util.UnaryPredicate;
-
+import org.cougaar.core.wp.ListAllAgents;
+import org.cougaar.lib.aggagent.query.AggregationQuery;
 import org.cougaar.lib.aggagent.query.Alert;
 import org.cougaar.lib.aggagent.query.AlertDescriptor;
-import org.cougaar.lib.aggagent.query.AggregationQuery;
 import org.cougaar.lib.aggagent.query.QueryResultAdapter;
 import org.cougaar.lib.aggagent.session.SessionManager;
 import org.cougaar.lib.aggagent.session.XMLEncoder;
 import org.cougaar.lib.aggagent.session.XmlIncrement;
-import org.cougaar.lib.aggagent.util.Enum.*;
 import org.cougaar.lib.aggagent.util.XmlUtils;
-import org.cougaar.core.service.UIDService;
+import org.cougaar.lib.aggagent.util.Enum.QueryType;
+import org.cougaar.util.UnaryPredicate;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 public class AggregationXMLInterface extends AggregationServletInterface
 {

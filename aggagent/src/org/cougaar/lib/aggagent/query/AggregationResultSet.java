@@ -21,10 +21,9 @@
 
 package org.cougaar.lib.aggagent.query;
 
-import org.w3c.dom.*;
-
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -32,15 +31,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.StringTokenizer;
-import java.util.Enumeration;
 import java.util.Vector;
-
 
 import org.cougaar.lib.aggagent.session.UpdateDelta;
 import org.cougaar.lib.aggagent.session.XmlTransferable;
 import org.cougaar.lib.aggagent.util.InverseSax;
 import org.cougaar.lib.aggagent.util.XmlUtils;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 /**
  *  A Repository for results being returned by Clusters for the associated
