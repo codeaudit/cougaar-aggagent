@@ -72,7 +72,7 @@ public class AggregationPlugin extends ComponentPlugin
   {
     me = getBindingSite().getAgentIdentifier();
     querySub = subscribeIncr(new QuerySeeker());
-    messageSub = subscribeIncr(new MessageSeeker());
+    messageSub = subscribeIncr(new MessageSeeker(true));
   }
 
   public void execute()
@@ -298,6 +298,8 @@ public class AggregationPlugin extends ComponentPlugin
       getBindingSite().getAgentIdentifier() + " to " + address.getAddress());
     XMLMessage msg = new XMLMessage(message);
     AggRelay relay = new AggRelay(getUIDService().nextUID(), me, address, msg, null);
+    // I need to flag this relay as one that I created, so I don't try to service it, too.
+    relay.setLocal(true);
     getBlackboardService().publishAdd(relay);
     if (log.isDebugEnabled()) log.debug("AggPlugins:("+me+"):sendMessage:  done publishized it");
   }
@@ -375,3 +377,4 @@ public class AggregationPlugin extends ComponentPlugin
   }
   
 }
+

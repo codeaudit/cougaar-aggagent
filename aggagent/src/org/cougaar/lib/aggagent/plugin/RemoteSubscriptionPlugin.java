@@ -54,7 +54,7 @@ public class RemoteSubscriptionPlugin extends ComponentPlugin
   public void setupSubscriptions()
   {
     me = getBindingSite().getAgentIdentifier();
-    messageSub = subscribeIncr(new MessageSeeker());
+    messageSub = subscribeIncr(new MessageSeeker(false));
   }
 
 

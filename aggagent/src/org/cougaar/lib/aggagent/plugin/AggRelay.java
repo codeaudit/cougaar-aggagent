@@ -42,9 +42,13 @@ implements Relay.Source, Relay.Target, XMLizable
 
   private XMLMessage content;
   private XMLMessage response;
+  
 
   private transient Set _targets;
 
+  /** Holds value of property local. */
+  private transient boolean local = false;
+  
   /**
    * @param content initial content
    * @param response initial response
@@ -180,6 +184,20 @@ implements Relay.Source, Relay.Target, XMLizable
 
   public String toString() {
     return "("+uid+", "+content+", "+response+")";
+  }
+  
+  /** Getter for property local.
+   * @return Value of property local.
+   */
+  public boolean isLocal() {
+      return local;
+  }
+  
+  /** Setter for property local.
+   * @param local New value of property local.
+   */
+  public void setLocal(boolean local) {
+      this.local = local;
   }
   
 }

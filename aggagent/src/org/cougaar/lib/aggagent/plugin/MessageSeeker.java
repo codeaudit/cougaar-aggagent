@@ -23,12 +23,16 @@ package org.cougaar.lib.aggagent.plugin;
 import org.cougaar.util.*;
 import org.cougaar.core.mts.*;
 
-public class MessageSeeker implements UnaryPredicate {
-    public MessageSeeker() {
-    
+class MessageSeeker implements UnaryPredicate {
+    private boolean wantLocal;
+    public MessageSeeker(boolean wantLocal) {
+        this.wantLocal = wantLocal;
     }
     public boolean execute(Object o) {
-      return (o instanceof AggRelay);
+       if (o instanceof AggRelay) {
+           return wantLocal == ((AggRelay)o).isLocal();
+       }
+       return false;
     }
   }
 

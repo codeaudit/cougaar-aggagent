@@ -35,6 +35,7 @@ public class EffortWaster extends ComponentPlugin {
 
   private Vector cycles = new Vector();
   private int nextCycle = 1;
+  private int initialValue = 1;
 
   public void setMaxCycles (String v) {
     try {
@@ -43,6 +44,16 @@ public class EffortWaster extends ComponentPlugin {
     catch (NumberFormatException nfe) {
       System.out.println(
         "EffortWaster::setMaxCycles:  bad number format \"" + v + "\"");
+    }
+  }
+
+  public void setInitialValue (String v) {
+    try {
+      initialValue = Integer.parseInt(v);
+    }
+    catch (NumberFormatException nfe) {
+      System.out.println(
+        "EffortWaster::setInitialValue:  bad number format \"" + v + "\"");
     }
   }
 
@@ -68,15 +79,19 @@ public class EffortWaster extends ComponentPlugin {
 
   public void setupSubscriptions () {
     Pair p = new Pair();
-    for (Iterator i = getParameters().iterator(); i.hasNext(); ) {
-      p.load(i.next());
-      if ("maxCycles".equals(p.name))
-        setMaxCycles(p.value);
-      else if ("pauseInterval".equals(p.name))
-        setPauseInterval(p.value);
-      else
-        System.out.println(
-          "EffortWaster:  unrecognized parameter \"" + p.name + "\"");
+    if (getParameters() != null) {
+        for (Iterator i = getParameters().iterator(); i.hasNext(); ) {
+            p.load(i.next());
+            if ("maxCycles".equals(p.name))
+                setMaxCycles(p.value);
+            else if ("pauseInterval".equals(p.name))
+                setPauseInterval(p.value);
+            else if ("initialValue".equals(p.name))
+                setInitialValue(p.value);
+            else
+                System.out.println(
+                "EffortWaster:  unrecognized parameter \"" + p.name + "\"");
+        }
     }
 
     wakeAfter(initialWait);
@@ -110,7 +125,7 @@ public class EffortWaster extends ComponentPlugin {
 
     Vector additions = new Vector();
     if (cycles.size() < maxCycles) {
-      NumberCycle nc = new NumberCycle(nextCycle++);
+      NumberCycle nc = new NumberCycle(nextCycle++, initialValue);
       additions.add(nc);
       getBlackboardService().publishAdd(nc);
     }
