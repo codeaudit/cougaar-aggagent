@@ -164,7 +164,10 @@ public class AggregationXMLInterface extends AggregationServletInterface
       }
       else
       {
-        waitForAndReturnResults(qra.getID(), out, true);
+        if (aq.timeoutSupplied())
+          waitForAndReturnResults(qra.getID(), out, true, aq.getTimeout());
+        else
+          waitForAndReturnResults(qra.getID(), out, true);
       }
     }
     catch (Exception e)

@@ -14,18 +14,29 @@ import org.cougaar.lib.aggagent.query.Alert;
 import org.cougaar.lib.aggagent.query.QueryResultAdapter;
 import org.cougaar.lib.aggagent.session.RemoteBlackboardSubscription;
 import org.cougaar.lib.aggagent.session.SessionManager;
+import org.cougaar.lib.aggagent.query.AggregationResultSet;
 
 public abstract class AggregationServletInterface
 {
   private BlackboardService blackboard;
   private SubscriptionMonitorSupport subscriptionMonitorSupport;
-
+  private long timeoutDefault = 0;  // this can be overridden by argument to waitForAndReturnResults
+  
   public AggregationServletInterface (
                         BlackboardService blackboard,
                         SubscriptionMonitorSupport subscriptionMonitorSupport)
   {
     this.blackboard = blackboard;
     this.subscriptionMonitorSupport = subscriptionMonitorSupport;
+    String timeoutStr = System.getProperty("org.cougaar.lib.aggagent.timeout");
+    if (timeoutStr != null) {
+      try {
+        timeoutDefault = Long.parseLong(timeoutStr);
+      } catch (NumberFormatException nfe) {
+        System.err.println("WARNING: Received invalid number for org.cougaar.lib.aggagent.timeout: " + timeoutStr);
+        timeoutDefault = 0;
+      }
+    }
   }
 
   public abstract void handleRequest(PrintWriter out,
@@ -151,13 +162,20 @@ public abstract class AggregationServletInterface
   protected void waitForAndReturnResults(String queryId,
                                          PrintWriter out, boolean xml)
   {
+    waitForAndReturnResults(queryId, out, xml, timeoutDefault);
+  }
+  
+  protected void waitForAndReturnResults(String queryId,
+                                         PrintWriter out, boolean xml,
+                                         final long timeout)
+  {
     class ChangeListener implements SubscriptionListener
     {
       public QueryResultAdapter changedQra = null;
 
       public synchronized void waitForChange () {
           try {
-            this.wait();
+            this.wait(timeout);
           }
           catch (InterruptedException bla) { }
       }
@@ -169,24 +187,13 @@ public abstract class AggregationServletInterface
           if (changedList.hasMoreElements())
           {
             changedQra = (QueryResultAdapter)changedList.nextElement();
-            if (allClustersResponded(changedQra)) {
+            if (changedQra.allClustersResponded()) {
               //System.out.println("All clusters checked in");
               this.notify();              
             } else {
               //System.out.println("Still waiting for some clusters");
             }
           }
-      }
-
-      private boolean allClustersResponded(QueryResultAdapter qra) {
-        Set responded = qra.getRawResultSet().getRespondingClusters();
-
-        Enumeration enum = qra.getQuery().getSourceClusters();
-        while (enum.hasMoreElements())
-          if (!responded.contains(enum.nextElement()))
-            return false;
-
-        return true;
       }
 
     }
@@ -209,10 +216,26 @@ public abstract class AggregationServletInterface
         }
     }
 
+    // It's possible that we never heard any updates on the QRA.  If so, retrieve it
+    // from the Blackboard now.
+    if (cl.changedQra == null) {
+        cl.changedQra = (QueryResultAdapter) ((IncrementalSubscription)s).first();
+    }
+
+    // Set any unresponding agents as exceptions on the result set
+    Set responded = cl.changedQra.getRawResultSet().getRespondingClusters();
+    Enumeration enum = cl.changedQra.getQuery().getSourceClusters();
+    AggregationResultSet results = cl.changedQra.getResultSet();
+    while (enum.hasMoreElements()) {
+      String clusterID = (String) enum.nextElement();
+      if (!responded.contains(clusterID))
+        results.setException(clusterID, "Agent " + clusterID + " did not respond to query before timeout occurred");
+    }
+    
     unsubscribe(s);
     if (xml)
     {
-      out.println(cl.changedQra.getResultSet().toXml());
+      out.println(results.toXml());
     }
     else
     {

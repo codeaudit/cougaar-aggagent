@@ -175,7 +175,10 @@ public class AggregationHTMLInterface extends AggregationServletInterface
     }
     else
     {
-      waitForAndReturnResults(qra.getID(), out, false);
+      if (aq.timeoutSupplied())
+        waitForAndReturnResults(qra.getID(), out, false, aq.getTimeout());
+      else
+        waitForAndReturnResults(qra.getID(), out, false);
     }
   }
 
