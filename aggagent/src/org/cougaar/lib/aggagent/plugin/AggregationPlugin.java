@@ -1,3 +1,23 @@
+/*
+ * <copyright>
+ *  Copyright 1997-2001 BBNT Solutions, LLC
+ *  under sponsorship of the Defense Advanced Research Projects Agency (DARPA).
+ * 
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the Cougaar Open Source License as published by
+ *  DARPA on the Cougaar Open Source Website (www.cougaar.org).
+ * 
+ *  THE COUGAAR SOFTWARE AND ANY DERIVATIVE SUPPLIED BY LICENSOR IS
+ *  PROVIDED 'AS IS' WITHOUT WARRANTIES OF ANY KIND, WHETHER EXPRESS OR
+ *  IMPLIED, INCLUDING (BUT NOT LIMITED TO) ALL IMPLIED WARRANTIES OF
+ *  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE, AND WITHOUT
+ *  ANY WARRANTIES AS TO NON-INFRINGEMENT.  IN NO EVENT SHALL COPYRIGHT
+ *  HOLDER BE LIABLE FOR ANY DIRECT, SPECIAL, INDIRECT OR CONSEQUENTIAL
+ *  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE OF DATA OR PROFITS,
+ *  TORTIOUS CONDUCT, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ *  PERFORMANCE OF THE COUGAAR SOFTWARE.
+ * </copyright>
+ */
 package org.cougaar.lib.aggagent.plugin;
 
 import java.io.*;
@@ -14,10 +34,12 @@ import org.cougaar.core.blackboard.*;
 import org.cougaar.core.mts.Message;
 import org.cougaar.core.mts.MessageAddress;
 import org.cougaar.core.plugin.*;
+import org.cougaar.core.service.*;
 import org.cougaar.core.service.NamingService;
 import org.cougaar.core.service.MessageTransportService;
 import org.cougaar.util.UnaryPredicate;
 
+import org.cougaar.lib.aggagent.domain.*;
 import org.cougaar.lib.aggagent.query.*;
 import org.cougaar.lib.aggagent.session.*;
 import org.cougaar.lib.aggagent.util.Const;
@@ -29,22 +51,17 @@ import org.cougaar.core.mts.MessageAddress;
 import org.cougaar.core.mts.*;
 import org.cougaar.core.component.*;
 
+/**
+ * Receives aggregation requests in the form of QueryResultAdapter objects.
+ */
 public class AggregationPlugin
     extends ComponentPlugin
-    implements MessageTransportClient, ServiceRevokedListener
 {
-  private static final boolean debug = false;
-
-  protected static MessageAddress myAddress;
-
   // Subscribe to all QueryResultAdapter objects
-  private IncrementalSubscription querySub = null;
+  private IncrementalSubscription querySub;
+  private IncrementalSubscription messageSub;
 
-  protected MessageTransportService messenger = null;
-
-
-
-  private class QuerySeeker implements UnaryPredicate
+  private static class QuerySeeker implements UnaryPredicate
   {
     public boolean execute (Object o)
     {
@@ -59,35 +76,34 @@ public class AggregationPlugin
     return (IncrementalSubscription) getBlackboardService().subscribe(p);
   }
 
+  protected ClusterIdentifier me;
+  
   public void setupSubscriptions()
   {
-    myAddress =
-      createAggAddress(getBindingSite().getAgentIdentifier().toString());
-
-    messenger = (MessageTransportService) getServiceBroker().getService(
-      this, MessageTransportService.class, this);
-
-    if (messenger != null)
-      // One must explicitly register the MessageTransportClient; otherwise,
-      // notification of messages will not be received (even though it was
-      // passed in to the call to ServiceBroker::getService
-      messenger.registerClient(this);
-    else
-      System.out.println(
-        "  X\n  X\nMessageTransportService not granted.  Too bad.\n  X\n  X");
-
+    me = getBindingSite().getAgentIdentifier();
     querySub = subscribeIncr(new QuerySeeker());
+    messageSub = subscribeIncr(new MessageSeeker(getBindingSite().getAgentIdentifier()));
   }
 
   public void execute()
   {
 
-    System.out.println("AggPlugin: execute");
+    if (log.isDebugEnabled()) log.debug("("+me+")AggPlugin: execute");
 
+    checkNewMessages();
     checkNewQueries();
     checkRemovedQueries();
 
 
+  }
+
+  private void checkNewMessages() {
+    // Only the added messages are interesting.
+    // The old ones will be deleted.
+    for(Enumeration e = messageSub.getAddedList(); e.hasMoreElements();)
+    {
+      receiveMessage((XMLMessage)e.nextElement());
+    }
   }
 
   private void checkNewQueries() {
@@ -157,7 +173,7 @@ public class AggregationPlugin
         for (Enumeration sc = aq.getSourceClusters(); sc.hasMoreElements();)
         {
           String clusterString = (String)sc.nextElement();
-System.out.println("Cancelling remote session at "+clusterString);
+          if (log.isDebugEnabled()) log.debug("("+me+")Cancelling remote session at "+clusterString);
           cancelRemoteSession(queryId, clusterString);
         }
       }
@@ -198,7 +214,7 @@ System.out.println("Cancelling remote session at "+clusterString);
   {
     sendMessage(createAggAddress(clusterId),
       frameRequestXml("push_request", queryId, null, true, qra.getQuery()));
-    System.out.println("AggPlugin::requestPushSession:  sent message");
+    if (log.isDebugEnabled()) log.debug("AggPlugin:("+me+"):requestPushSession:  sent message");
   }
 
   /**
@@ -225,11 +241,10 @@ System.out.println("Cancelling remote session at "+clusterString);
    * Receive a message.
    * Happens when a remote cluster sends me an update.
    */
-  public void receiveMessage(Message message) {
+  private void receiveMessage(XMLMessage xmsg) {
     try {
-      // System.out.println(message);
-      XMLMessage xmsg = (XMLMessage)message;
-
+      if (log.isDebugEnabled()) log.debug("AggPlugin:("+me+"):receiveMessage");
+      getBlackboardService().publishRemove(xmsg);
       Element root = XmlUtils.parse(xmsg.getText());
       String requestName = root.getNodeName();
 
@@ -241,10 +256,10 @@ System.out.println("Cancelling remote session at "+clusterString);
       String updatedQuery = delta.getQueryId();
       String updatedCluster = delta.getAgentId();
 
-      System.out.println("AggPlugin Received a message at " +
-        getBindingSite().getAgentIdentifier());
-      System.out.println(
-        "   Query update to :" + updatedQuery + " from " + updatedCluster);
+      if (log.isDebugEnabled())
+        log.debug("AggPlugin ("+me+")Received a message at " +
+        getBindingSite().getAgentIdentifier() +
+        " --- Query update to :" + updatedQuery + " from " + updatedCluster);
 
       // find query result adapter on blackboard
       Iterator updatedQueries = getBlackboardService().query(
@@ -257,12 +272,11 @@ System.out.println("Cancelling remote session at "+clusterString);
         qra.updateResults(delta);
 
         // publish changes to blackboard
-        getBlackboardService().openTransaction();
         getBlackboardService().publishChange(qra);
-        getBlackboardService().closeTransaction();
       }
       else {
-        System.err.println("AggPlugin: unable to find query ID: "+updatedQuery);
+        if (log.isErrorEnabled())
+        log.error("AggPlugin: unable to find query ID: "+updatedQuery);
       }
     } catch (Exception ex) {
       System.err.println("Error receiving message");
@@ -270,39 +284,22 @@ System.out.println("Cancelling remote session at "+clusterString);
     }
   }
 
-  public MessageAddress getMessageAddress() {
-    return myAddress;
-  }
 
-  public void serviceRevoked (ServiceRevokedEvent evt) {
-    System.out.println("MessageTransportService Revoked.  Too bad.");
-  }
-
-  protected static class XMLMessage extends Message {
-    private String text;
-    public String getText() {
-      return text;
-    }
-    public XMLMessage (MessageAddress self, MessageAddress other, String text) {
-      super(self, other);
-      this.text = text;
-    }
-    public String toString() {
-      return this.getOriginator() + " TO "+getTarget()+"\n"+text;
-    }
-  }
-
+  /**
+   * Doesn't actually send a message, but published an object that
+   * causes a message to be sent.
+   */
   protected void sendMessage (MessageAddress address, String message) {
-    System.out.println("AggPlugins::sendMessage from: " +
+    if (log.isDebugEnabled()) log.debug("AggPlugins:("+me+"):sendMessage from: " +
       getBindingSite().getAgentIdentifier() + " to " + address.getAddress());
     XMLMessage msg = new XMLMessage(
       getBindingSite().getAgentIdentifier(), address, message);
-    messenger.sendMessage(msg);
-    System.out.println("AggPlugins::sendMessage:  done");
+    getBlackboardService().publishAdd(msg);
+    if (log.isDebugEnabled()) log.debug("AggPlugins:("+me+"):sendMessage:  done publishized it");
   }
 
   protected static final MessageAddress createAggAddress(String agentName) {
-    return new ClusterIdentifier(agentName + "-agg");
+    return new ClusterIdentifier(agentName);
   }
 
   private static class QueryRAFinder implements UnaryPredicate
@@ -340,5 +337,18 @@ System.out.println("Cancelling remote session at "+clusterString);
       while (sources.hasMoreElements())
         sendMessage(createAggAddress((String) sources.nextElement()), reqStr);
     }
+  }
+
+  protected LoggingService log;
+  public void setLoggingService(LoggingService ls) {
+    if ((ls == null) && log.isDebugEnabled())
+      log.debug("Logger ("+me+")being reset to null");
+    log = ls;
+    if ((log != null) && log.isDebugEnabled())
+      log.debug("Logging ("+me+")initialized");
+  }
+
+  public LoggingService getLoggingService() {
+    return log;
   }
 }

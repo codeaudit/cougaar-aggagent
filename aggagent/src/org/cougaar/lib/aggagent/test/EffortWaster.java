@@ -1,10 +1,32 @@
+/*
+ * <copyright>
+ *  Copyright 1997-2001 BBNT Solutions, LLC
+ *  under sponsorship of the Defense Advanced Research Projects Agency (DARPA).
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the Cougaar Open Source License as published by
+ *  DARPA on the Cougaar Open Source Website (www.cougaar.org).
+ *
+ *  THE COUGAAR SOFTWARE AND ANY DERIVATIVE SUPPLIED BY LICENSOR IS
+ *  PROVIDED 'AS IS' WITHOUT WARRANTIES OF ANY KIND, WHETHER EXPRESS OR
+ *  IMPLIED, INCLUDING (BUT NOT LIMITED TO) ALL IMPLIED WARRANTIES OF
+ *  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE, AND WITHOUT
+ *  ANY WARRANTIES AS TO NON-INFRINGEMENT.  IN NO EVENT SHALL COPYRIGHT
+ *  HOLDER BE LIABLE FOR ANY DIRECT, SPECIAL, INDIRECT OR CONSEQUENTIAL
+ *  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE OF DATA OR PROFITS,
+ *  TORTIOUS CONDUCT, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ *  PERFORMANCE OF THE COUGAAR SOFTWARE.
+ * </copyright>
+ */
 package org.cougaar.lib.aggagent.test;
 
 import java.util.*;
 
-import org.cougaar.core.plugin.SimplePlugin;
+import org.cougaar.core.plugin.*;
+import org.cougaar.core.service.*;
+import org.cougaar.core.agent.service.alarm.*;
 
-public class EffortWaster extends SimplePlugin {
+public class EffortWaster extends ComponentPlugin {
   // Parameters of performance for the EffortWaster Plugin.  The variables are
   // initialized with their default values.
   private int maxCycles = 5;
@@ -82,27 +104,64 @@ public class EffortWaster extends SimplePlugin {
   }
 
   public void execute () {
+  if (!wasAwakened()) {
+    return;
+  }
+
     Vector additions = new Vector();
     if (cycles.size() < maxCycles) {
       NumberCycle nc = new NumberCycle(nextCycle++);
       additions.add(nc);
-      publishAdd(nc);
+      getBlackboardService().publishAdd(nc);
     }
 
     Vector removals = new Vector();
     for (Iterator i = cycles.iterator(); i.hasNext(); ) {
       NumberCycle nc = (NumberCycle) i.next();
       if (nc.increment()) {
-        publishChange(nc);
+        getBlackboardService().publishChange(nc);
       }
       else {
-        publishRemove(nc);
+        getBlackboardService().publishRemove(nc);
         removals.add(nc);
       }
     }
     cycles.removeAll(removals);
     cycles.addAll(additions);
-
     wakeAfter(pauseInterval);
   }
+
+  private void wakeAfter(long pauseInterval) {
+    long now = System.currentTimeMillis();
+    long wakeAt = now + pauseInterval;
+    Alarm alarm = new PluginAlarm(now + pauseInterval);
+    getAlarmService().addRealTimeAlarm(alarm);
+  }
+
+  public class PluginAlarm implements Alarm {
+    private long expiresAt;
+    private boolean expired = false;
+    public PluginAlarm (long expirationTime) {
+      expiresAt = expirationTime;
+    }
+    public long getExpirationTime() { return expiresAt; }
+    public synchronized void expire() {
+      if (!expired) {
+        expired = true;
+        getBlackboardService().signalClientActivity();
+      }
+    }
+    public boolean hasExpired() { return expired; }
+    public synchronized boolean cancel() {
+      boolean was = expired;
+      expired=true;
+      return was;
+    }
+    public String toString() {
+      return "<PluginAlarm "+expiresAt+
+        (expired?"(Expired) ":" ")+
+        "for "+EffortWaster.this.toString()+">";
+    }
+  }
+
 }

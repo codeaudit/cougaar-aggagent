@@ -1,3 +1,23 @@
+/*
+ * <copyright>
+ *  Copyright 1997-2001 BBNT Solutions, LLC
+ *  under sponsorship of the Defense Advanced Research Projects Agency (DARPA).
+ * 
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the Cougaar Open Source License as published by
+ *  DARPA on the Cougaar Open Source Website (www.cougaar.org).
+ * 
+ *  THE COUGAAR SOFTWARE AND ANY DERIVATIVE SUPPLIED BY LICENSOR IS
+ *  PROVIDED 'AS IS' WITHOUT WARRANTIES OF ANY KIND, WHETHER EXPRESS OR
+ *  IMPLIED, INCLUDING (BUT NOT LIMITED TO) ALL IMPLIED WARRANTIES OF
+ *  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE, AND WITHOUT
+ *  ANY WARRANTIES AS TO NON-INFRINGEMENT.  IN NO EVENT SHALL COPYRIGHT
+ *  HOLDER BE LIABLE FOR ANY DIRECT, SPECIAL, INDIRECT OR CONSEQUENTIAL
+ *  DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE OF DATA OR PROFITS,
+ *  TORTIOUS CONDUCT, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ *  PERFORMANCE OF THE COUGAAR SOFTWARE.
+ * </copyright>
+ */
 package org.cougaar.lib.aggagent.plugin;
 
 import java.io.*;
@@ -9,43 +29,50 @@ import org.w3c.dom.*;
 import org.cougaar.lib.aggagent.util.*;
 import org.cougaar.lib.aggagent.query.*;
 import org.cougaar.lib.aggagent.session.*;
+import org.cougaar.lib.aggagent.domain.*;
 
 import org.cougaar.util.*;
 import org.cougaar.core.node.*;
 import org.cougaar.core.mts.*;
 import org.cougaar.core.component.*;
 import org.cougaar.core.agent.*;
+import org.cougaar.core.service.*;
+import org.cougaar.core.plugin.ComponentPlugin;
 import org.cougaar.core.domain.*;
 import org.cougaar.core.blackboard.*;
 import org.cougaar.core.mts.Message;
 import org.cougaar.core.mts.MessageAddress;
 import org.cougaar.core.service.MessageTransportService;
 
-
-public class RemoteSubscriptionPlugin extends AggregationPlugin implements MessageTransportClient
+/**
+ * This Plugin services remote subscription requests.  It sends data back to an aggregation 
+ * as requested.  It depends on the presence of the AggDomain.
+ */
+public class RemoteSubscriptionPlugin extends ComponentPlugin
 {
-  private static final boolean debug = false;
+  private boolean debug;
   private Object lock = new Object();
+  private IncrementalSubscription messageSub;
+  protected ClusterIdentifier me;
 
   public void setupSubscriptions()
   {
-    myAddress = createAggAddress(getBindingSite().getAgentIdentifier().toString());
-
-    messenger = (MessageTransportService) getServiceBroker().getService(
-      this, MessageTransportService.class, this);
-
-    if (messenger != null)
-      // One must explicitly register the MessageTransportClient; otherwise,
-      // notification of messages will not be received (even though it was
-      // passed in to the call to ServiceBroker::getService
-      messenger.registerClient(this);
-    else
-      System.out.println(
-        "  X\n  X\nMessageTransportService not granted.  Too bad.\n  X\n  X");
+    me = getBindingSite().getAgentIdentifier();
+    messageSub = subscribeIncr(new MessageSeeker(getBindingSite().getAgentIdentifier()));
   }
 
 
   public void execute () {
+
+    if (log.isDebugEnabled()) log.debug("RemotePlugin:("+me+") Nmessages= "+messageSub.getCollection().size());
+
+    // process new messages
+    for(Enumeration e = messageSub.getAddedList(); e.hasMoreElements();)
+    {
+      receiveMessage((XMLMessage)e.nextElement());
+    }
+
+    // process changed subscriptions
     synchronized (lock)
     {
       Iterator iter = queryMap.keySet().iterator();
@@ -61,23 +88,21 @@ public class RemoteSubscriptionPlugin extends AggregationPlugin implements Messa
    * Receive a message.
    * Happens when an agg agent sends me a message.
    */
-  public void receiveMessage(Message message) {
+  private void receiveMessage(XMLMessage xmsg) {
     try {
-      getBlackboardService().openTransaction();
-      XMLMessage xmsg = (XMLMessage)message;
+      if (log.isDebugEnabled()) log.debug("RemotePlugin:("+me+") receiveMessage "+xmsg);
+      getBlackboardService().publishRemove(xmsg);
       Element root = XmlUtils.parse(xmsg.getText());
       String requestName = root.getNodeName();
-
-      if (debug)
-        System.out.println("RemotePlugin: Got message: "+requestName+":"+root.toString());
+      if (log.isDebugEnabled()) log.debug("RemotePlugin:("+me+") Got message: "+requestName+":"+root.toString());
 
       if (requestName.equals("transient_query_request"))
       {
-        transientQuery(root, createAggAddress(message.getOriginator().getAddress()));
+        transientQuery(root, createAggAddress(xmsg.getSource().getAddress()));
       }
       else if (requestName.equals("push_request"))
       {
-        createPushSession(root, createAggAddress(message.getOriginator().getAddress()));
+        createPushSession(root, createAggAddress(xmsg.getSource().getAddress()));
       }
       else if (requestName.equals("update_request"))
       {
@@ -85,7 +110,7 @@ public class RemoteSubscriptionPlugin extends AggregationPlugin implements Messa
       }
       else if (requestName.equals("pull_request"))
       {
-        createPullSession(root, createAggAddress(message.getOriginator().getAddress()));
+        createPullSession(root, createAggAddress(xmsg.getSource().getAddress()));
       }
       else if (requestName.equals("cancel_session_request"))
       {
@@ -93,8 +118,6 @@ public class RemoteSubscriptionPlugin extends AggregationPlugin implements Messa
       }
     } catch (Exception ex) {
       ex.printStackTrace();
-    } finally {
-      getBlackboardService().closeTransaction(false);
     }
   }
 
@@ -134,8 +157,6 @@ public class RemoteSubscriptionPlugin extends AggregationPlugin implements Messa
     // Send response message
     sendMessage(originator, del.toXml());
   }
-
-
 
   private void createPushSession (Element root, MessageAddress originator)
     throws Exception {
@@ -215,9 +236,21 @@ public class RemoteSubscriptionPlugin extends AggregationPlugin implements Messa
     }
 
     public void pushUpdate () {
-      if (debug) System.out.println("Updating session to agg: " + getQueryId());
+      if (log.isDebugEnabled()) log.debug("Updating session to agg("+me+"): " + getQueryId());
       sendMessage(requester, createUpdateDelta().toXml());
     }
+  }
+  /**
+   * Doesn't actually send a message, but published an object that
+   * causes a message to be sent.
+   */
+  protected void sendMessage (MessageAddress address, String message) {
+    if (log.isDebugEnabled()) log.debug("RemoteSubPlugins:("+me+"):sendMessage from: " +
+      getBindingSite().getAgentIdentifier() + " to " + address.getAddress());
+    XMLMessage msg = new XMLMessage(
+      getBindingSite().getAgentIdentifier(), address, message);
+    getBlackboardService().publishAdd(msg);
+    if (log.isDebugEnabled()) log.debug("RemoteSubPlugins:("+me+"):sendMessage:  done publishized it");
   }
 
   // This is the implementation of RemoteSession used for the PULL method.  It
@@ -239,7 +272,7 @@ public class RemoteSubscriptionPlugin extends AggregationPlugin implements Messa
     }
 
     public void pushUpdate () {
-      if (debug) System.out.println("Updating session to agg: " + getQueryId());
+      if (log.isDebugEnabled()) log.debug("Updating session to agg("+me+"): " + getQueryId());
       rbs.open();
       UpdateDelta del = createUpdateDelta();
       rbs.close();
@@ -270,7 +303,7 @@ public class RemoteSubscriptionPlugin extends AggregationPlugin implements Messa
     if (match != null)
       match.cancel();
     else
-      System.out.println("Error cancelling session " + qId + " at " +
+      if (log.isWarnEnabled()) log.warn("Error cancelling session ("+me+")" + qId + " at " +
         getBindingSite().getAgentIdentifier().getAddress());
   }
 
@@ -304,7 +337,7 @@ public class RemoteSubscriptionPlugin extends AggregationPlugin implements Messa
 
     new RemotePullSession(
       String.valueOf(idCounter++), queryId, formatter, requester, seeker);
-    if (debug) System.out.println("Pull session created");
+    if (log.isDebugEnabled()) log.debug("Pull session created("+me+")");
   }
 
   private void returnUpdate (Element root) throws Exception {
@@ -315,7 +348,29 @@ public class RemoteSubscriptionPlugin extends AggregationPlugin implements Messa
     if (bbs != null)
       bbs.pushUpdate();
     else
-      System.err.println(
-        "Error:  query not found while updating " + qId + " for " + requester);
+      if (log.isWarnEnabled()) log.warn(
+        "Error: ("+me+") query not found while updating " + qId + " for " + requester);
   }
+  
+  protected LoggingService log;
+  public void setLoggingService(LoggingService ls) {
+    if ((ls == null) && log.isDebugEnabled())
+      log.debug("Logger ("+me+")being reset to null");
+    log = ls;
+    if ((log != null) && log.isDebugEnabled())
+      log.debug("Logging ("+me+")initialized");
+  }
+
+  public LoggingService getLoggingService() {
+    return log;
+  }
+
+  protected IncrementalSubscription subscribeIncr (UnaryPredicate p) {
+    return (IncrementalSubscription) getBlackboardService().subscribe(p);
+  }
+  protected static final MessageAddress createAggAddress(String agentName) {
+//    return new ClusterIdentifier(agentName + "-agg");
+    return new ClusterIdentifier(agentName);
+  }
+
 }

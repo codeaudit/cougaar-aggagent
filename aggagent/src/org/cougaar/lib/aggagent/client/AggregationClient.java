@@ -250,7 +250,7 @@ public class AggregationClient
                         queryId + "&ALERT_NAME=" + encodedAlertName;
       String response = XmlUtils.requestString(loadedURL, null);
       success = response.equals("0");
-    } catch (java.io.UnsupportedEncodingException e)
+    } catch (Exception e)
     {
       e.printStackTrace();
     }
