@@ -1,0 +1,124 @@
+Unary Predicates:
+
+--[SILK]--
+
+(begin
+  (import "org.cougaar.lib.aggagent.test.NumberCycle")
+  (lambda (obj)
+    (.isInstance NumberCycle.class obj)))
+
+--[JPython]--
+
+from org.cougaar.lib.aggagent.test import NumberCycle
+def getCycles (x):
+  return isinstance(x, NumberCycle)
+def instantiate ():
+  return getCycles
+
+--------------------------------------------------------
+XML Encoders:
+
+--[SILK]--
+
+; Number cycle value monitor
+(begin
+  (import "org.cougaar.lib.aggagent.query.ResultSetDataAtom")
+  (lambda (nc ps)
+    (let ((data_atom (ResultSetDataAtom.)))
+      (.addIdentifier data_atom "length" (.getLength nc))
+      (.addValue      data_atom "value"  (.getValue nc))
+      (.println ps (.toXML data_atom))
+      (.flush ps))))
+
+--[JPython]--
+
+from org.cougaar.lib.aggagent.query import ResultSetDataAtom
+def encode (x, out):
+  atom = ResultSetDataAtom()
+  atom.addIdentifier("length", x.getLength())
+  atom.addValue("value", x.getValue())
+  out.println(atom.toXML())
+  out.flush()
+def instantiate ():
+  return encode
+
+--------------------------------------------------------
+IncrementFormats:
+
+--[SILK]--
+; Cycle Count XML Increment
+(begin
+  (import "java.io.PrintStream")
+  (import "org.cougaar.lib.aggagent.query.ResultSetDataAtom")
+  (lambda (out rs key qId cId)
+    (let
+      ((ps (PrintStream. out))
+       (header (string-append "<update session_key=\"" key "\" query_id=\"" qId "\" cluster_id=\"" cId "\">"))
+       (dataAtom (ResultSetDataAtom.)))
+      (.println ps header)
+      (.println ps "<added>")
+      (.addIdentifier dataAtom "name"  "NumberOfCycles")
+      (.addValue      dataAtom "value" (.size (.getMembership rs)))
+      (.println ps (.toXML dataAtom))
+      (.println ps "</added>")
+      (.println ps "</update>")
+      (.flush ps))))
+
+
+--[JPython]--
+
+from java.io import PrintStream
+from org.cougaar.lib.aggagent.query import ResultSetDataAtom
+def header (ps, key, qId, cId):
+  ps.print('<update session_key="' + key + '" query_id="' + qId)
+  ps.println('" cluster_id="' + cId + '">');
+def encode (out, rs, key, qId, cId):
+  ps = PrintStream(out)
+  header(ps, key, qId, cId)
+  ps.println('<added>')
+  atom = ResultSetDataAtom()
+  atom.addIdentifier('name', 'NumberOfCycles')
+  atom.addValue('value', rs.getMembership().size())
+  ps.println(atom.toXML())
+  ps.println('</added>')
+  ps.println('</update>')
+  ps.flush()
+def instantiate ():
+  return encode
+
+--------------------------------------------------------
+Alerts:
+
+--[SILK]--
+
+;result set not empty alert
+(begin
+  (lambda (self)
+    (let ((qra (.getQueryAdapter self)))
+      (.setAlerted self (.hasNext (.getAllAtoms (.getResultSet qra)))))))
+
+;ever changing alert
+(begin
+  (lambda (self)
+    (.setAlerted self (not (.isAlerted self)))))
+
+--[JPython]--
+
+from java.lang import Integer
+def handle (x):
+  i = x.getQueryAdapter().getResultSet().getAllAtoms()
+  while (i.hasNext()):
+    y = i.next()
+    if (Integer.parseInt(y.getValue("value")) % 21 == 2):
+      x.setAlerted(1)
+      return
+  x.setAlerted(0)
+def instantiate ():
+  return handle
+
+from java.lang import System
+def handle (x):
+  System.out.println(x.getClass())
+def instantiate ():
+  return handle
+

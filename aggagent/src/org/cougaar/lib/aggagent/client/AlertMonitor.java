@@ -1,0 +1,168 @@
+package org.cougaar.lib.aggagent.client;
+
+import org.w3c.dom.*;
+import org.cougaar.lib.aggagent.query.AlertDescriptor;
+
+  /**
+   * Provides support for event driven monitoring of active Alert(s) on the
+   * assessment agent.
+   *
+   * Maintains a collection of monitored alerts and keeps them updated
+   * based on changes on the assessment agent's blackboard.  To react to these
+   * changes either:
+   * <UL>
+   * <LI>add update listener(s) to this monitor class and receive events for
+   *     changes to all monitored alerts or</LI>
+   * <LI>add update listener(s) to 'live' alerts provided by this monitor and
+   *     receive events only for those objects</LI>
+   * </UL>
+   */
+  public class AlertMonitor extends Monitor
+  {
+    public AlertMonitor(String serverURL, int updateMethod)
+    {
+      super(serverURL, "alert", updateMethod);
+    }
+
+    /**
+     * Monitor an alert managed by the assessment agent.  Returns a 'live'
+     * alert descriptor for a given persistent query. Update listeners can be
+     * added to this live object to react to changes to that object.  If
+     * monitor is not set to monitor-all-objects, this alert is added to
+     * this monitor's set of monitored objects.
+     *
+     * @param queryId   id of query result adapter on assessment agent that is
+     *                  maintaining this alert.
+     * @param alertName name of alert to monitor
+     *
+     * @return a live alert descriptor that is actively being updated to match
+     *         a subject alert on the assessment agent.
+     */
+    public AlertDescriptor monitorAlert(String queryId, String alertName)
+    {
+      AlertDescriptor ad = new AlertDescriptor();
+      ad.setQueryId(queryId);
+      ad.setName(alertName);
+      AlertIdentifier ai = new AlertIdentifier(queryId, alertName);
+      AlertDescriptor monitoredAlert =
+        (AlertDescriptor)monitorObject(ai, ad);
+      return monitoredAlert;
+    }
+
+    /**
+     * Remove this alert from the set of alerts being monitored.
+     * This method has a negligible effect if monitor-all is turned on
+     * (old live alert object will die, but new one will take it's place
+     *  if that alert is still on the log plan).
+     *
+     * @param queryId   id of query result adapter on assessment agent that is
+     *                  maintaining this alert.
+     * @param alertName name of alert to monitor
+     *
+     * @return previously live alert descriptor that was removed.
+     */
+    public AlertDescriptor stopMonitoringAlert(String queryId,String alertName)
+    {
+      AlertIdentifier ai = new AlertIdentifier(queryId, alertName);
+      AlertDescriptor removedAlert = (AlertDescriptor)stopMonitoringObject(ai);
+      return removedAlert;
+    }
+
+     /**
+     * Returns true if an alert matching the given identifiers is currently
+     * being updated by this monitor.
+     *
+     * @param queryId   id of query result adapter on assessment agent that is
+     *                  maintaining this alert.
+     * @param alertName name of alert to monitor
+     *
+     * @return true if an alert matching the given identifiers is currently
+     *         being updated by this monitor.
+     */
+    public boolean isMonitoring(String queryId, String alertName)
+    {
+      AlertIdentifier ai = new AlertIdentifier(queryId, alertName);
+      return isMonitoring(ai);
+    }
+
+    /**
+     * Provides a xml representation of a given alert identifier.
+     *
+     * @param identifier an object that uniquely identifies an alert on the
+     *                   assessment agent.
+     *
+     * @return a xml representation of given alert identifier.
+     */
+    protected String createIdTag(Object identifier)
+    {
+      AlertIdentifier ai = (AlertIdentifier)identifier;
+      return "<alert query_id=\"" + ai.queryId +
+             "\" alert_name=\"" + ai.alertName + "\"/>";
+    }
+
+    /**
+     * Called when a update event (either add or change) is reported by the
+     * assessment agent to an alert described by the given xml element
+     * tree.
+     *
+     * @param monitoredElement xml element tree that describes the updated
+     *                         alert.
+     *
+     * @return a live alert descriptor updated based on the given xml
+     */
+    protected Object update(Element monitoredElement)
+    {
+      AlertDescriptor newAd = new AlertDescriptor(monitoredElement);
+      AlertIdentifier ai =
+        new AlertIdentifier(newAd.getQueryId(), newAd.getName());
+      AlertDescriptor monitoredAlert =
+        (AlertDescriptor)monitorObject(ai, newAd);
+      monitoredAlert.setAlerted(newAd.isAlerted());
+      return monitoredAlert;
+    }
+
+    /**
+     * Called when a remove event is reported by the assessment agent to an
+     * alert described by the given xml element tree.
+     *
+     * @param monitoredElement xml element tree that describes the removed
+     *                         alert.
+     *
+     * @return previously live alert descriptor that was removed.
+     */
+    protected Object remove(Element monitoredElement)
+    {
+      AlertDescriptor ad = new AlertDescriptor(monitoredElement);
+      AlertDescriptor removedAlert =
+        stopMonitoringAlert(ad.getQueryId(), ad.getName());
+      removedAlert.fireObjectRemoved();
+      return removedAlert;
+    }
+
+    /**
+     * Used to uniquely identify an alert.  Can be used as a hashtable key.
+     */
+    private static class AlertIdentifier
+    {
+      public String queryId = null;
+      public String alertName = null;
+      public AlertIdentifier(String queryId, String alertName)
+      {
+        this.queryId = queryId;
+        this.alertName = alertName;
+      }
+      public boolean equals(Object o)
+      {
+        if (o instanceof AlertIdentifier)
+        {
+          AlertIdentifier ai = (AlertIdentifier)o;
+          return queryId.equals(ai.queryId) && alertName.equals(ai.alertName);
+        }
+        return false;
+      }
+      public int hashCode()
+      {
+        return queryId.hashCode() + alertName.hashCode();
+      }
+    }
+  }

@@ -1,0 +1,10 @@
+<object type="java.util.Vector">
+  <element type="org.cougaar.lib.planserver.NamedPSP">
+    <Classname>org.cougaar.lib.aggagent.psp.AggregationPSP</Classname>
+    <PSPName>assessment.psp</PSPName>
+  </element>
+  <element type="org.cougaar.lib.planserver.NamedPSP">
+    <Classname>org.cougaar.lib.aggagent.psp.AggregationKeepAlivePSP</Classname>
+    <PSPName>assessmentkeepalive.psp</PSPName>
+  </element>
+</object>

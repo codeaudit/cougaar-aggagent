@@ -1,0 +1,11 @@
+[PropertyInfo]
+alerts,Iterator,false,false, , ,true,<default>
+ID,String,false,false, , ,true,<default>
+query,AssessmentQuery,false,false, , ,true,<default>
+resultSet,AssessmentResultSet,false,false, , ,true,<default>
+pullTimer,java.util.Timer,false,false,pullTimer,pullTimer,true,<default>
+[IconNames]
+
+
+
+
