@@ -18,6 +18,6 @@ public class SilkXMLEncoder implements XMLEncoder
 
   public void encode(Object o, PrintStream ps)
   {
-    SI.call(silkProcedure, o, ps);
+    silkProcedure.apply(new Object[] {o, ps});
   }
 }

@@ -18,7 +18,9 @@ import org.python.core.PyInteger;
 import org.python.core.PyObject;
 import org.python.util.PythonInterpreter;
 
-import org.cougaar.lib.aggagent.session.*;
+import org.cougaar.lib.aggagent.session.IncrementFormat;
+import org.cougaar.lib.aggagent.session.SubscriptionAccess;
+import org.cougaar.lib.aggagent.session.RemoteBlackboardSubscription;
 
 /**
  *  An implementation of IncrementFormat that derives its functionality from
@@ -35,7 +37,7 @@ import org.cougaar.lib.aggagent.session.*;
  *  uniformity, this option is used here.  The magic function is "instantiate",
  *  which the script should define in the global context as a no-arg function
  *  that returns either an IncrementFormat instance or a function designed to
- *  act as the "encode" method of a UnaryPredicate.
+ *  act as the "encode" method of an IncrementFormat.
  *  <br><br>
  *  This class implements the IncrementFormat interface, and can be
  *  instantiated by calling the constructor or a static factory method,
@@ -69,7 +71,7 @@ public class PythIncrementFormat implements IncrementFormat {
 
   /**
    *  Create a PythIncrementFormat instance by using a script-generated
-   *  UnaryPredicate as a delegate.
+   *  IncrementFormat as a delegate.
    *  @param script the JPython script that defines the embodied functionality
    */
   public PythIncrementFormat (String script) {
@@ -93,12 +95,12 @@ public class PythIncrementFormat implements IncrementFormat {
   /**
    *  Create an IncrementFormat from a JPython script.  There are two
    *  acceptable modes for the script.  It must produce either a JPython
-   *  subclass of Java interface XMLEncoder or a JPython function that behaves
-   *  like the method IncrementFormat.encode (i.e., takes five arguments and
-   *  treats them as an OutputStream, a RemoteSubscription, and so forth).
-   *  Either way, the script is required to define the magic function
-   *  "instantiate()" to provide the function or formatter instance to the Java
-   *  context.
+   *  subclass of Java interface IncrementFormat or a JPython function that
+   *  behaves like the method IncrementFormat.encode (i.e., takes five
+   *  arguments and treats them as an OutputStream, a SubscriptionAccess, and
+   *  so forth). Either way, the script is required to define the magic
+   *  function "instantiate()" to provide the function or formatter instance to
+   *  the Java context.
    *
    *  @param script the executable script that declares classes and variables
    *  @return an IncrementFormat instance derived from the JPython scripts

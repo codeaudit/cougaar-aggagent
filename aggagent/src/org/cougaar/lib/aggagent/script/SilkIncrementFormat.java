@@ -5,7 +5,8 @@ import java.io.OutputStream;
 import silk.Procedure;
 import silk.SI;
 
-import org.cougaar.lib.aggagent.session.*;
+import org.cougaar.lib.aggagent.session.IncrementFormat;
+import org.cougaar.lib.aggagent.session.SubscriptionAccess;
 
 /**
  *  An implementation of the IncrementFormat interface that derives its
@@ -25,7 +26,7 @@ public class SilkIncrementFormat implements IncrementFormat {
   }
 
   /**
-   *  Encode the information contained in the RemoteSubscription in accordance
+   *  Encode the information contained in the SubscriptionAccess in accordance
    *  with the SILK script embodied by this SilkIncrementFormat.
    */
   public void encode (OutputStream out, SubscriptionAccess sess, String key,

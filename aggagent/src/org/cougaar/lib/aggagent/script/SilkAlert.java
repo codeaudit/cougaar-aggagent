@@ -19,8 +19,14 @@ public class SilkAlert extends Alert {
     handler = (Procedure) SI.eval(script);
   }
 
+  /**
+   *  Respond to a change in the result set by calling the SILK script.  Note
+   *  that even though this method does not take arguments, the procedure
+   *  defined in the script should accept one argument, which is the Alert
+   *  Object itself.
+   */
   public void handleUpdate () {
-    SI.call(handler, this);
+    handler.apply(new Object[] {this});
   }
 
 // - - - - - - - Test code below this point - - - - - - - - - - - - - - - - - -

@@ -16,6 +16,6 @@ public class SilkUnaryPredicate implements UnaryPredicate {
 
   public boolean execute(Object o)
   {
-    return ((Boolean)SI.call(silkProcedure, o)).booleanValue();
+    return ((Boolean) silkProcedure.apply(new Object[] {o})).booleanValue();
   }
 }
