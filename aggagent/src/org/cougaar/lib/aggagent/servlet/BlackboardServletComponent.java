@@ -8,7 +8,7 @@ import java.util.List;
 import javax.servlet.*;
 import javax.servlet.http.*;
 
-import org.cougaar.core.agent.ClusterIdentifier;
+import org.cougaar.core.mts.MessageAddress;
 import org.cougaar.core.blackboard.Subscription;
 import org.cougaar.core.component.*;
 import org.cougaar.core.plugin.ComponentPlugin;
@@ -51,7 +51,7 @@ public abstract class BlackboardServletComponent extends ComponentPlugin
   /**
    * Agent identifier for the Agent that loaded this Component.
    */
-  protected ClusterIdentifier agentId;
+  protected MessageAddress agentId;
 
   /**
    * Needed since this servlet needs to be able to acquire a list of all

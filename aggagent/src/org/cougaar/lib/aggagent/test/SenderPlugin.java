@@ -3,7 +3,7 @@ package org.cougaar.lib.aggagent.test;
 
 import java.util.*;
 import org.cougaar.core.agent.service.alarm.Alarm;
-import org.cougaar.core.agent.ClusterIdentifier;
+import org.cougaar.core.mts.MessageAddress;
 import org.cougaar.core.mts.Message;
 import org.cougaar.core.mts.MessageAddress;
 import org.cougaar.core.plugin.*;
@@ -77,7 +77,7 @@ public class SenderPlugin extends ComponentPlugin {
     source = getBindingSite().getAgentIdentifier();
     Iterator iter = this.getParameters().iterator();
     while (iter.hasNext()) {
-        MessageAddress addr = new ClusterIdentifier((String)iter.next());
+        MessageAddress addr = MessageAddress.getMessageAddress((String)iter.next());
         target = addr;
         System.out.println("Sending to : "+addr);
     }

@@ -3,6 +3,7 @@ package org.cougaar.lib.aggagent.session;
 import java.io.*;
 import java.util.*;
 
+import org.cougaar.core.mts.*;
 import org.cougaar.core.agent.*;
 import org.cougaar.core.blackboard.Subscription;
 import org.cougaar.core.domain.*;

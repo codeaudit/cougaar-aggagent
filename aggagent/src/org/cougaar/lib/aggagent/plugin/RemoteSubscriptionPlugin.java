@@ -31,9 +31,11 @@ import org.cougaar.lib.aggagent.query.*;
 import org.cougaar.lib.aggagent.session.*;
 
 import org.cougaar.util.*;
+import org.cougaar.core.mts.*;
 import org.cougaar.core.node.*;
 import org.cougaar.core.mts.*;
 import org.cougaar.core.component.*;
+import org.cougaar.core.mts.*;
 import org.cougaar.core.agent.*;
 import org.cougaar.core.service.*;
 import org.cougaar.core.plugin.ComponentPlugin;
@@ -49,7 +51,7 @@ public class RemoteSubscriptionPlugin extends ComponentPlugin
   private boolean debug;
   private Object lock = new Object();
   private IncrementalSubscription messageSub;
-  protected ClusterIdentifier me;
+  protected MessageAddress me;
 
   public void setupSubscriptions()
   {

@@ -3,7 +3,7 @@ package org.cougaar.lib.aggagent.test;
 
 import java.util.*;
 
-import org.cougaar.core.agent.ClusterIdentifier;
+import org.cougaar.core.mts.MessageAddress;
 import org.cougaar.core.component.ServiceRevokedListener;
 import org.cougaar.core.component.ServiceRevokedEvent;
 import org.cougaar.core.mts.MessageTransportClient;

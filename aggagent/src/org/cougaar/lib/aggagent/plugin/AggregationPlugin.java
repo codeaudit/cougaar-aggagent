@@ -28,6 +28,7 @@ import org.w3c.dom.*;
 import org.apache.xerces.parsers.DOMParser;
 import org.xml.sax.InputSource;
 
+import org.cougaar.core.mts.*;
 import org.cougaar.core.agent.*;
 import org.cougaar.core.domain.*;
 import org.cougaar.core.blackboard.*;
@@ -66,7 +67,7 @@ public class AggregationPlugin extends ComponentPlugin
     return (IncrementalSubscription) getBlackboardService().subscribe(p);
   }
 
-  protected ClusterIdentifier me;
+  protected MessageAddress me;
   
   public void setupSubscriptions()
   {
@@ -293,7 +294,7 @@ public class AggregationPlugin extends ComponentPlugin
    * Doesn't actually send a message, but published an object that
    * causes a message to be sent.
    */
-  protected void sendMessage (ClusterIdentifier address, String message) {
+  protected void sendMessage (MessageAddress address, String message) {
     if (log.isDebugEnabled()) log.debug("AggPlugins:("+me+"):sendMessage from: " +
       getBindingSite().getAgentIdentifier() + " to " + address.getAddress());
     XMLMessage msg = new XMLMessage(message);
@@ -304,8 +305,8 @@ public class AggregationPlugin extends ComponentPlugin
     if (log.isDebugEnabled()) log.debug("AggPlugins:("+me+"):sendMessage:  done publishized it");
   }
 
-  protected static final ClusterIdentifier createAggAddress(String agentName) {
-    return new ClusterIdentifier(agentName);
+  protected static final MessageAddress createAggAddress(String agentName) {
+    return MessageAddress.getMessageAddress(agentName);
   }
 
   private static class QueryRAFinder implements UnaryPredicate

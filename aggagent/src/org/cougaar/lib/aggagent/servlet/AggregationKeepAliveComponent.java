@@ -6,6 +6,7 @@ import javax.servlet.*;
 import javax.servlet.http.*;
 
 import org.cougaar.util.UnaryPredicate;
+import org.cougaar.core.mts.*;
 import org.cougaar.core.agent.*;
 import org.cougaar.core.domain.*;
 import org.cougaar.core.blackboard.*;
