@@ -187,10 +187,10 @@ public class PythIncrementFormat implements IncrementFormat {
     ServerPlugInSupport spis = new FakeSPIS();
     RemoteBlackboardSubscription testSubject = new RemoteBlackboardSubscription(null, null);
 
-    testSubject.subscriptionChanged(null);
+    testSubject.subscriptionChanged();
     test(x1, "x1", testSubject, "key", "queryId", "clusterId", correctAnswer);
 
-    testSubject.subscriptionChanged(null);
+    testSubject.subscriptionChanged();
     test(x2, "x2", testSubject, "key", "queryId", "clusterId", correctAnswer);
   }
 

@@ -77,7 +77,7 @@ System.out.println("AggKeepAlivePSP: execute");
      */
     public void subscriptionChanged (Subscription sub) {
 System.out.println("KeepAlivePSP: subscriptionChanged");
-      this.data.subscriptionChanged(sub);
+      this.data.subscriptionChanged();
       if (out != null)
       {
         sendUpdate(out);
