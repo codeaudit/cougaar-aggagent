@@ -74,7 +74,7 @@ public class SenderPlugin extends ComponentPlugin {
 
   IncrementalSubscription sub;
   public void setupSubscriptions () {
-    source = getBindingSite().getAgentIdentifier();
+    source = getAgentIdentifier();
     Iterator iter = this.getParameters().iterator();
     while (iter.hasNext()) {
         MessageAddress addr = MessageAddress.getMessageAddress((String)iter.next());

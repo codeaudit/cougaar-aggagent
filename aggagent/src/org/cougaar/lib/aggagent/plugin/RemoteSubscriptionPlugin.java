@@ -55,7 +55,7 @@ public class RemoteSubscriptionPlugin extends ComponentPlugin
 
   public void setupSubscriptions()
   {
-    me = getBindingSite().getAgentIdentifier();
+    me = getAgentIdentifier();
     messageSub = subscribeIncr(new MessageSeeker(false));
   }
 
@@ -190,7 +190,7 @@ public class RemoteSubscriptionPlugin extends ComponentPlugin
 
     protected BBSession (String k, String q, IncrementFormat f, AggRelay r) {
       super(k, q, f);
-      setAgentId(getBindingSite().getAgentIdentifier().toString());
+      setAgentId(getAgentIdentifier().toString());
       relay = r;
     }
 
@@ -247,7 +247,7 @@ public class RemoteSubscriptionPlugin extends ComponentPlugin
    */
   protected void sendMessage (AggRelay relay, String message) {
     if (log.isDebugEnabled()) log.debug("RemoteSubPlugins:("+me+"):sendMessage from: " +
-      getBindingSite().getAgentIdentifier() + " to " + relay.getSource());
+      getAgentIdentifier() + " to " + relay.getSource());
     XMLMessage msg = new XMLMessage(message);
     relay.updateResponse(me, msg);
     getBlackboardService().publishChange(relay);
@@ -307,7 +307,7 @@ public class RemoteSubscriptionPlugin extends ComponentPlugin
       String type = root.getNodeName();
       if (type.equals("pull_request") || type.equals("push_request"))
         if (log.isWarnEnabled()) log.warn("Error cancelling session ("+me+")" + qId + " at " +
-          getBindingSite().getAgentIdentifier().getAddress());
+          getAgentIdentifier().getAddress());
     }
   }
   

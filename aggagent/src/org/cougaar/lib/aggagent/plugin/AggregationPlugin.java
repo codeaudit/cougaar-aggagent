@@ -71,7 +71,7 @@ public class AggregationPlugin extends ComponentPlugin
   
   public void setupSubscriptions()
   {
-    me = getBindingSite().getAgentIdentifier();
+    me = getAgentIdentifier();
     querySub = subscribeIncr(new QuerySeeker());
     messageSub = subscribeIncr(new MessageSeeker(true));
   }
@@ -177,7 +177,7 @@ public class AggregationPlugin extends ComponentPlugin
       request.addAttribute("cluster_id", cId);
     if (requester)
       request.addAttribute(
-        "requester", getBindingSite().getAgentIdentifier().toString());
+        "requester", getAgentIdentifier().toString());
     if (query != null)
       query.includeScriptXml(request);
     request.endElement();
@@ -259,7 +259,7 @@ public class AggregationPlugin extends ComponentPlugin
 
       if (log.isDebugEnabled())
         log.debug("AggPlugin ("+me+")Received a message at " +
-        getBindingSite().getAgentIdentifier() +
+        getAgentIdentifier() +
         " --- Query update to :" + updatedQuery + " from " + updatedCluster);
 
       // find query result adapter on blackboard
@@ -296,7 +296,7 @@ public class AggregationPlugin extends ComponentPlugin
    */
   protected void sendMessage (MessageAddress address, String message) {
     if (log.isDebugEnabled()) log.debug("AggPlugins:("+me+"):sendMessage from: " +
-      getBindingSite().getAgentIdentifier() + " to " + address.getAddress());
+      getAgentIdentifier() + " to " + address.getAddress());
     XMLMessage msg = new XMLMessage(message);
     AggRelay relay = new AggRelay(getUIDService().nextUID(), me, address, msg, null);
     // I need to flag this relay as one that I created, so I don't try to service it, too.
