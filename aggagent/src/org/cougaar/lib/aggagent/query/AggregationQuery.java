@@ -175,11 +175,10 @@ public class AggregationQuery
       XmlUtils.appendAttribute(NAME_ATT, userDefinedName, xml);
       xml.append(">\n");
 
-      for (int i = 0; i < sourceClusters.size(); i++) {
-        XmlUtils.appendOpenTag(CLUSTER_TAG, xml, false);
-        xml.append(sourceClusters.elementAt(i));
-        XmlUtils.appendCloseTag(CLUSTER_TAG, xml);
-      }
+      for (int i = 0; i < sourceClusters.size(); i++)
+        XmlUtils.appendTextElement(
+          CLUSTER_TAG, sourceClusters.elementAt(i).toString(), xml);
+
       xml.append(scriptXML());
       xml.append(aggXML());
       XmlUtils.appendCloseTag(QUERY_TAG, xml);
