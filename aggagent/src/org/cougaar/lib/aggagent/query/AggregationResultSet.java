@@ -13,14 +13,17 @@ import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
 
+import org.cougaar.lib.aggagent.session.XmlTransferable;
 import org.cougaar.lib.aggagent.util.XmlUtils;
 
 /**
  *  A Repository for results being returned by Clusters for the associated
  *  AggregationQuery.
  */
-public class AggregationResultSet
-{
+public class AggregationResultSet implements XmlTransferable {
+  public static String RESULT_SET_TAG = "result_set";
+  public static String QUERY_ID_ATT = "query_id";
+
   private static String CLUSTER_IDENTIFIER = "cluster";
 
   private Object lock = new Object();
@@ -57,8 +60,14 @@ public class AggregationResultSet
     for (int i = 0; i < nl.getLength(); i++) {
       Element cluster = (Element) nl.item(i);
       String cid = cluster.getAttribute("id");
-      update(cid, cluster);
+      createAtomsByAgent(cid, cluster);
     }
+  }
+
+  private void createAtomsByAgent (String agentId, Element root) {
+    NodeList nl = root.getElementsByTagName(ResultSetDataAtom.DATA_ATOM_TAG);
+    for (int i = 0; i < nl.getLength(); i++)
+      update(agentId, new ResultSetDataAtom((Element) nl.item(i)));
   }
 
   /**
@@ -153,53 +162,39 @@ public class AggregationResultSet
    *  to come from the specified cluster.  The data are presented in XML format
    *  and must be parsed into individual ResultSetDataAtoms.
    */
-  private void update (String clusterId, Element atoms) {
-    NodeList nl = atoms.getElementsByTagName(ResultSetDataAtom.DATA_ATOM_TAG);
-    for (int i = 0; i < nl.getLength(); i++)
-      update(clusterId, new ResultSetDataAtom((Element) nl.item(i)));
+  private void update (String agentId, Collection atoms) {
+    for (Iterator i = atoms.iterator(); i.hasNext(); )
+      update(agentId, (ResultSetDataAtom) i.next());
   }
 
   /**
    *  Remove a series of data from this result set.
    */
-  private void remove (String clusterId, Element atoms) {
-    NodeList nl = atoms.getElementsByTagName(ResultSetDataAtom.DATA_ATOM_TAG);
-    for (int i = 0; i < nl.getLength(); i++)
-      remove(clusterId, new ResultSetDataAtom((Element) nl.item(i)));
+  private void remove (String agentId, Collection atoms) {
+    for (Iterator i = atoms.iterator(); i.hasNext(); )
+      remove(agentId, (ResultSetDataAtom) i.next());
   }
 
-  public void incrementalUpdate(String clusterId, Element root)
-  {
-    respondingClusters.add(clusterId);
+  private void removeAll (String agentId) {
+    Map table = (Map) clusterTable.get(agentId);
+    if (table != null)
+      table.clear();
+  }
 
-    if (root == null)
-      return;
-
-    if (root.getNodeName().equals("exception"))
-    {
-      String exceptionMessage = XmlUtils.getElementText(root);
-      exceptionMap.put(clusterId, exceptionMessage);
-      return;
-    }
+  public void incrementalUpdate (UpdateDelta delta) {
+    String agentId = delta.getAgentId();
+    respondingClusters.add(agentId);
 
     // update result set based on incremental change xml
-    NodeList nl = root.getChildNodes();
     synchronized (lock) {
-      for (int i = 0; i < nl.getLength(); i++) {
-        Node n = nl.item(i);
-        if (n.getNodeType() == Node.ELEMENT_NODE) {
-          Element child = (Element) n;
-          String s = child.getNodeName();
-          System.out.println(s);
-          if (s.equals("added") || s.equals("changed"))
-          {
-            update(clusterId, child);
-          }
-          else if (s.equals("removed"))
-          {
-            remove(clusterId, child);
-          }
-        }
+      if (delta.isReplacement()) {
+        removeAll(agentId);
+        update(agentId, delta.getReplacementList());
+      }
+      else {
+        update(agentId, delta.getAddedList());
+        update(agentId, delta.getChangedList());
+        remove(agentId, delta.getRemovedList());
       }
     }
   }
@@ -299,15 +294,13 @@ public class AggregationResultSet
     return l.iterator();
   }
 
-  public String toXML()
-  {
-    return toXML("");
-  }
-
-  public String toXML (String attribs) {
-    StringBuffer s = new StringBuffer("<result_set ");
-    s.append(attribs);
+  public String toXml () {
+    StringBuffer s = new StringBuffer("<");
+    s.append(RESULT_SET_TAG);
+    if (query != null)
+      XmlUtils.appendAttribute(QUERY_ID_ATT, query.getID(), s);
     s.append(">\n");
+
     synchronized (lock) {
       for (Iterator i = exceptionMap.entrySet().iterator(); i.hasNext(); ) {
         Map.Entry entry = (Map.Entry) i.next();
@@ -328,12 +321,13 @@ public class AggregationResultSet
         {
           Map.Entry entry = (Map.Entry) j.next();
           s.append(new ResultSetDataAtom(idNames, (CompoundKey) entry.getKey(),
-            (Map) entry.getValue()).toXML());
+            (Map) entry.getValue()).toXml());
         }
         s.append("</cluster>\n");
       }
     }
-    s.append("</result_set>\n");
+
+    XmlUtils.appendCloseTag(RESULT_SET_TAG, s);
 
     return s.toString();
   }
