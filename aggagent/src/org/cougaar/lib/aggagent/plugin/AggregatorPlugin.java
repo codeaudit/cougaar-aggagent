@@ -114,25 +114,38 @@ public class AggregatorPlugin extends SimplifiedPlugIn
     private DOMParser myDOMParser = new DOMParser();   // reuse parser instance...
 
 
-   private NamingService theNamingService;
 
-   public void setNamingService(NamingService aNamingService) {
-      theNamingService = aNamingService;
-   }
+   /**
+     * The Naming Service reference is bound and accessed here.
+     */
+    private NamingService theNamingService;
 
-   public NamingService getNamingService() {
-      return theNamingService;
-   }
+    public void setNamingService(NamingService aNamingService) {
+       theNamingService = aNamingService;
+    }
 
-/**
-  public PlanServer(int port, int maxConnections, ServerPlugInSupport sps)
-  {
-    super(port, maxConnections, sps.getClusterIDAsString());
-    myNameServiceProvider = new ProxyMapAdapter(new FDSProxy(sps.getNamingService()));
+    public NamingService getNamingService() {
+       return theNamingService;
+    }
 
- * **/
+
+   /**
+    * Execute
+    */
     public void execute() {
+        /**
+         *  the use of first_time in execute vs. moving this logic into
+         *  subscription setup is motivated by finding that can *MORE EASILY*
+         *  get into race in subscption setup .... the FDS registry is not fully
+         *  populated at time we query.
+         *
+         *  Note we're not entirely safe from race possibility down here.  Far
+         *  better at some point to periodically re-check registry....
+         */
         if( first_time ){
+           /**
+            * Obtain URLs to other Clusters, so we can query their Generic PSP
+            */
            FDSProxy fds = new FDSProxy(theNamingService);
            NameService myNameServiceProvider = new ProxyMapAdapter( fds );
            myConnectionManager = new ConnectionManager(
