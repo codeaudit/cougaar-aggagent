@@ -185,11 +185,7 @@ public abstract class AggregationServletInterface
       }
 
       private boolean allClustersResponded(QueryResultAdapter qra) {
-        HashSet responded = new HashSet();
-
-        Iterator iter = qra.getRawResultSet().getRespondingClusters();
-        while (iter.hasNext())
-          responded.add(iter.next());
+        Set responded = qra.getRawResultSet().getRespondingClusters();
 
         Enumeration enum = qra.getQuery().getSourceClusters();
         while (enum.hasMoreElements())

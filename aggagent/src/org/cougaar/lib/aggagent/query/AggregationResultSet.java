@@ -154,7 +154,10 @@ public class AggregationResultSet implements XmlTransferable, Serializable {
 
     data.put(atom.getKey(idNames), atom.getValueMap());
 
-    respondingClusters.add(clusterId);
+    synchronized (respondingClusters)
+    {
+      respondingClusters.add(clusterId);
+    }
   }
 
   /**
@@ -192,7 +195,11 @@ public class AggregationResultSet implements XmlTransferable, Serializable {
 
   public void incrementalUpdate (UpdateDelta delta) {
     String agentId = delta.getAgentId();
-    respondingClusters.add(agentId);
+
+    synchronized (respondingClusters)
+    {
+      respondingClusters.add(agentId);
+    }
 
     // update result set based on incremental change xml
     synchronized (lock) {
@@ -342,7 +349,17 @@ public class AggregationResultSet implements XmlTransferable, Serializable {
     doc.endElement();
   }
 
-  public Iterator getRespondingClusters() {
-    return respondingClusters.iterator();
+  public Set getRespondingClusters() {
+    // pass a copy back (iteration needs to be synchronized with adds)
+    Set responded = null;
+    synchronized (respondingClusters)
+    {
+      responded = new HashSet();
+      Iterator iter = respondingClusters.iterator();
+      while (iter.hasNext())
+        responded.add(iter.next());
+    }
+
+    return responded;
   }
 }
