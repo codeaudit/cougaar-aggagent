@@ -24,13 +24,16 @@ public class InverseSax {
   private static byte EMPTY = 0;
   private static byte IN_TAG = 1;
   private static byte IN_ELEMENT = 2;
-  private static byte DONE = 3;
+  private static byte IN_TEXT = 3;
+  private static byte DONE = 4;
 
   private byte state = EMPTY;
 
   private StringBuffer buf = new StringBuffer();
   private NameNode nameStack = null;
   private boolean lenientMode = false;
+  private boolean prettyPrint = false;
+  private int indentTabs = 0;
 
   private void pushName (String name) {
     nameStack = new NameNode(name, nameStack);
@@ -78,6 +81,23 @@ public class InverseSax {
    */
   public void setLenientMode (boolean b) {
     lenientMode = b;
+  }
+
+  /**
+   *  turn pretty-printing on or off
+   */
+  public void setPrettyPrintMode (boolean b) {
+    if (state != EMPTY)
+      throw new IllegalStateException(
+        "Pretty-print must be set before content is added.");
+    prettyPrint = b;
+  }
+
+  // add indentation
+  private void indent () {
+    buf.append("\n");
+    for (int i = 0; i < indentTabs; i++)
+      buf.append("  ");
   }
 
   // Allow upper- and lower-case letters and underscores.
@@ -134,6 +154,11 @@ public class InverseSax {
       throw new IllegalArgumentException("illegal tag name:  " + tag);
     if (state == IN_TAG)
       buf.append(">");
+    if (prettyPrint) {
+      if (state == IN_TAG || state == IN_TEXT)
+        indentTabs++;
+      indent();
+    }
     buf.append("<");
     buf.append(tag);
     pushName(tag);
@@ -200,10 +225,11 @@ public class InverseSax {
   public void addText (String text) {
     if (state == EMPTY || state == DONE)
       throw new IllegalStateException("text belongs inside an XML element");
-    if (state == IN_TAG)
+    if (state == IN_TAG) {
       buf.append(">");
+      state = IN_TEXT;
+    }
     encode(text);
-    state = IN_ELEMENT;
   }
 
   /**
@@ -218,6 +244,10 @@ public class InverseSax {
       buf.append("/>");
     }
     else {
+      if (prettyPrint && state == IN_ELEMENT) {
+        indentTabs--;
+        indent();
+      }
       buf.append("</");
       buf.append(tag);
       buf.append(">");
@@ -256,6 +286,7 @@ public class InverseSax {
 
   public static void main (String[] argv) {
     InverseSax doc = new InverseSax();
+    doc.setPrettyPrintMode(true);
     doc.addElement("bla.bla");
     doc.addAttribute("type", "bl<a>h");
     doc.addAttribute("bla.id", "sc&um");
