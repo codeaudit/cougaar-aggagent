@@ -244,11 +244,20 @@ public class PSP_BlackBoardViewer extends PSP_BaseAdapter implements PlanService
                  StringWriter sw = new StringWriter();
                  FormatterToXML fxml = new FormatterToXML(sw);
                  TreeWalker treew = new TreeWalker(fxml);
-                 treew.traverse(p.getDocument());
-                 StringBuffer sb = sw.getBuffer();
-                 StringBuffer html = HTMLize.layoutXML(sb, new HashMap(), true);
-                 out.println("<TR><TD> <FONT color=red >ALL VALUES=</FONT><font SIZE=-2><blockquote><pre>"
+                 if( p.getDocument() != null)
+                 {
+                     treew.traverse(p.getDocument());
+                     StringBuffer sb = sw.getBuffer();
+                     StringBuffer html = HTMLize.layoutXML(sb, new HashMap(), true);
+                     out.println("<TR><TD> <FONT color=red >ALL VALUES=</FONT><font SIZE=-2><blockquote><pre>"
                                  + html.toString() + "</pre></blockquote></FONT></TD></TR>");
+                 } else
+                 {
+                     out.println("<TR><TD> <FONT color=red >ALL VALUES=</FONT><font SIZE=-2><blockquote><pre>"
+                                + "NULL Document FOUND with PlanObject"
+                                + "</pre></blockquote></FONT></TD></TR>");
+                     System.err.println("NULL Document FOUND with PlanObject");
+                 }
              }
              else if( obj instanceof HTMLPlanObject)
              {
@@ -262,7 +271,6 @@ public class PSP_BlackBoardViewer extends PSP_BaseAdapter implements PlanService
           }
        }
     }
-
     out.println("</TABLE>");
     out.println("</BODY></HTML></FONT>");
   }
