@@ -34,6 +34,10 @@ public class ResultSetDataAtom
     return ret;
   }
 
+  public ResultSetDataAtom (List l, CompoundKey k) {
+    this(l, k, new HashMap());
+  }
+
   public ResultSetDataAtom (List l, CompoundKey k, Map vals) {
     identifiers = makeIdMap(l, k);
     values = vals;

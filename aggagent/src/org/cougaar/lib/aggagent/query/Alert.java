@@ -32,7 +32,7 @@ public abstract class Alert {
   /**
    *  Specify the query (etc.) which the Alert is responsible for monitoring.
    *  In future implementations, this coupling may be handled differently.  In
-   *  particular, different subclasses of AssessmentResultSet may be supported
+   *  particular, different subclasses of AggregationResultSet may be supported
    *  with class-specific handlers.  For now, only one type is available, and
    *  hence only one type is expected.
    */

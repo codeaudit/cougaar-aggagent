@@ -15,7 +15,7 @@ public class CompoundKey {
   }
 
   public CompoundKey (List l, Map m) {
-    keys = new String[m.size()];
+    keys = new String[l.size()];
     Iterator i = l.iterator();
     for (int j = 0; i.hasNext(); j++)
       keys[j] = (String) m.get(i.next());
