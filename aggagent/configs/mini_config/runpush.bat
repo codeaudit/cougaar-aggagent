@@ -19,6 +19,8 @@ set NODEARGS=-c -n %NODE%
 
 set CPATH=
 set CPATH=%CPATH%;%DEVPATH%
+set CPATH=%CPATH%;%BASELIB%\bootstrap.jar
+set CPATH=%CPATH%;%BASELIB%\util.jar
 set CPATH=%CPATH%;%BASELIB%\core.jar
 set CPATH=%CPATH%;%BASELIB%\glm.jar
 set CPATH=%CPATH%;%BASELIB%\webserver.jar

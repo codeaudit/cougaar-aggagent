@@ -89,6 +89,8 @@ public class Configurator {
     aggPlugins.add("org.cougaar.lib.aggagent.plugin.AggregationPlugin");
     aggPlugins.add("org.cougaar.lib.aggagent.plugin.AlertPlugin");
 
+    jarFiles.add("bootstrap.jar");
+    jarFiles.add("util.jar");
     jarFiles.add("core.jar");
     jarFiles.add("webserver.jar");
     jarFiles.add("webtomcat.jar");
