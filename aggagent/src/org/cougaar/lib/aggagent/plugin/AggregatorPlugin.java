@@ -67,7 +67,7 @@ public class AggregatorPlugin extends SimplifiedPlugIn
            myPredicate = this.getInstanceOfPredicate(klass);
            mySubscription = (IncrementalSubscription)subscribe(myPredicate);
            **/
-           ConfigFileName = getStringParameter(getParameters().elements(),
+           ConfigFileName = getStringParameter("file=", getParameters().elements(),
                                   Configs.AGGREGATOR_DEFAULT_CONNECTION_CONFIG_FILE_NAME);
 
           //
@@ -186,21 +186,17 @@ public class AggregatorPlugin extends SimplifiedPlugIn
    * @param integer default value if no numeric value found
    * @return int value parsed from first numeric argument
    */
-  public static String getStringParameter(Enumeration parameters,
-  String default_value)
+  public static String getStringParameter(String prefix, Enumeration parameters,
+                                          String default_value)
   {
-    String value = default_value;
     while(parameters.hasMoreElements()) {
       String param = (String)parameters.nextElement();
-      try {
-        value = new String(param);
-        break;
-      }
-      catch (Exception e) {
-        e.printStackTrace();
+      if (param.startsWith(prefix)) {
+        String sVal = param.substring(prefix.length()).trim();
+        return sVal;
       }
     }
-    return value;
+    return default_value;
   }
 
     public UnaryPredicate getInstanceOfPredicate(final Class klass ) {
@@ -216,81 +212,4 @@ public class AggregatorPlugin extends SimplifiedPlugIn
     }
 }
 
-/**
-  // mil.darpa.log.alpine.ui.psp.xmlservice.PSP_LogPlanProvider
-  //
-  //  Called when a request is received from a client.
-  //  Get the POST data; parse the request; get the log plan objects
-  //  that match the request; encode these in XML document; send the
-  //  document to the client.
 
-  public void execute( PrintStream out,
-		       HttpInput query_parameters,
-		       PlanServiceContext psc,
-		       PlanServiceUtilities psu) throws Exception {
-			 
-    String postData = null;
-    boolean limit = false; // flag to limit number of items returned
-
-    if (query_parameters.getPostData() != null) {
-      postData = new String(query_parameters.getPostData());
-      postData = postData.trim();
-      System.out.println("POST DATA:" + postData);
-
-      // if postData starts with the term "LIMIT"
-      // then strip this off and limit the number of items returned
-      if (postData.startsWith(LIMIT_COMMAND)) {
-	postData = postData.substring(LIMIT_COMMAND.length());
-	limit = true;
-      }
-      // parse request from user
-      Vector terms = RequestParser.parseRequest(postData);
-
-      // if request is a command, execute it and return
-      if (terms != null) {
-	Term term = (Term)terms.elementAt(0);
-	Method commandMethod = term.commandMethod;
-	if (commandMethod != null) {
-	  Object[] args = { psc, out };
-	  commandMethod.invoke(null, args);
-	  return;
-	}
-      }
-
-      // define predicate to retrieve selected log plan objects
-      XMLObjectSelector xmlPredicate = new XMLObjectSelector(terms);
-
-      // enter subscription and get objects from it
-      Subscription subscription =
-	psc.getServerPlugInSupport().subscribe(this, xmlPredicate);
-      Collection container = 
-	((CollectionSubscription)subscription).getCollection();
-      Vector planObjects = new Vector(container.size());
-      // if user wants only a few objects, then limit the number
-      // of returned objects here
-      if (limit) {
-        int nItems = 10;
-        for (Iterator i = container.iterator(); i.hasNext();) {
-	  planObjects.addElement(i.next());
-	  nItems--;
-	  if (nItems == 0) break;
-	}
-      } else 
-        for (Iterator i = container.iterator(); i.hasNext();)
-	  planObjects.addElement(i.next());
-
-      // unsubscribe, don't need this subscription any more
-      psc.getServerPlugInSupport().unsubscribeForSubscriber(subscription);
-
-      // create XML document for selected plan objects
-      XMLPlanObjectProvider provider = new XMLPlanObjectProvider();
-      for (int i = 0; i < planObjects.size(); i++)
-	provider.addPlanObject(planObjects.elementAt(i));
-      TXDocument doc = provider.getDocument();
-
-      // send document to client
-      doc.print(new PrintWriter(out));
-      System.out.println("Sent XML document");
-    }
-  }
-  **/

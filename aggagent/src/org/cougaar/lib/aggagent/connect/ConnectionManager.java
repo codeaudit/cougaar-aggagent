@@ -215,10 +215,11 @@ public class ConnectionManager
              List space_set = (List)urlSpaces.get(this);
              if( space_set == null ) {
                  System.err.println("[ConnectionManger.connectAllAsynchronous()] NO URL SPACE found!");
-                 System.err.println("[ConnectionManger.connectAllAsynchronous()] Be sure all URLs are ACTIVEZ");
+                 System.err.println("[ConnectionManger.connectAllAsynchronous()] Be sure THERE ARE ACTIVE URLS TO CONNECT");
                  myConnectionLogger.log(
-                     "<Font color=red>NO URL SPACE found in ConnectionManager.connectAllAsynchronous().</font>"
+                     "<Font color=red>NO ACTIVE URL SPACE found in ConnectionManager.connectAllAsynchronous().</font>"
                                 );
+                 return; // ABORT
              }
              synchronized( space_set )
              {
