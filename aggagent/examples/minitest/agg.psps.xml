@@ -22,6 +22,10 @@ Additional PSPs loaded by PSP Launcher
     <PSPName>agg/demo/TRACE.PSP</PSPName>
   </element>
   <element type="org.cougaar.lib.planserver.NamedPSP">
+    <Classname>org.cougaar.lib.aggagent.psp.PSP_BlackBoardViewer</Classname>
+    <PSPName>agg/demo/BLACKBOARD.PSP</PSPName>
+  </element>
+  <element type="org.cougaar.lib.planserver.NamedPSP">
     <Classname>org.cougaar.lib.aggagent.psp.PSP_GenericReaderWriter</Classname>
     <PSPName>agg/demo/GENERIC.PSP</PSPName>
   </element>
