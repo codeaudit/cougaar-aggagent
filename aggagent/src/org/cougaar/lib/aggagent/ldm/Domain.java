@@ -4,6 +4,7 @@ package org.cougaar.lib.aggagent.ldm;
 import java.util.Collection;
 import java.util.Enumeration;
 
+import org.cougaar.core.cluster.PublishHistory;
 import org.cougaar.domain.planning.ldm.LDMServesPlugIn;
 import org.cougaar.core.cluster.ALPPlanServesLogicProvider;
 import org.cougaar.core.cluster.XPlanServesALPPlan;
@@ -50,7 +51,9 @@ public class Domain  implements org.cougaar.domain.planning.ldm.Domain
           public Enumeration searchALPPlan(UnaryPredicate p0){return null;}
           public void sendDirective(Directive p0){}
           public void sendDirective(Directive p0, Collection p1){}
-          public void setupSubscriptions(ALPPlan alpPlan){} };
+          public void setupSubscriptions(ALPPlan alpPlan){}
+          public PublishHistory getHistory() { return null; }
+       };
   }
 
 }
