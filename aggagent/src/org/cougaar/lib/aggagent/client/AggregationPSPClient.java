@@ -58,8 +58,18 @@ public class AggregationPSPClient
   public AggregationPSPClient(String clusterURL, String aggregationPSPName,
                               String keepAlivePSPName)
   {
-    aggregationPSPURL = clusterURL + "/" + aggregationPSPName + "?THICK_CLIENT";
+    aggregationPSPURL = clusterURL + "/" + aggregationPSPName +"?THICK_CLIENT";
     keepAlivePSPURL = clusterURL + "/" + keepAlivePSPName;
+
+    // check url
+    String response =
+      XmlUtils.requestString(aggregationPSPURL + "?CHECK_URL", null);
+
+    if (response == null)
+    {
+      throw new NullPointerException("Cannot contact aggregation agent at " +
+                                     aggregationPSPURL);
+    }
   }
 
   /**
