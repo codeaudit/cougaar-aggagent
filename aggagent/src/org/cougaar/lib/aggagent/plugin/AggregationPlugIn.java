@@ -18,6 +18,7 @@ import org.cougaar.util.UnaryPredicate;
 
 import org.cougaar.lib.aggagent.query.*;
 import org.cougaar.lib.aggagent.session.*;
+import org.cougaar.lib.aggagent.util.Const;
 import org.cougaar.lib.aggagent.util.Enum.*;
 import org.cougaar.lib.aggagent.util.XmlUtils;
 import org.cougaar.core.society.Message;
@@ -25,10 +26,9 @@ import org.cougaar.core.society.MessageAddress;
 import org.cougaar.core.mts.*;
 import org.cougaar.core.component.*;
 
-import org.cougaar.lib.aggagent.util.Const;
-
-public class AggregationPlugIn extends ComponentPlugin
-  implements MessageTransportClient, ServiceRevokedListener
+public class AggregationPlugIn
+    extends ComponentPlugin
+    implements MessageTransportClient, ServiceRevokedListener
 {
   private static final boolean debug = false;
 
@@ -49,6 +49,13 @@ public class AggregationPlugIn extends ComponentPlugin
     }
   }
 
+  /**
+   *  A convenience method for creating IncrementalSubscriptions
+   */
+  protected IncrementalSubscription subscribeIncr (UnaryPredicate p) {
+    return (IncrementalSubscription) getBlackboardService().subscribe(p);
+  }
+
   public void setupSubscriptions()
   {
     myAddress =
@@ -66,8 +73,7 @@ public class AggregationPlugIn extends ComponentPlugin
       System.out.println(
         "  X\n  X\nMessageTransportService not granted.  Too bad.\n  X\n  X");
 
-    querySub = (IncrementalSubscription)
-      getBlackboardService().subscribe(new QuerySeeker());
+    querySub = subscribeIncr(new QuerySeeker());
   }
 
   public void execute()

@@ -40,15 +40,12 @@ public class RemoteSubscriptionPlugIn extends AggregationPlugIn implements Messa
   }
 
 
-  public void execute()
-  {
+  public void execute () {
     Iterator iter = queryMap.keySet().iterator();
     while (iter.hasNext()) {
-      IncrementalSubscription sub = (IncrementalSubscription)iter.next();
-      if (sub.hasChanged()) {
-        RemotePushSession rps = (RemotePushSession)queryMap.get(sub);
-        rps.subscriptionChanged();
-      }
+      IncrementalSubscription sub = (IncrementalSubscription) iter.next();
+      if (sub.hasChanged())
+        ((BBSession) queryMap.get(sub)).subscriptionChanged();
     }
   }
 
@@ -74,7 +71,7 @@ System.out.println("RemotePlugin: Got message: "+requestName+":"+root.toString()
       }
       else if (requestName.equals("update_request"))
       {
-        returnUpdate(root, createAggAddress(message.getOriginator().getAddress()));
+        returnUpdate(root);
       }
       else if (requestName.equals("pull_request"))
       {
@@ -82,7 +79,7 @@ System.out.println("RemotePlugin: Got message: "+requestName+":"+root.toString()
       }
       else if (requestName.equals("cancel_session_request"))
       {
-        cancelSession(root, createAggAddress(message.getOriginator().getAddress()));
+        cancelSession(root);
       }
     } catch (Exception ex) {
       ex.printStackTrace();
@@ -133,9 +130,9 @@ System.out.println("RemotePlugin: Got message: "+requestName+":"+root.toString()
     String queryId = root.getAttribute("query_id");
     String requester = root.getAttribute("requester");
 
-    UnaryPredicate objectSeeker = ScriptSpec.makeUnaryPredicate(
+    UnaryPredicate seeker = ScriptSpec.makeUnaryPredicate(
       XmlUtils.getChildElement(root, "unary_predicate"));
-    if (objectSeeker == null)
+    if (seeker == null)
       throw new Exception("Could not create unary predicate");
 
     IncrementFormat formatter = ScriptSpec.makeIncrementFormat(
@@ -143,18 +140,14 @@ System.out.println("RemotePlugin: Got message: "+requestName+":"+root.toString()
     if (formatter == null)
       throw new Exception("Could not create formatter");
 
-
-    IncrementalSubscription sub =
-      (IncrementalSubscription) getBlackboardService().subscribe(objectSeeker);
-    RemotePushSession ps = new RemotePushSession(String.valueOf(idCounter++),
-      queryId, formatter, requester, sub);
-
-    queryMap.put(sub, ps);
+    new RemotePushSession(
+      String.valueOf(idCounter++), queryId, formatter, requester, seeker);
   }
 
   private int idCounter = 0;
   private HashMap queryMap = new HashMap();
 
+  // Wrap an IncrementalSubscription within the SubscriptionAccess interface.
   private static class SubscriptionWrapper implements SubscriptionAccess {
     private IncrementalSubscription sub = null;
 
@@ -180,70 +173,89 @@ System.out.println("RemotePlugin: Got message: "+requestName+":"+root.toString()
     }
   }
 
-  private class RemotePushSession {
+  // "BB" stands for "Blackboard".  This is the abstract base class for the
+  // RemoteSession implementations used by this PlugIn.  It adds the ability
+  // to cancel, to respond to subscription events from the host agent, and send
+  // updates via COUGAAR messaging (all abstractly).
+  private abstract class BBSession extends RemoteSession {
+    protected MessageAddress requester;
 
-    public String requester;
-    public String key;
-    public String queryId;
-    public IncrementFormat formatter;
+    protected BBSession (String k, String q, IncrementFormat f, String r) {
+      super(k, q, f);
+      setAgentId(getBindingSite().getAgentIdentifier().toString());
+      requester = createAggAddress(r);
+    }
+
+    public abstract void cancel ();
+
+    public abstract void subscriptionChanged ();
+
+    public abstract void pushUpdate ();
+  }
+
+  // This is the implementation of RemoteSession used for the PUSH method.  It
+  // always sends notification immediately whenever the managed Subscription
+  // is updated by the host agent.
+  private class RemotePushSession extends BBSession {
     private SubscriptionAccess data = null;
     private IncrementalSubscription rawData = null;
 
-    protected RemotePushSession (String k, String qId, IncrementFormat f,
-        String req, SubscriptionAccess acc)
+    public RemotePushSession (
+        String k, String q, IncrementFormat f, String r, UnaryPredicate p)
     {
-      key = k;
-      queryId = qId;
-      formatter = f;
-      requester = req;
-      data = acc;
+      super(k, q, f, r);
+      rawData = subscribeIncr(new ErrorTrapPredicate(p));
+      data = new SubscriptionWrapper(rawData);
+
+      queryMap.put(rawData, this);
     }
 
-    public RemotePushSession (String k, String qId, IncrementFormat f,
-        String req, IncrementalSubscription sub)
-    {
-      this(k, qId, f, req, new SubscriptionWrapper(sub));
-      rawData = sub;
-    }
-
-    public void pushUpdate () {
-      System.out.println("Updating session to agg: " + queryId);
-
-      UpdateDelta del = new UpdateDelta(
-        getBindingSite().getAgentIdentifier().toString(), queryId, key);
-      try {
-        formatter.encode(del, getData());
-      }
-      catch (Throwable err) {
-        if (err instanceof ThreadDeath)
-          throw (ThreadDeath) err;
-        del.setErrorReport(err);
-      }
-
-      sendMessage(createAggAddress(requester), del.toXml());
+    public void cancel () {
+      queryMap.remove(rawData);
+      getBlackboardService().unsubscribe(rawData);
     }
 
     public void subscriptionChanged () {
       pushUpdate();
     }
 
-    public IncrementalSubscription getSubscription() {
-      return rawData;
-    }
-
     public SubscriptionAccess getData () {
       return data;
     }
+
+    public void pushUpdate () {
+      System.out.println("Updating session to agg: " + getQueryId());
+      sendMessage(requester, createUpdateDelta().toXml());
+    }
   }
 
-  private class RemotePullSession extends RemotePushSession {
+  // This is the implementation of RemoteSession used for the PULL method.  It
+  // uses the RemoteBlackboardSubscription class to defer event notification
+  // until requested by the client.
+  private class RemotePullSession extends BBSession {
     private RemoteBlackboardSubscription rbs;
 
-    public RemotePullSession (String k, String queryId, IncrementFormat f,
-        String requester, RemoteBlackboardSubscription sub)
+    public RemotePullSession (
+        String k, String q, IncrementFormat f, String r, UnaryPredicate p)
     {
-      super(k, queryId, f, requester, sub.getSubscription());
-      this.rbs = sub;
+      super(k, q, f, r);
+      rbs = new RemoteBlackboardSubscription(
+        getBlackboardService(), new ErrorTrapPredicate(p));
+
+      queryMap.put(rbs.getSubscription(), this);
+    }
+
+    public void pushUpdate () {
+      System.out.println("Updating session to agg: " + getQueryId());
+      rbs.open();
+      UpdateDelta del = createUpdateDelta();
+      rbs.close();
+      sendMessage(requester, del.toXml());
+    }
+
+    public void cancel () {
+      queryMap.remove(rbs.getSubscription());
+      rbs.shutDown();
     }
 
     public void subscriptionChanged () {
@@ -256,37 +268,37 @@ System.out.println("RemotePlugin: Got message: "+requestName+":"+root.toString()
   }
 
 
-  private void cancelSession (Element root, MessageAddress originator)
-      throws Exception
-  {
-    String query_id = root.getAttribute("query_id");
-    Iterator iter = queryMap.values().iterator();
-    boolean found = false;
-    while (iter.hasNext()) {
-      RemotePushSession rps = (RemotePushSession)iter.next();
-      if (rps.queryId.equals(query_id)) {
-        found = true;
-        IncrementalSubscription s = rps.getSubscription();
-        getBlackboardService().unsubscribe(s);
-        queryMap.remove(s);
-        break;
-      }
-    }
-    if (!found)
-      System.out.println("Error cancelling session " + query_id + " at " +
+  private void cancelSession (Element root) throws Exception {
+    String qId = root.getAttribute("query_id");
+    BBSession match = findSessionById(qId);
+    if (match != null)
+      match.cancel();
+    else
+      System.out.println("Error cancelling session " + qId + " at " +
         getBindingSite().getAgentIdentifier().getAddress());
   }
 
-
+  private BBSession findSessionById (String id) {
+    Iterator iter = queryMap.values().iterator();
+    BBSession found = null;
+    while (iter.hasNext()) {
+      BBSession bbs = (BBSession) iter.next();
+      if (bbs.getQueryId().equals(id)) {
+        found = bbs;
+        break;
+      }
+    }
+    return found;
+  }
 
   private void createPullSession (Element root, MessageAddress originator)
     throws Exception {
     String queryId = root.getAttribute("query_id");
     String requester = root.getAttribute("requester");
 
-    UnaryPredicate objectSeeker = ScriptSpec.makeUnaryPredicate(
+    UnaryPredicate seeker = ScriptSpec.makeUnaryPredicate(
       XmlUtils.getChildElement(root, "unary_predicate"));
-    if (objectSeeker == null)
+    if (seeker == null)
       throw new Exception("Could not create unary predicate");
 
     IncrementFormat formatter = ScriptSpec.makeIncrementFormat(
@@ -294,40 +306,20 @@ System.out.println("RemotePlugin: Got message: "+requestName+":"+root.toString()
     if (formatter == null)
       throw new Exception("Could not create formatter");
 
-    RemoteBlackboardSubscription rbs = new RemoteBlackboardSubscription(
-      getBlackboardService(), objectSeeker);
-    RemotePullSession ps = new RemotePullSession(String.valueOf(idCounter++),
-      queryId, formatter, requester, rbs);
-
+    new RemotePullSession(
+      String.valueOf(idCounter++), queryId, formatter, requester, seeker);
     System.out.println("Pull session created");
-    queryMap.put(rbs.getSubscription(), ps);
   }
 
-
-  private RemotePushSession findSessionById(String id) {
-    Iterator iter = queryMap.values().iterator();
-    RemotePushSession found = null;
-    while (iter.hasNext()) {
-      RemotePushSession rps = (RemotePushSession)iter.next();
-      if (rps.queryId.equals(id)) {
-        found = rps;
-        break;
-      }
-    }
-    return found;
-  }
-
-  private void returnUpdate (Element root, MessageAddress originator) throws Exception {
-    String queryId = root.getAttribute("query_id");
+  private void returnUpdate (Element root) throws Exception {
+    String qId = root.getAttribute("query_id");
     String requester = root.getAttribute("requester");
 
-    RemotePullSession rps = (RemotePullSession)findSessionById(queryId);
-    if (rps == null) {
-      System.err.println("Error updating query: "+queryId+" : not found");
-    } else {
-      rps.rbs.open();
-      rps.pushUpdate();
-      rps.rbs.close();
-    }
+    BBSession bbs = findSessionById(qId);
+    if (bbs != null)
+      bbs.pushUpdate();
+    else
+      System.err.println(
+        "Error:  query not found while updating " + qId + " for " + requester);
   }
 }
