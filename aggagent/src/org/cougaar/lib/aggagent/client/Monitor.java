@@ -103,9 +103,9 @@ import org.cougaar.lib.aggagent.util.XmlUtils;
                 updateMessage.append((char)c);
               }
 
-              if (c == 1)
+              if (c == -1)
               {
-                throw new Exception();
+                break;
               }
 
               if (c == formFeed)
@@ -141,10 +141,8 @@ import org.cougaar.lib.aggagent.util.XmlUtils;
               try {
                 i.close();
               } catch (Exception e2) {/* I tried */}
-
-            e.printStackTrace();
+            }
           }
-        }
       };
 
     /**

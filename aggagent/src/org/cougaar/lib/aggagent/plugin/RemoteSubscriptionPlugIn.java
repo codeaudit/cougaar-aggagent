@@ -159,32 +159,6 @@ public class RemoteSubscriptionPlugIn extends AggregationPlugIn implements Messa
   private int idCounter = 0;
   private HashMap queryMap = new HashMap();
 
-  // Wrap an IncrementalSubscription within the SubscriptionAccess interface.
-  private static class SubscriptionWrapper implements SubscriptionAccess {
-    private IncrementalSubscription sub = null;
-
-    public SubscriptionWrapper (IncrementalSubscription s) {
-      sub = s;
-    }
-
-    public IncrementalSubscription getSubscription () {
-      return sub;
-    }
-
-    public Collection getAddedCollection () {
-      return sub.getAddedCollection();
-    }
-    public Collection getChangedCollection () {
-      return sub.getChangedCollection();
-    }
-    public Collection getRemovedCollection () {
-      return sub.getRemovedCollection();
-    }
-    public Collection getMembership () {
-      return sub.getCollection();
-    }
-  }
-
   // "BB" stands for "Blackboard".  This is the abstract base class for the
   // RemoteSession implementations used by this PlugIn.  It adds the ability
   // to cancel, to respond to subscription events from the host agent, and send

@@ -112,6 +112,14 @@ public abstract class BlackboardServletComponent extends ComponentPlugin
             subscribers.put(subscription, subscriptionListener);
           }
         }
+
+        public void removeSubscriptionListener(Subscription subscription)
+        {
+          synchronized(subscribers)
+          {
+            subscribers.remove(subscription);
+          }
+        }
       };
     return sms;
   }

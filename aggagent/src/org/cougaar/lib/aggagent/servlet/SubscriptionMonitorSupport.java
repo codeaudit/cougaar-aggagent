@@ -35,4 +35,6 @@ public interface SubscriptionMonitorSupport
 {
   void setSubscriptionListener(Subscription subscription,
                                SubscriptionListener subscriptionListener);
+
+  void removeSubscriptionListener(Subscription subscription);
 }

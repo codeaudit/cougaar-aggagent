@@ -15,7 +15,10 @@ import org.cougaar.core.service.BlackboardService;
 
 import org.cougaar.lib.aggagent.session.IncrementFormat;
 import org.cougaar.lib.aggagent.session.XmlIncrement;
-import org.cougaar.lib.aggagent.session.ServletSession;
+import org.cougaar.lib.aggagent.session.RemoteSession;
+import org.cougaar.lib.aggagent.session.SubscriptionAccess;
+import org.cougaar.lib.aggagent.session.SubscriptionWrapper;
+import org.cougaar.lib.aggagent.session.UpdateDelta;
 import org.cougaar.lib.aggagent.util.Const;
 
 /**
@@ -24,7 +27,6 @@ import org.cougaar.lib.aggagent.util.Const;
  *  connection.
  */
 public class AggregationKeepAliveComponent extends BlackboardServletComponent {
-  private Object outputLock = new Object();
 
   /**
    * Constructor.
@@ -51,11 +53,12 @@ public class AggregationKeepAliveComponent extends BlackboardServletComponent {
       System.out.println("AggKeepAliveServlet: doPut");
 
       PrintWriter out = response.getWriter();
+      KeepAliveSession kaSession = null;
 
       try {
         AggregationXMLInterface.MonitorRequestParser monitorRequest =
           new AggregationXMLInterface.MonitorRequestParser(request);
-        new KeepAliveSession(agentId.toString(),
+        kaSession = new KeepAliveSession(agentId.toString(),
                              blackboard, createSubscriptionSupport(),
                              monitorRequest.unaryPredicate,
                              new XmlIncrement(monitorRequest.xmlEncoder), out);
@@ -63,7 +66,8 @@ public class AggregationKeepAliveComponent extends BlackboardServletComponent {
         // this check will EVENTUALLY get triggered after the client drops the
         // connection.  It would be nice if I could receive a cancel message
         // from the client.
-        while (!out.checkError())
+        boolean outputError = false;
+        while (!outputError)
         {
           System.out.println("---------Keep Alive Session is Alive---------");
           Thread.sleep(5000);
@@ -74,19 +78,26 @@ public class AggregationKeepAliveComponent extends BlackboardServletComponent {
           synchronized (out)
           {
             out.print(Const.KEEP_ALIVE_ACK_MESSAGE);
-            KeepAliveSession.endMessage(out);
+            endMessage(out);
+            outputError= out.checkError();
           }
         }
       }
       catch (Exception done_in) {
         System.out.println("AggregationKeepAliveServlet::doPut:  aborted!");
       }
+      kaSession.cancel();
       System.out.println("AggregationKeepAliveServlet::doPut:  leaving");
     }
   }
 
-  private static class KeepAliveSession extends ServletSession {
+  private class KeepAliveSession extends RemoteSession
+    implements SubscriptionListener
+  {
     PrintWriter out = null;
+    Subscription rawData = null;
+    SubscriptionAccess data = null;
+    SubscriptionMonitorSupport sms = null;
 
     KeepAliveSession(String agentId, BlackboardService blackboard,
                      SubscriptionMonitorSupport sms,
@@ -94,37 +105,74 @@ public class AggregationKeepAliveComponent extends BlackboardServletComponent {
                      PrintWriter out)
     {
       super("", "", format);
-      synchronized (out)
-      {
-        this.out = out;
-        start(agentId, blackboard, sms, predicate);
+      setAgentId(agentId);
+      this.out = out;
+      this.sms = sms;
+
+      // This is a separate transaction from the one that calls
+      // subscriptionChanged.  No additional synchronization is necessary.
+      try {
+        blackboard.openTransaction();
+        rawData = blackboard.subscribe(predicate, true);
+        sms.setSubscriptionListener(rawData, this);
+        data = new SubscriptionWrapper((IncrementalSubscription)rawData);
+      } catch (Exception e) {
+        e.printStackTrace();
+      } finally {
+        blackboard.closeTransaction(false);
       }
     }
 
+    public SubscriptionAccess getData()
+    {
+      return data;
+    }
+
     /**
-     *  This method is called by the resident RemoteSubscription whenever new
+     *  This method is called by the plugin component's execute() whenever new
      *  subscription information is available.
+     *
+     *  (since it is called from BlackboardServletComponent.execute() method;
+     *   it is in a separate blackboard transaction from the constructor and
+     *   cancel method)
      */
     public void subscriptionChanged (Subscription sub) {
-      synchronized (lock) {
-        data.subscriptionChanged();
-        if (out != null) {
-          synchronized (out) {
-            sendUpdate(out);
-            endMessage(out);
-          }
+      if (out != null) {
+        synchronized (out) {
+          sendUpdate(out);
+          endMessage(out);
         }
       }
     }
 
-    private static void endMessage(PrintWriter out)
-    {
+    /**
+     *  Send an update of recent changes to the resident Subscription
+     *  through the provided OutputStream.  An IncrementFormat instance
+     *  is used to encode the data being sent.
+     *
+     *  This is called from the execute() method, don't open a transaction.
+     */
+    public void sendUpdate (PrintWriter out) {
+      out.println(createUpdateDelta().toXml());
+      out.flush();
+    }
+
+    public void cancel () {
+      sms.removeSubscriptionListener(rawData);
       try {
-        out.write('\f');
-        out.flush();
+        blackboard.openTransaction();
+        blackboard.unsubscribe(rawData);
       } catch (Exception e) {
         e.printStackTrace();
+      } finally {
+        blackboard.closeTransaction(false);
       }
     }
+  }
+
+  private static void endMessage(PrintWriter out)
+  {
+    out.print('\f');
+    out.flush();
   }
 }
