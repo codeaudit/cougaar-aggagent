@@ -104,7 +104,8 @@ public class SimpleTransformerPlugin extends SimplifiedPlugIn
             if( removeObjectsImmediately )
             {
                 this.numberRemovedObjects++;
-                boolean status = mySubscription.remove(obj);
+
+                boolean status = this.publishRemove(obj);
                 //System.out.println("Remove Status:" + status);
 
                 if( (currTime - timeStampLastGC) >  GC_MIN_INTERVAL )
