@@ -9,14 +9,12 @@ import org.cougaar.lib.aggagent.session.UpdateDelta;
 import org.cougaar.lib.aggagent.session.XmlTransferable;
 import org.cougaar.lib.aggagent.util.InverseSax;
 
-import org.cougaar.core.util.XMLizable;
-import org.cougaar.core.util.XMLize;
 import org.cougaar.core.util.UID;
 
 /**
  *  This adapter contains a query and links to some associated structures.
  */
-public class QueryResultAdapter implements XmlTransferable, Serializable, XMLizable {
+public class QueryResultAdapter implements XmlTransferable, Serializable {
     public static String QUERY_RESULT_TAG = "query_result_adapter";
     public static String ID_ATT = "id";
     UID uid;
@@ -243,11 +241,6 @@ public class QueryResultAdapter implements XmlTransferable, Serializable, XMLiza
       for (Iterator i = alerts.iterator(); i.hasNext(); )
         (new AlertDescriptor((Alert) i.next())).includeXml(doc);
       doc.endElement();
-    }
-    
-    // XMLizable method for UI, other clients
-    public org.w3c.dom.Element getXML(org.w3c.dom.Document doc) {
-      return XMLize.getPlanObjectXML(this, doc);
     }
     
     /*
