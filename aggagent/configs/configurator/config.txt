@@ -1,15 +1,9 @@
-
-destination=c:\dev\testconfig\output
-lib=c:\dev\testconfig\lib
-aggagentCp=c:\dev\agg-head\aggagent\classes
-
+destination=c:\alpine\aggregationAgent\testConfig
+aggagentCp=c:\alpine\aggregationAgent\aggagent\classes
 nameServer=localhost
-
 windows=yes
-
 linux=no
 shellPath=
-
 nodes=6
 clustersPerNode=10
 pauseInterval=4000

@@ -26,11 +26,6 @@ import java.util.*;
  *      destination -- the directory into which the output is to be written
  *    </li>
  *    <li>
- *      lib -- the directory containing the standard jar files, namely
- *      core.jar, planserver.jar, xerces.jar, silk.jar, and, in the future,
- *      python.jar.
- *    </li>
- *    <li>
  *      aggagentCp -- path to the aggagent.jar file or the compiled aggagent
  *      class files.
  *    </li>
@@ -81,6 +76,7 @@ public class Configurator {
   private static List aggPlugIns = new LinkedList();
   private static List aggPsps = new LinkedList();
   private static List jarFiles = new LinkedList();
+  private static List sysFiles = new LinkedList();
 
   static {
     // sourcePsps.add(new Psp(
@@ -88,25 +84,21 @@ public class Configurator {
 
     aggNames.add("Aggregator");
 
-    aggPlugIns.add(
-      "org.cougaar.lib.planserver.PlanServerPlugIn(file=aggregator.psps.xml)");
+    aggPlugIns.add("org.cougaar.lib.aggagent.servlet.AggregationComponent(/aggregator)");
+    aggPlugIns.add("org.cougaar.lib.aggagent.servlet.AggregationKeepAliveComponent(/aggregatorkeepalive)");
     aggPlugIns.add("org.cougaar.lib.aggagent.plugin.AggregationPlugIn");
     aggPlugIns.add("org.cougaar.lib.aggagent.plugin.AlertPlugIn");
 
-
-    aggPsps.add(new Psp(
-      "org.cougaar.lib.aggagent.psp.AggregationPSP", "assessment.psp"));
-    aggPsps.add(new Psp(
-      "org.cougaar.lib.aggagent.psp.AggregationKeepAlivePSP",
-      "assessmentkeepalive.psp"));
-
     jarFiles.add("core.jar");
-    jarFiles.add("planserver.jar");
-    jarFiles.add("xerces.jar");
-    jarFiles.add("silk.jar");
-    jarFiles.add("jpython.jar");
-    jarFiles.add("jsse.jar");
-    jarFiles.add("log4j.jar");
+    jarFiles.add("webserver.jar");
+    jarFiles.add("webtomcat.jar");
+    sysFiles.add("tomcat_33.jar");
+    sysFiles.add("servlet.jar");
+    sysFiles.add("xerces.jar");
+    sysFiles.add("silk.jar");
+    sysFiles.add("jpython.jar");
+    sysFiles.add("jsse.jar");
+    sysFiles.add("log4j.jar");
   }
 
 // - - - - - - - Instance Configuration - - - - - - - - - - - - - - - - - - - -
@@ -194,19 +186,26 @@ public class Configurator {
     out.println("set NODE=" + nodeName);
     out.println();
     out.println("set EXECLASS=org.cougaar.core.node.Node");
+    out.println("set PROPERTIES=-Dorg.cougaar.useBootstrapper=false");
+    out.println("set PROPERTIES=%PROPERTIES% -Dorg.cougaar.core.servlet.enable=true");
+    out.println("set PROPERTIES=%PROPERTIES% -Dorg.cougaar.lib.web.https.port=-1");
+    out.println("set PROPERTIES=%PROPERTIES% -Dorg.cougaar.install.path=%COUGAAR_INSTALL_PATH%");
     out.println("set NODEARGS=-c -n %NODE%");
     out.println();
     out.println("set BJPATH=" + config.aggagentCp);
-    out.println("set LIB=" + config.lib);
+    out.println("set LIB=%COUGAAR_INSTALL_PATH%\\lib");
+    out.println("set SYS=%COUGAAR_INSTALL_PATH%\\sys");
 
     out.println();
     out.println("set CPATH=");
     out.println("set CPATH=%CPATH%;%BJPATH%");
     for (Iterator i = jarFiles.iterator(); i.hasNext(); )
       out.println("set CPATH=%CPATH%;%LIB%\\" + i.next());
+    for (Iterator i = sysFiles.iterator(); i.hasNext(); )
+      out.println("set CPATH=%CPATH%;%SYS%\\" + i.next());
 
     out.println();
-    out.println("java -cp %CPATH% %EXECLASS% %NODEARGS%");
+    out.println("java -cp %CPATH% %PROPERTIES% %EXECLASS% %NODEARGS%");
     out.println();
     out.println("@echo on");
     out.close();
@@ -249,8 +248,8 @@ public class Configurator {
 
   private List genSourcePlugIns () {
     List ret = new LinkedList();
-    ret.add(
-      "org.cougaar.lib.planserver.PlanServerPlugIn(file=source.psps.xml)");
+    //ret.add(
+    //  "org.cougaar.lib.planserver.PlanServerPlugIn(file=source.psps.xml)");
     ret.add(
       "org.cougaar.lib.aggagent.test.EffortWaster(maxCycles=" +
       config.maxCycles + ",pauseInterval=" + config.pauseInterval + ")");
@@ -333,7 +332,6 @@ public class Configurator {
   private static class ConfigSpec {
     // pragmatics
     public File destination = null;
-    public String lib = null;
     public String aggagentCp = null;
 
     // gross configurations
@@ -350,10 +348,6 @@ public class Configurator {
 
     public void setDestination (String s) {
       destination = new File(s);
-    }
-
-    public void setLib (String s) {
-      lib = s;
     }
 
     public void setBlackjackCp (String s) {
@@ -421,8 +415,6 @@ public class Configurator {
 
         if (name.equals("destination"))
           setDestination(value);
-        else if (name.equals("lib"))
-          setLib(value);
         else if (name.equals("aggagentCp"))
           setBlackjackCp(value);
         else if (name.equals("nameServer"))
