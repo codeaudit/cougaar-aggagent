@@ -114,9 +114,11 @@ System.out.println("RemotePlugin: Got message: "+requestName+":"+root.toString()
     tempSubscription.open();
     try {
       formatter.encode(del, tempSubscription);
-    } catch (Exception e) {
-      tempSubscription.close();
-      throw e;
+    }
+    catch (Throwable err) {
+      if (err instanceof ThreadDeath)
+        throw (ThreadDeath) err;
+      del.setErrorReport(err);
     }
     tempSubscription.close();
 
@@ -209,7 +211,14 @@ System.out.println("RemotePlugin: Got message: "+requestName+":"+root.toString()
 
       UpdateDelta del = new UpdateDelta(
         getBindingSite().getAgentIdentifier().toString(), queryId, key);
-      formatter.encode(del, getData());
+      try {
+        formatter.encode(del, getData());
+      }
+      catch (Throwable err) {
+        if (err instanceof ThreadDeath)
+          throw (ThreadDeath) err;
+        del.setErrorReport(err);
+      }
 
       sendMessage(createAggAddress(requester), del.toXml());
     }
