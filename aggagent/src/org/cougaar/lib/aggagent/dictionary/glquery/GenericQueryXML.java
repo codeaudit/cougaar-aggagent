@@ -130,6 +130,14 @@ public class GenericQueryXML  implements GenericQuery
            }
      }
 
+     protected XSLTInputSource getXSLFromParameter(){
+          XSLTInputSource xslis = null;
+          StringBuffer sbuf_xsl = (StringBuffer)preConfiguredParameters.get(this.paramkey_XSL);
+          if( sbuf_xsl != null) xslis =  new XSLTInputSource(new StringReader(sbuf_xsl.toString()));
+          System.out.println("XSL script read, string length=" + sbuf_xsl.length());
+          return xslis;
+     }
+
      //
      // Returns current snapshot (in XML Document form) of current state of this
      // Query instance -- implicitly flushes state ...
@@ -148,9 +156,11 @@ public class GenericQueryXML  implements GenericQuery
           //
           // XSL PARAMETER?
           //
-          StringBuffer sbuf_xsl = (StringBuffer)preConfiguredParameters.get(this.paramkey_XSL);
-          if( sbuf_xsl != null) myXSL =  new XSLTInputSource(new StringReader(sbuf_xsl.toString()));
-          System.out.println(" myXSL=" + myXSL);
+          myXSL=getXSLFromParameter();
+
+          //StringBuffer sbuf_xsl = (StringBuffer)preConfiguredParameters.get(this.paramkey_XSL);
+          //if( sbuf_xsl != null) myXSL =  new XSLTInputSource(new StringReader(sbuf_xsl.toString()));
+          //System.out.println(" myXSL=" + myXSL);
 
           //
           // SAX CONTENTHANDLER PARAMETER?
@@ -186,6 +196,7 @@ public class GenericQueryXML  implements GenericQuery
                  // this is TERRIBLE THING TO DO FOR NOW...
                  //  converting DOM TO STRING TO APPLY XSL is v. inefficient,
                  // but until old ALP XML parser version can be updated, no choice...
+                 // soon.
                  //
                  if( (myXSL != null) && ( doc != null) )
                  {
@@ -206,7 +217,6 @@ public class GenericQueryXML  implements GenericQuery
               } catch (Exception ex ){
                     ex.printStackTrace();
               }
-              // flush!
           }
           //#################################
           // SAX PROCESSING
@@ -331,7 +341,7 @@ public class GenericQueryXML  implements GenericQuery
       } catch (Error err){
             System.err.println("#####################################################");
             System.err.println("CORE SERVICE FAILED.  Error follows.");
-            System.err.println("[XMLService]  Entry=XMLObjectProvider.addObject");
+            System.err.println("[XMLService]  Entry=XMLObjectProvider.reset");
             System.err.println("#####################################################");
             err.printStackTrace();
       }
@@ -348,7 +358,7 @@ public class GenericQueryXML  implements GenericQuery
       } catch (Error err){
             System.err.println("#####################################################");
             System.err.println("CORE SERVICE FAILED.  Error follows.");
-            System.err.println("[XMLService]  Entry=XMLObjectProvider.addObject");
+            System.err.println("[XMLService]  Entry=XMLObjectProvider.getDocumentRef");
             System.err.println("#####################################################");
             err.printStackTrace();
       }

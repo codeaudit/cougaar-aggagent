@@ -172,10 +172,42 @@ public class PSP_GenericReaderWriter extends PSP_BaseAdapter implements PlanServ
       GenericQuery queryObj
       ) throws Exception
   {
-     Subscription subscription = psc.getServerPluginSupport().subscribe(this, queryObj.getPredicate());
-     Collection container = ((CollectionSubscription)subscription).getCollection();   // Doesn't block
-     synchronizedExecute (out, query_parameters, psc, psu, my_gl_dict, container, queryObj);
+     //  If 'QUERYSESSION=ID' defined
+     //  Look up QuerySessionUISubscriber by ID
+     //       If it doesn't exist then create one with predicate.
+     //  If have QuerySessionUISubscriber, check the grabUpdates() for updates.
+     //  If so, act on 'em.
+     //
+     // @return List of updates from Query Session.
+     //    Updates with respect to last time checked (via this method)
+     //    If returns null then QuerySession is not defined.
+     //
+     // public List  getQuerySessionUpdates(String query_session_id);
+     // public boolean instantiateQuerySession(
+     //                                     String query_session_id);
+     Vector v = query_parameters.getParameterTokens("QSESSION", '=');
+     String qsession_id=null;
+     if( v != null ){
+           qsession_id =(String)v.get(0);
+           System.out.println("QSESSION=" + qsession_id);
+      }
+      if( qsession_id != null ){
+            List updates = this.getQuerySessionUpdates(qsession_id);
+            if( updates == null)
+            {
+                 // set it up -- we'll poll later for updates.
+                  QuerySessionUISubscriber qsession_subscriber = this.instantiateQuerySession(qsession_id);
+                  Subscription subscription = psc.getServerPluginSupport().subscribe(qsession_subscriber, queryObj.getPredicate());
+                  Collection container = ((CollectionSubscription)subscription).getCollection();   // Doesn't block
+            }
+      }
+      else {
+           Subscription subscription = psc.getServerPluginSupport().subscribe(this, queryObj.getPredicate());
+           Collection container = ((CollectionSubscription)subscription).getCollection();   // Doesn't block
+           synchronizedExecute (out, query_parameters, psc, psu, my_gl_dict, container, queryObj);
+      }
   }
+
 
   // ################################################################################
   public final void synchronizedExecute(
@@ -223,7 +255,7 @@ public class PSP_GenericReaderWriter extends PSP_BaseAdapter implements PlanServ
           }
           else printOut = out;
 
-          System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>> myGLDictionary returned: " + queryObj);
+          System.out.println("[PSP_GenericReaderWriter] using GenericQuery instance=" + queryObj);
 
           //Subscription subscription = psc.getServerPluginSupport().subscribe(this, queryObj.getPredicate());
           //Collection container = ((CollectionSubscription)subscription).getCollection();
@@ -246,62 +278,11 @@ public class PSP_GenericReaderWriter extends PSP_BaseAdapter implements PlanServ
                        );
          }
       }
-
       out.flush();
 
       System.out.println("[PSP_GenericReaderWriter] <+++ leave execution @" + psc.getServerPluginSupport().getClusterIDAsString() );
   }
 
-/**
- // ################################################################################
- protected StringBuffer filterXMLtoHTML(StringBuffer dataout)
-  {
-       //int srcend = dataout.length();
-       //char csrc[] = new char[srcend];
-       //dataout.getChars(0,srcend,csrc,0);
-
-       //StringWriter sw = new StringWriter(srcend);
-       StringBuffer buf = new StringBuffer();
-
-       int depth=0;
-       int i;
-       int sz = dataout.length();
-       char prev_c = (char)-1;
-       char prev_prev_c = (char)-1;
-       char c = (char)-1;
-       for(i=0;i<sz;i++){
-           prev_prev_c = prev_c;
-           prev_c = c;
-           c = dataout.charAt(i);
-           if( c == '<' ) {
-                buf.append("&lt"); //System.out.print(" &lt ");
-                depth++;
-           }
-           else if( (c == '>') && (prev_c == '/') ) {
-               buf.append(c);
-              depth--;
-           }
-           else if( c == '>' ) {
-                buf.append("&gt");  //System.out.print(" &gt ");
-                buf.append("\n");
-                for(int j=0; j<depth; j++){
-                   buf.append("  " );
-                }
-
-           }
-           else if( (c == '/') && (prev_c == '<') ) {
-               buf.append(c);
-               depth--;
-               depth--;
-           }
-           else {
-               buf.append(c); //System.out.print(c);
-           }
-
-       }
-       return buf;
-  }
-**/
 
 
   /**
@@ -383,84 +364,33 @@ public class PSP_GenericReaderWriter extends PSP_BaseAdapter implements PlanServ
        }
        return dataout.substring(start,close+1);
   }
-  /**
-  private String filterXMLtoHTML(String dataout)
-  {
-       int srcend = dataout.length();
-       char csrc[] = new char[srcend];
-       dataout.getChars(0,srcend,csrc,0);
 
-       StringWriter sw = new StringWriter(srcend);
+  //##########################################################################
 
-       int i;
-       int sz = dataout.length();
-       for(i=0;i<sz;i++){
-           char c = csrc[i];
-           if( c == '<' ) sw.write("&lt");
-           else if( c == '>' ) sw.write("&gt");
-           else sw.write(c);
+  private HashMap myQuerySessions = new HashMap();
+
+  // @return List of updates from Query Session.
+  //    Updates with respect to last time checked (via this method)
+  //    If returns null then QuerySession is not defined.
+  //
+  public List  getQuerySessionUpdates(String query_session_id) {
+       synchronized(myQuerySessions){
+            QuerySessionUISubscriber subscriber = (QuerySessionUISubscriber)myQuerySessions.get(query_session_id);
+            if( subscriber != null ){
+                List updates = subscriber.grabUpdates();
+                return updates;
+            }
        }
-       return sw.toString();
+       return null;
   }
-  **/
-   /**
-   private void ___execute(
-      PrintStream out,
-      HttpInput query_parameters,
-      PlanServiceContext psc,
-      PlanServiceUtilities psu ) throws Exception
+  public QuerySessionUISubscriber instantiateQuerySession( String query_session_id)
   {
-
-    String value =
-      (String)query_parameters.getGETUrlString();
-
-
-    System.out.println("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% value="+value);
-
-    char buf[] =    query_parameters.getPostData();
-
-    String post = null;
-    if( buf != null )
-    {
-        post = new String(buf);
-        System.out.println("POST=" + post);
-    }
-
-    if( post.length() > 0)
-    {
-        /// PUBLISH TASK FOR XML DATA SOURCE
-        /// TELL USER VIA HTML
-        out.println("<HTML><BODY>\n");
-        out.println("<P>Pubishing XML data source: <P><PRE>"
-                               + GLDictionary.filterXMLtoHTML(new StringBuffer(post)).toString()
-                               + "</PRE></P>");
-        out.println("</BODY></HTML>");
-
-        post = filterNonXML(post);
-        PlugInDelegate pd = psc.getServerPluginSupport().getDirectDelegate();
-
-
-    }
-    else {
-        /// MUST BE REQUEST FOR USER TO POST XML DATA
-
-           out.println("<HTML><BODY>");
-           out.println("<P>Upload XML file into PSP_ApplyXSL.</P>");
-           out.println("<form  enctype=\"multipart/form-data\" method=\"post\"> ");
-           out.println("<TABLE WIDTH=\"100%\">");
-           out.println("<TR>");
-           out.println("<TD ALIGN=\"RIGHT\" VALIGN=\"TOP\">Filename:</TD>");
-
-           out.println("<TD ALIGN=\"LEFT\"><INPUT TYPE=\"FILE\" NAME=\"FILE1\" >");
-           out.println("</TD>");
-           out.println("</TR>");
-           out.println("<TR>");
-           out.println("<TD ALIGN=\"RIGHT\">&nbsp;</TD>");
-           out.println("<TD ALIGN=\"LEFT\"><INPUT TYPE=\"SUBMIT\" NAME=\"SUB1\" VALUE=\"Upload File\"></TD>");
-           out.println("</TR>");
-           out.println("</TABLE></BODY></HTML>");
-     }
+      QuerySessionUISubscriber qsession = null;
+      synchronized( myQuerySessions ) {
+           qsession = new QuerySessionUISubscriber(query_session_id);
+           myQuerySessions.put(query_session_id,qsession);
+      }
+      return qsession;
   }
-  **/
 
 }

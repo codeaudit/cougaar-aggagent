@@ -76,8 +76,8 @@ public class GenericAggServerQueryXML  extends GenericQueryXML
      //
      // Generic PSP calls this method on Collection of objects answering subscription
      // GenericQueryXML accumulates state
+     //
      public void execute( Collection matches ) {
-
            Iterator it = matches.iterator();
            while( it.hasNext() ){
                 Object o = it.next();
@@ -96,12 +96,17 @@ public class GenericAggServerQueryXML  extends GenericQueryXML
      public void returnVal(OutputStream out) {
 
           System.out.print("[GenericAggServerQueryXML.returnVal] called.");
-
           XSLTInputSource  myXSL = null;
-          StringBuffer  sbuf = (StringBuffer)preConfiguredParameters.get("XSL");
-          if( sbuf != null) myXSL =  new XSLTInputSource(new StringReader(sbuf.toString()));
 
-          System.out.println(" myXSL=" + myXSL);
+          //StringBuffer  sbuf = (StringBuffer)preConfiguredParameters.get("XSL");
+          //if( sbuf != null) myXSL =  new XSLTInputSource(new StringReader(sbuf.toString()));
+          //
+          //System.out.println(" myXSL=" + myXSL);
+
+          //
+          // XSL PARAMETER?
+          //
+          myXSL=this.getXSLFromParameter();
 
           try {   /**
                    DEBUG ---------------------------
@@ -123,7 +128,7 @@ public class GenericAggServerQueryXML  extends GenericQueryXML
                   Document doc = null;
                   for( int k=0; k< objs.length; k++) {
                         doc= (Document)objs[k];
-                        System.out.println("------ another child!");
+                        //System.out.println("-- another child inserted!");
                         NodeList nl = doc.getChildNodes();
                         int size = nl.getLength();
                         for(int i=0; i<size; i++) {
@@ -133,7 +138,7 @@ public class GenericAggServerQueryXML  extends GenericQueryXML
                             for(int j=0; j<size2; j++)
                             {
                                 Node n2 = (Node)nl2.item(j);
-                                System.out.println("--------------nodename="+ n2.getNodeName());
+                                //System.out.println("--------------nodename="+ n2.getNodeName());
                                 Node importedn = agg.importNode(n2,true);
                                 root.appendChild(importedn);
                                 // wrong element: root.appendChild(n2);
@@ -143,7 +148,7 @@ public class GenericAggServerQueryXML  extends GenericQueryXML
                   }
 
                   agg.appendChild(root);
-                  System.out.println("---------------agg len " + agg.getChildNodes().getLength() );
+                  System.out.println("[GenericAggServerQueryXML] Created consolidated doc len=" + agg.getChildNodes().getLength() );
 
 
                 // TEST: OUTPUT CONSOLIDATED DOC ----------------
