@@ -21,6 +21,8 @@ public class NoErrorPython extends PythonInterpreter {
      */
   static {
       try {
+          String pathsep = java.io.File.pathSeparator;
+          String filesep = java.io.File.separator;
           // "python.packages.path" refers to list of properties that contain class paths.  Add org.cougaar.class.path to that list.
           String ccp = System.getProperty("org.cougaar.class.path");
           if (ccp != null) {
@@ -32,15 +34,13 @@ public class NoErrorPython extends PythonInterpreter {
           // Add org.cougaar.install.path /lib and /sys to that list.  Also add org.cougaar.system.path for "3rd party" stuff.
           String cip = System.getProperty("org.cougaar.install.path");
           // always add lib and sys directories
-          /*  This is causing problems.  Comment it out for now.
-          String dirPath = cip+java.io.File.separator+"lib,"+cip+java.io.File.separator+"sys,"+cip+java.io.File.separator+"plugins";
+          String dirPath = cip+filesep+"lib"+pathsep+cip+filesep+"sys"+pathsep+cip+filesep+"plugins";
           String csp = System.getProperty("org.cougaar.system.path");
           if (csp != null)
-              dirPath += java.io.File.pathSeparator + csp;
+              dirPath += pathsep + csp;
           
           System.setProperty("python.packages.directories", "org.cougaar.lib.aggagent.python.directories,java.ext.dirs");
           System.setProperty("org.cougaar.lib.aggagent.python.directories", dirPath);
-          */
           
           // jython will write a cache of processed JAR files in "." unless we set "python.cachedir"
           // Set it here unless it is already set.
@@ -49,6 +49,7 @@ public class NoErrorPython extends PythonInterpreter {
               System.setProperty("python.cachedir", cougaarWorkspace+java.io.File.separator+"jythoncache");
           }
       } catch (SecurityException ex) {
+          //ex.printStackTrace();
           // Well, we tried.
       }
   }

@@ -251,7 +251,9 @@ public abstract class AggregationServletInterface
   protected void findAndRemoveQuery (String queryId)
   {
     // find query adapter on log plan
+    blackboard.openTransaction();
     Collection qs = blackboard.query(new QuerySeeker(queryId));
+    blackboard.closeTransaction();
     Iterator qi = qs.iterator();
 
     // remove all queries matching query id
@@ -267,9 +269,14 @@ public abstract class AggregationServletInterface
 
   // for access to the blackboard
 
-  public Collection query(UnaryPredicate predicate)
+  protected Collection query(UnaryPredicate predicate)
   {
-    return blackboard.query(predicate);
+    Collection ret;
+    blackboard.openTransaction();
+    ret = blackboard.query(predicate);
+    blackboard.closeTransaction();
+    return ret;
+
   }
 
   protected void publishAdd(Object o)
