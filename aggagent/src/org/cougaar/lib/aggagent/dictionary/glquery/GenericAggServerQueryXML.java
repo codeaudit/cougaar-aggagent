@@ -35,7 +35,6 @@ import org.cougaar.lib.planserver.HttpInput;
 //import mil.darpa.log.alpine.ui.psp.xmlservice.XMLPlanObjectProvider;
 
 
-import com.ibm.xml.parser.TXDocument;
 import org.apache.xalan.xslt.XSLTInputSource;
 import org.apache.xalan.xslt.XSLTProcessor;
 import org.apache.xalan.xslt.XSLTInputSource;
