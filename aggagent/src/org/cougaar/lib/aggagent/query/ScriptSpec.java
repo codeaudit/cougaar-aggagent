@@ -109,6 +109,16 @@ public class ScriptSpec {
       params.putAll(p);
   }
 
+  public ScriptSpec (AggType agg, String s, String ids, Map p) {
+    type = ScriptType.AGGREGATOR;
+    lang = Language.JAVA;
+    aggType = agg;
+    text = s;
+    aggIds = parseAggIds(ids);
+    if (p != null)
+      params.putAll(p);
+  }
+
   public ScriptSpec (Element root) {
     type = ScriptType.fromString(root.getNodeName());
     lang = Language.fromString(root.getAttribute("language"));
