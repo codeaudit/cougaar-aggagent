@@ -8,20 +8,19 @@ import org.w3c.dom.Document;
 import org.cougaar.domain.planning.ldm.plan.Plan;
 
 /**
-  *  Blackboard Wrapper for XML DATA (in DOM Document form)
+  *  Blackboard Wrapper for HTML DATA (in StringBuffer form)
   **/
-public class PlanObject implements Plan
+public class HTMLPlanObject implements Plan
 {
-     private Document myDocument = null;
+     private StringBuffer myHTML = null;
      private DocumentSignature myDocSig = null;
 
-     public PlanObject( Document d ){
-         myDocument = d;
-         myDocSig = new DocumentSignature(d);
+     public HTMLPlanObject( StringBuffer htmlData){
+         myHTML = htmlData;
      }
 
-     public Document getDocument( ){
-         return myDocument;
+     public StringBuffer getDocument( ){
+         return myHTML;
      }
 
      public String XMLize(){
