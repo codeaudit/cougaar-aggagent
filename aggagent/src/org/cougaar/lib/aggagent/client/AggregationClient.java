@@ -64,7 +64,7 @@ public class AggregationClient
 
     // check url
     String response =
-      XmlUtils.requestString(aggregationURL + "?CHECK_URL=1", null);
+      XmlUtils.requestString(aggregationURL + "&CHECK_URL=1", null);
 
     if (response == null)
     {
