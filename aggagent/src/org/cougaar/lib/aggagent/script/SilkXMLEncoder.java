@@ -1,7 +1,7 @@
 package org.cougaar.lib.aggagent.script;
 
-import java.io.PrintStream;
 import java.io.StringReader;
+import java.util.Collection;
 import silk.Procedure;
 import silk.SI;
 
@@ -16,8 +16,7 @@ public class SilkXMLEncoder implements XMLEncoder
     this.silkProcedure = (Procedure)SI.eval(silkScript);
   }
 
-  public void encode(Object o, PrintStream ps)
-  {
-    silkProcedure.apply(new Object[] {o, ps});
+  public void encode(Object o, Collection out) {
+    silkProcedure.apply(new Object[] {o, out});
   }
 }
