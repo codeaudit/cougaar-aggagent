@@ -208,7 +208,7 @@ public abstract class AggregationPSPInterface
     spis.unsubscribeForSubscriber(s);
     if (xml)
     {
-      out.println(cl.changedQra.getResultSet().toXML());
+      out.println(cl.changedQra.getResultSet().toXml());
     }
     else
     {
