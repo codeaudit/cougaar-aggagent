@@ -47,14 +47,9 @@ public class RemoteSubscriptionPlugIn extends AggregationPlugIn implements Messa
       IncrementalSubscription sub = (IncrementalSubscription)iter.next();
       if (sub.hasChanged()) {
         RemotePushSession rps = (RemotePushSession)queryMap.get(sub);
-        if (rps instanceof RemotePullSession)
-          ((RemotePullSession)rps).subscriptionChanged(sub);
-        else
-          updatePushSession((RemotePushSession)queryMap.get(sub));
+        rps.subscriptionChanged();
       }
     }
-
-
   }
 
   /**
@@ -147,8 +142,10 @@ System.out.println("RemotePlugin: Got message: "+requestName+":"+root.toString()
       throw new Exception("Could not create formatter");
 
 
-    Subscription sub = getBlackboardService().subscribe(objectSeeker);
-    RemotePushSession ps = new RemotePushSession(String.valueOf(idCounter++),queryId, formatter, requester, sub);
+    IncrementalSubscription sub =
+      (IncrementalSubscription) getBlackboardService().subscribe(objectSeeker);
+    RemotePushSession ps = new RemotePushSession(String.valueOf(idCounter++),
+      queryId, formatter, requester, sub);
 
     queryMap.put(sub, ps);
   }
@@ -175,12 +172,18 @@ System.out.println("RemotePlugin: Got message: "+requestName+":"+root.toString()
     public IncrementFormat formatter;
     public IncrementalSubscription sub;
 
-    public RemotePushSession (String k, String queryId, IncrementFormat f, String requester, Subscription sub) {
+    public RemotePushSession (String k, String queryId, IncrementFormat f,
+        String requester, IncrementalSubscription sub)
+    {
       this.requester = requester;
       this.key = k;
       this.queryId = queryId;
       this.formatter = f;
-      this.sub = (IncrementalSubscription)sub;
+      this.sub = sub;
+    }
+
+    public void subscriptionChanged () {
+      updatePushSession(this);
     }
 
     public IncrementalSubscription getSubscription() {
@@ -210,8 +213,8 @@ System.out.println("RemotePlugin: Got message: "+requestName+":"+root.toString()
       this.rbs = sub;
     }
 
-    public void subscriptionChanged(Subscription sub) {
-      rbs.subscriptionChanged(sub);
+    public void subscriptionChanged () {
+      rbs.subscriptionChanged();
     }
 
     public Collection getAddedCollection () {
