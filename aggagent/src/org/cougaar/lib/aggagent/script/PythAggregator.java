@@ -86,7 +86,7 @@ public class PythAggregator implements Aggregator {
    *  function is actually delegated to a script-generated implementation,
    *  which is fabricated in the constructor.
    *
-   *  @param atomIterator an iterator that iterates through raw, unaggregated
+   *  @param dataAtoms an iterator that iterates through raw, unaggregated
    *    data atoms
    *  @param output a List into which the produced ResultSetDataAtoms should be
    *    placed

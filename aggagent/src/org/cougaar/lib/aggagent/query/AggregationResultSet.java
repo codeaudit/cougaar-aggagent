@@ -305,8 +305,6 @@ public class AggregationResultSet implements XmlTransferable, Serializable {
   /**
    * Send event to all update listeners indicating that object has been added
    * to the log plan.
-   *
-   * @param sourceObject object that has been added
    */
   public void fireObjectAdded()
   {
@@ -316,8 +314,6 @@ public class AggregationResultSet implements XmlTransferable, Serializable {
   /**
    * Send event to all update listeners indicating that object has been removed
    * from the log plan.
-   *
-   * @param sourceObject object that has been removed
    */
   public void fireObjectRemoved()
   {
@@ -327,8 +323,6 @@ public class AggregationResultSet implements XmlTransferable, Serializable {
   /**
    * Send event to all update listeners indicating that object has been changed
    * on the log plan.
-   *
-   * @param sourceObject object that has been changed
    */
   private void fireObjectChanged()
   {

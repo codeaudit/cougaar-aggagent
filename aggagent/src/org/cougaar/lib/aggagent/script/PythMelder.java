@@ -85,8 +85,7 @@ public class PythMelder implements DataAtomMelder {
    *  function is actually delegated to a script-generated implementation,
    *  which is fabricated in the constructor.
    *
-   *  @param ids a list of names for the identifier fields
-   *  @param rs the result set containing the data to be aggregated
+   *  @param idNames a list of names for the identifier fields
    */
   public void meld (List idNames, CompoundKey id, List atoms, List output) {
     delegate.meld(idNames, id, atoms, output);
