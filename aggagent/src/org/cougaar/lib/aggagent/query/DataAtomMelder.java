@@ -1,6 +1,7 @@
 
 package org.cougaar.lib.aggagent.query;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -9,7 +10,7 @@ import java.util.List;
  *  embodied aggregation rule.  Typically, the result is a single atom, but
  *  the API allows zero or multiple atoms to accomodate a variety of needs.
  */
-public interface DataAtomMelder {
+public interface DataAtomMelder extends Serializable {
   /**
    *  Combine the data atoms in the list provided according to the implemented
    *  aggregation scheme.  Atoms produced in this manner should be appended to

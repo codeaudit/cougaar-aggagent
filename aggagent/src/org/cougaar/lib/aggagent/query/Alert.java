@@ -1,9 +1,10 @@
 
 package org.cougaar.lib.aggagent.query;
 
+import java.io.Serializable;
+
 import org.cougaar.lib.aggagent.session.XmlTransferable;
 import org.cougaar.lib.aggagent.util.InverseSax;
-// import org.cougaar.lib.aggagent.util.XmlUtils;
 
 /**
  *  The Alert class is the abstract superclass of all result set monitors.
@@ -20,7 +21,7 @@ import org.cougaar.lib.aggagent.util.InverseSax;
  *  At present there is no additional support for Alert activities, so all
  *  necessary work must be done in the Alert implementations.
  */
-public abstract class Alert implements XmlTransferable {
+public abstract class Alert implements XmlTransferable, Serializable {
   public static String ALERT_TAG = "alert";
   private static String NAME_ATT = "name";
   private static String QUERY_ATT = "query_id";

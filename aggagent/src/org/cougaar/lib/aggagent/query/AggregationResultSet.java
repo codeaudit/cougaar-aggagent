@@ -3,6 +3,7 @@ package org.cougaar.lib.aggagent.query;
 
 import org.w3c.dom.*;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -22,7 +23,7 @@ import org.cougaar.lib.aggagent.util.XmlUtils;
  *  A Repository for results being returned by Clusters for the associated
  *  AggregationQuery.
  */
-public class AggregationResultSet implements XmlTransferable {
+public class AggregationResultSet implements XmlTransferable, Serializable {
   public static String RESULT_SET_TAG = "result_set";
   public static String QUERY_ID_ATT = "query_id";
 

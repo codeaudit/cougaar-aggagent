@@ -2,17 +2,17 @@ package org.cougaar.lib.aggagent.query;
 
 import org.w3c.dom.*;
 
+import java.io.Serializable;
 import java.util.*;
 
 import org.cougaar.lib.aggagent.session.UpdateDelta;
 import org.cougaar.lib.aggagent.session.XmlTransferable;
 import org.cougaar.lib.aggagent.util.InverseSax;
-// import org.cougaar.lib.aggagent.util.XmlUtils;
 
 /**
  *  This adapter contains a query and links to some associated structures.
  */
-public class QueryResultAdapter implements XmlTransferable {
+public class QueryResultAdapter implements XmlTransferable, Serializable {
     public static String QUERY_RESULT_TAG = "query_result_adapter";
     public static String ID_ATT = "id";
 

@@ -1,12 +1,13 @@
 
 package org.cougaar.lib.aggagent.util;
 
+import java.io.Serializable;
 import java.util.*;
 
 /**
  *  Typesafe enumerated types used by AggregationQuery
  */
-public class Enum {
+public class Enum implements Serializable {
   private final String enumName;
 
   protected Enum (String name) {

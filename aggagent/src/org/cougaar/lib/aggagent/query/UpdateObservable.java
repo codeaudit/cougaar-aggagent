@@ -1,5 +1,6 @@
 package org.cougaar.lib.aggagent.query;
 
+import java.io.Serializable;
 import java.util.Vector;
 
 /**
@@ -7,8 +8,7 @@ import java.util.Vector;
  * Assists in managment of update listeners.  Objects can either extend or
  * delegate to this class.
  */
-public class UpdateObservable
-{
+public class UpdateObservable implements Serializable {
   private Vector updateListeners = null;
 
   /**

@@ -1,6 +1,7 @@
 
 package org.cougaar.lib.aggagent.query;
 
+import java.io.Serializable;
 import java.util.Iterator;
 import java.util.List;
 
@@ -12,7 +13,7 @@ import java.util.List;
  *  of the more esoteric combinations, this class may be used to exercise
  *  complete control over the calculations.
  */
-public interface Aggregator {
+public interface Aggregator extends Serializable {
   /**
    *  Derive a new set of ResultSetDataAtoms from those contained in the
    *  specified AggregationResultSet.

@@ -1,6 +1,7 @@
 
 package org.cougaar.lib.aggagent.query;
 
+import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.*;
 
@@ -20,7 +21,7 @@ import org.cougaar.lib.aggagent.util.XmlUtils;
  *  code itself plus a variety of information concerning the intended usage of
  *  the script.
  */
-public class ScriptSpec {
+public class ScriptSpec implements Serializable {
   private static String CLASS_TAG = "class";
   private static String PARAM_TAG = "param";
   private static String LANGUAGE_ATT = "language";

@@ -1,5 +1,6 @@
 package org.cougaar.lib.aggagent.query;
 
+import java.io.Serializable;
 import java.io.StringReader;
 import java.util.Collection;
 import java.util.Enumeration;
@@ -32,8 +33,7 @@ import org.cougaar.lib.aggagent.util.Enum.*;
  *  should be examined and the encoding of the findings (including any
  *  intermediate calculations that may be necessary).
  */
-public class AggregationQuery
-{
+public class AggregationQuery implements Serializable {
     public static String QUERY_TAG = "query";
     private static String TYPE_ATT = "type";
     private static String UPDATE_ATT = "update_method";
