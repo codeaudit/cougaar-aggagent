@@ -1,11 +1,7 @@
 
 package org.cougaar.lib.aggagent.script;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintStream;
-import java.io.StringWriter;
-import java.io.Writer;
+import java.util.Collection;
 
 import org.python.core.PyFunction;
 import org.python.core.PyInteger;
@@ -50,8 +46,8 @@ public class PythXMLEncoder implements XMLEncoder {
       delegateFunction = f;
     }
 
-    public void encode (Object o, PrintStream ps) {
-      delegateFunction._jcall(new Object[] {o, ps});
+    public void encode (Object o, Collection out) {
+      delegateFunction._jcall(new Object[] {o, out});
     }
   }
 
@@ -73,10 +69,10 @@ public class PythXMLEncoder implements XMLEncoder {
    *  which is fabricated in the constructor.
    *
    *  @param o an object to be encoded
-   *  @param ps the PrintStream to which the XML is sent
+   *  @param out a Collection to which results of this operation are added
    */
-  public void encode (Object o, PrintStream ps) {
-    delegate.encode(o, ps);
+  public void encode (Object o, Collection out) {
+    delegate.encode(o, out);
   }
 
   /**
@@ -106,73 +102,5 @@ public class PythXMLEncoder implements XMLEncoder {
     }
     throw new IllegalArgumentException(
       "JPython script did not yield a function or an XMLEncoder");
-  }
-
-
-// - - - - - - - Testing code below this point - - - - - - - - - - - - - - - - -
-
-  private static String CLASS_FOR_XMLIZER =
-    "from org.cougaar.lib.aggagent.session import XMLEncoder\n" +
-    "class TrivialXmlizer (XMLEncoder):\n" +
-    "  def encode (self, x, ps):\n" +
-    "    ps.print('<value>')\n" +
-    "    ps.print(x.toString())\n" +
-    "    ps.print('</value>')\n" +
-    "    ps.flush()\n" +
-    "    return\n" +
-    "def instantiate ():\n" +
-    "  return TrivialXmlizer()\n";
-
-  private static String FUNCTION_FOR_XMLIZER =
-    "from org.cougaar.lib.aggagent.session import XMLEncoder\n" +
-    "def encode (x, ps):\n" +
-    "  ps.print('<value>')\n" +
-    "  ps.print(x.toString())\n" +
-    "  ps.print('</value>')\n" +
-    "  ps.flush()\n" +
-    "  return\n" +
-    "def instantiate ():\n" +
-    "  return encode\n";
-
-  public static void main (String[] argv) {
-    XMLEncoder x1 = new PythXMLEncoder(CLASS_FOR_XMLIZER);
-    XMLEncoder x2 = new PythXMLEncoder(FUNCTION_FOR_XMLIZER);
-    Object testSubject = new StringWrapper("Bla bla bla");
-    String correctAnswer = "<value>Bla bla bla</value>";
-    test(x1, "x1", testSubject, correctAnswer);
-    test(x2, "x2", testSubject, correctAnswer);
-  }
-
-  private static void test (XMLEncoder x, String name, Object in, String out) {
-    WriterStream ws = new WriterStream();
-    x.encode(in, new PrintStream(ws));
-    System.out.println("Test for " + name + ":  " + out.equals(ws.getBuffer().toString()));
-  }
-
-  // This class is much like String, but JPython does not coerce it into a
-  // different form
-  private static class StringWrapper {
-    public String value = null;
-
-    public StringWrapper (String v) {
-      value = v;
-    }
-
-    public String toString () {
-      return value;
-    }
-  }
-
-  // same-old thing; cloak a Writer instance with an OutputStream interface
-  private static class WriterStream extends OutputStream {
-    private StringWriter w = new StringWriter();
-
-    public StringBuffer getBuffer () {
-      return w.getBuffer();
-    }
-
-    public void write (int b) throws IOException {
-      w.write(b);
-    }
   }
 }
