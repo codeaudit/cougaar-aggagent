@@ -102,9 +102,9 @@ public class SocietyQueryOrgHierarchy extends CustomQueryBaseAdapter
                            ((Asset)otherObject).getItemIdentificationPG().getNomenclature() :
                                 otherObject.toString();
 
-                      pw.print("<Cluster ID=\"" + orgName + "\">");
+                      pw.print("<Cluster ID=\"" + orgName.trim() + "\">");
                       pw.print("<other>"+
-                          other+
+                          other.trim()+
                           "</other><relationship>"+
                           schedule.getOtherRole(relationship)+
                           "</relationship>");

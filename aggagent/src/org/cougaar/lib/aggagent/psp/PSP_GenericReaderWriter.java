@@ -20,6 +20,7 @@ import java.io.StringWriter;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.Iterator;
+import java.util.HashMap;
 
 import org.cougaar.core.plugin.PlugInDelegate;
 import org.cougaar.lib.planserver.PSP_BaseAdapter;
@@ -232,7 +233,11 @@ public class PSP_GenericReaderWriter extends PSP_BaseAdapter implements PlanServ
 
           if(useHTML ) {
 
-           StringBuffer sb = XMLParseCommon.filterXMLtoHTML_withIndentation(new StringBuffer(new String(bufOut.toByteArray())));
+           StringBuffer sb = XMLParseCommon.filterXMLtoHTML_withIndentation(
+                   new StringBuffer(new String(bufOut.toByteArray())),
+                   new HashMap(),
+                   true
+                   );
 
            out.print("<HTML><BODY><PRE><BLOCKQUOTE>" +
                        sb.toString()

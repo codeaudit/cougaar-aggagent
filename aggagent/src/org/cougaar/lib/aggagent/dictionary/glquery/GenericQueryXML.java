@@ -126,7 +126,16 @@ public class GenericQueryXML  implements GenericQuery
                    XMLObjectProvider   myObjectProvider =
                             (XMLObjectProvider)this.getParam(this.paramkey_XML_SERVICE);
                    synchronized( myObjectProvider ) {
-                        myObjectProvider.addPlanObject(o);
+                       try{
+                            myObjectProvider.addPlanObject(o);
+
+                       } catch( Exception ex) {
+                            System.err.println("#####################################################");
+                            System.err.println("CORE LOGPLAN SERVICE FAILED.  Exception follows.");
+                            System.err.println("[XMLService]  Entry=XMLObjectProvider.addPlanObject");
+                            System.err.println("#####################################################");
+                            ex.printStackTrace();
+                       }
 
                    }
               }

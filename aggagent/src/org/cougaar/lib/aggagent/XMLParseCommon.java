@@ -3,6 +3,7 @@ package org.cougaar.lib.aggagent;
 
 import java.io.File;
 import java.io.FileReader;
+import java.util.HashMap;
 
 import org.apache.xerces.parsers.DOMParser;
 import org.xml.sax.helpers.DefaultHandler;
@@ -39,48 +40,130 @@ public class XMLParseCommon
        return buf;
     }
 
-    // ################################################################################
-    public static StringBuffer filterXMLtoHTML_withIndentation(StringBuffer dataout)
+
+    static private String[] colorRange= {
+       "000000", "FF0000", "EE0000", "DD0000", "CC0000", "BB0000", "AA0000",
+       "990000", "880000", "770000", "660000", "550000", "440000", "330000", "220000",
+       "110000",
+       // REPEAT
+       "000000", "FF0000", "EE0000", "DD0000", "CC0000", "BB0000", "AA0000",
+       "990000", "880000", "770000", "660000", "550000", "440000", "330000", "220000",
+       "110000",
+       // REPEAT
+       "000000", "FF0000", "EE0000", "DD0000", "CC0000", "BB0000", "AA0000",
+       "990000", "880000", "770000", "660000", "550000", "440000", "330000", "220000",
+       "110000"
+    };
+
+
+    //################################################################################
+    // @param aliases:   cannot be null.  pass empty HashMap if no aliases.
+    //                   if aliases defined, replace %TOKEN% with its alias (if exists)
+    //
+    public static StringBuffer filterXMLtoHTML_withIndentation(StringBuffer dataout,
+                                                  HashMap aliases, boolean color_depth_coding)
     {
        StringBuffer buf = new StringBuffer();
 
        int depth=0;
        int i;
        int sz = dataout.length();
-       char prev_c = (char)-1;
-       char prev_prev_c = (char)-1;
+       //char prev_c = (char)-1;
+       //char prev_prev_c = (char)-1;
        char c = (char)-1;
-       for(i=0;i<sz;i++){
-           prev_prev_c = prev_c;
-           prev_c = c;
+       char c_next_1 = (char)-1;
+       char c_prev_1 = (char)-1;
+       boolean indent=false;
+       int num_opening_brackets =0;
+
+       String  currToken = null;
+       for(i=0;i<sz;i++)
+       {
            c = dataout.charAt(i);
-           if( c == '<' ) {
-                buf.append("&lt"); //System.out.print(" &lt ");
-                depth++;
+           if( (i-1)>=0)  { if( Character.isWhitespace(dataout.charAt(i-1)) == false) c_prev_1 = dataout.charAt(i-1); }
+           if( (i+1)<sz ) { c_next_1 = dataout.charAt(i+1); }
+           else c_next_1 =  (char)-1;
+
+           // ###################################################
+           // ALIAS TOKEN PROCESSING
+           //
+           if( c == '%' ) {
+                if( currToken == null) {
+                     // opening '%'
+                     currToken = new String();
+                }
+                else {
+                     // closing '%'
+                     String alias = (String)aliases.get(currToken);
+                     if( alias != null) {
+                         buf.append(alias);
+                     }
+                     else {
+                         buf.append("NULL_ALIAS");
+                     }
+                     currToken = null;
+                }
            }
-           else if( (c == '>') && (prev_c == '/') ) {
-               buf.append(c);
-              depth--;
+           else if( currToken != null ) {
+               // accumulate token
+               currToken += c;
+           }
+           else
+
+           // ###################################################
+           // XML PROCESSING
+           //
+
+           //  CASE:  "</"
+           if( (c== '<') && (c_next_1 =='/')) {
+                // if no value, indent, else keep value on same line
+                if( c_prev_1 == '>') buf.append(indent(depth, color_depth_coding)+"&lt");
+                else buf.append("&lt");
+                depth--;  // after output
+                i++;
+                num_opening_brackets++;
+           }
+           else if( c == '<' ) {
+                depth++;
+                // if no value, OR FIRST '<' indent, else keep value on same line
+                if( (c_prev_1 == '>') || (num_opening_brackets ==0)) buf.append(indent(depth, color_depth_coding)+"&lt");
+                else buf.append("&lt");
+                num_opening_brackets++;
+           }
+           // case: "/>"
+           else if((c== '/') && (c_next_1 =='>')) {
+                buf.append("/&gt\n" );
+                if( color_depth_coding ){
+                    buf.append("</FONT>");
+                }
+                i++;
+                depth--;
+                //indent =true;
            }
            else if( c == '>' ) {
                 buf.append("&gt");  //System.out.print(" &gt ");
-                buf.append("\n");
-                for(int j=0; j<depth; j++){
-                   buf.append("  " );
+                if(c_next_1 == '<') buf.append("\n");  // case: no value, dont want carriage return
+                if( color_depth_coding ){
+                    buf.append("</FONT>");
                 }
-
-           }
-           else if( (c == '/') && (prev_c == '<') ) {
-               buf.append(c);
-               depth--;
-               depth--;
            }
            else {
                buf.append(c); //System.out.print(c);
            }
-
        }
        return buf;
+    }
+    
+    //
+    //
+    //
+    private static String indent(int depth, boolean color_depth_coding) {
+        String buf= new String();
+        for(int j=0; j<depth; j++){
+           buf +="   ";
+        }
+        if( color_depth_coding) buf += "<FONT COLOR=" + colorRange[depth] + ">";
+        return buf;
     }
 
 
@@ -100,8 +183,8 @@ public class XMLParseCommon
     public static Node getAttributeOrChildNode( String name, Node node ){
        Node n = null;
        if( node.getAttributes() != null) n = node.getAttributes().getNamedItem(name);
-       if( n == null ){
-
+       if( n == null )
+       {
           NodeList nl = node.getChildNodes();
           //System.out.println(">>>>>>>>Node=" + node.getNodeName() + ", len children=" + nl.getLength());
           int size = nl.getLength();

@@ -39,6 +39,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Element;
+import org.w3c.dom.Comment;
 import org.apache.xerces.dom.NodeImpl;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -182,6 +183,17 @@ public class GenericAggServerQueryXML  extends GenericQueryXML
           } catch (Exception ex ){
                  ex.printStackTrace();
           }
+          /**
+          String comment = new String();
+          comment += "!--";
+          comment += paramkey_PREDICATE + ":" + preConfiguredParameters.get(paramkey_PREDICATE);
+          comment += ";" + paramkey_XSL + ":" + preConfiguredParameters.get(paramkey_XSL);
+          comment += "-->";
+          PrintWriter pw = new PrintWriter(out);
+          pw.println(comment);
+          pw.close();
+          **/
+
           // flush!
           myObjects = Collections.synchronizedList(new ArrayList());
      }
