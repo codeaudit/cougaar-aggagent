@@ -211,9 +211,6 @@ public class QueryResultAdapter implements XmlTransferable {
         s.append(ad.toXml());
       }
       XmlUtils.appendCloseTag(QUERY_RESULT_TAG, s);
-
-      System.out.println(s);
-
       return s.toString();
     }
 }
