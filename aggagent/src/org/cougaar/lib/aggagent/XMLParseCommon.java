@@ -25,7 +25,7 @@ public class XMLParseCommon
        char csrc[] = new char[srcend];
        dataout.toString().getChars(0,srcend,csrc,0);
 
-       //StringWriter sw = new StringWriter(srcend);
+       // the return buffer (XML converted to HTML)
        StringBuffer buf = new StringBuffer(srcend);
 
        int i;
@@ -35,6 +35,50 @@ public class XMLParseCommon
            if( c == '<' ) buf.append("&lt");
            else if( c == '>' ) buf.append("&gt");
            else buf.append(c);
+       }
+       return buf;
+    }
+
+    // ################################################################################
+    public static StringBuffer filterXMLtoHTML_withIndentation(StringBuffer dataout)
+    {
+       StringBuffer buf = new StringBuffer();
+
+       int depth=0;
+       int i;
+       int sz = dataout.length();
+       char prev_c = (char)-1;
+       char prev_prev_c = (char)-1;
+       char c = (char)-1;
+       for(i=0;i<sz;i++){
+           prev_prev_c = prev_c;
+           prev_c = c;
+           c = dataout.charAt(i);
+           if( c == '<' ) {
+                buf.append("&lt"); //System.out.print(" &lt ");
+                depth++;
+           }
+           else if( (c == '>') && (prev_c == '/') ) {
+               buf.append(c);
+              depth--;
+           }
+           else if( c == '>' ) {
+                buf.append("&gt");  //System.out.print(" &gt ");
+                buf.append("\n");
+                for(int j=0; j<depth; j++){
+                   buf.append("  " );
+                }
+
+           }
+           else if( (c == '/') && (prev_c == '<') ) {
+               buf.append(c);
+               depth--;
+               depth--;
+           }
+           else {
+               buf.append(c); //System.out.print(c);
+           }
+
        }
        return buf;
     }
