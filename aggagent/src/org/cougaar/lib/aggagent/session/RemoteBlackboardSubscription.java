@@ -9,25 +9,20 @@ import org.cougaar.core.blackboard.*;
 
 /**
  *  <p>
- *  A RemoteSubscription is a mechanism that allows remote clients to collect
- *  information from a Cluster in much the same way as one of its resident
+ *  A RemoteBlackboardSubscription is a mechanism that allows remote clients to
+ *  collect information from a COUGAAR Agent in much the same way as one of its
  *  PlugIns.  Instances of this class behave like an IncrementalSubscription,
  *  that is, they accumulate and incrementally report lists of blackboard
  *  objects that have been added, removed, or modified.  However, their
  *  reporting model is not tied directly to the Cluster's event thread.
  *  </p><p>
- *  Each RemoteSubscription is backed-up by an IncrementalSubscription, which
- *  actually gets information from the blackboard.
+ *  Each RemoteBlackboardSubscription is backed by an IncrementalSubscription,
+ *  which actually gets information from the blackboard.
  *  </p><p>
  *  Access to incremental information is granted during a reporting
  *  transaction, which is started by calling open() and ended by calling
  *  close().  An IllegalStateException may be raised if the expected protocol
  *  is not followed.
- *  </p><p>
- *  Since the constructors use a ServerPlugInSupport reference to create the
- *  subscription (and UISubscriber interface for call-backs), the use of this
- *  class is apparently restricted to PSPs, which is probably where they will
- *  be the most useful.
  *  </p>
  */
 public class RemoteBlackboardSubscription implements SubscriptionAccess {
@@ -38,7 +33,7 @@ public class RemoteBlackboardSubscription implements SubscriptionAccess {
   private boolean dead = false;
 
   protected IncrementalSubscription subs = null;
-  protected BlackboardService bbs;
+  protected BlackboardService bbs = null;
 
   private Set added = null;
   private Set changed = null;
@@ -48,12 +43,18 @@ public class RemoteBlackboardSubscription implements SubscriptionAccess {
   private Set newChanges = new HashSet();
   private Set newRemoves = new HashSet();
 
+  /**
+   *  Create a new RemoteBlackboardSubscription specifying no initialization
+   *  parameters (no IncrementalSubscription is created).  This may be used by
+   *  subclasses to circumvent the default usage of the BlackboardService.
+   */
+  protected RemoteBlackboardSubscription () {
+  }
 
   /**
-   *  Create a new RemoteSubscription to gather Objects matching the given
-   *  predicate.  The ServerPlugInSupport reference allows the underlying
-   *  IncrementalSubscription to be created.  No listening Session is assigned
-   *  initially.
+   *  Create a new RemoteBlackboardSubscription to gather Objects matching the
+   *  given predicate.  The BlackboardService reference allows the underlying
+   *  IncrementalSubscription to be created.
    */
   public RemoteBlackboardSubscription (BlackboardService s, UnaryPredicate p) {
     this(s, p, false);
@@ -82,10 +83,19 @@ public class RemoteBlackboardSubscription implements SubscriptionAccess {
    */
   public void shutDown () {
     synchronized (lock) {
-      bbs.unsubscribe(subs);
+      unsubscribe();
       subs = null;
       dead = true;
     }
+  }
+
+  /**
+   *  Destroy the underlying subscription.  Subclasses, which may perform the
+   *  operation differently, can do so by overriding this method.
+   */
+  protected void unsubscribe () {
+    if (bbs != null)
+      bbs.unsubscribe(subs);
   }
 
   private void checkDead (String s) {

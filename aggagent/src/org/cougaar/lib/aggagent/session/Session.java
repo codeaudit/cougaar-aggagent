@@ -8,12 +8,17 @@ import org.cougaar.lib.planserver.*;
 import org.cougaar.lib.aggagent.util.XmlUtils;
 import org.cougaar.core.cluster.*;
 
-public class Session implements UISubscriber {
-  private Object lock = new Object();
+/**
+ *  A Session is a handler for instances of the RemotePSPSubscription class.
+ *  In the context of a PSP, this class can be used to manage remote access to
+ *  the local Blackboard through the RemotePSPSubscription API.
+ */
+public class Session {
+  protected Object lock = new Object();
 
   private String key = null;
   private String queryId = null;
-  private String clusterId = null;
+  protected String clusterId = null;
   private IncrementFormat sender = null;
 
   protected RemotePSPSubscription data = null;
@@ -44,10 +49,10 @@ public class Session implements UISubscriber {
    *  Once this method is called, subscriptionChanged() events may start
    *  arriving.
    */
-  public void start (ServerPlugInSupport spis, UnaryPredicate p) {
+  public void start (ServerPlugInSupport s, UnaryPredicate p) {
     synchronized (lock) {
-      clusterId = spis.getClusterIDAsString();
-      data = new RemotePSPSubscription(spis, p, this);
+      clusterId = s.getClusterIDAsString();
+      data = new RemotePSPSubscription(s, p);
     }
   }
 
@@ -74,14 +79,6 @@ public class Session implements UISubscriber {
    */
   public boolean hasChanged () {
     return data.hasChanged();
-  }
-
-  /**
-   *  This method is called by the resident RemoteSubscription whenever new
-   *  subscription information is available.  If immediate action is required,
-   *  then it is implemented here.  By default, no action is taken.
-   */
-  public void subscriptionChanged (Subscription sub) {
   }
 
   /**

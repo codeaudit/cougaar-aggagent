@@ -13,26 +13,17 @@ import org.cougaar.lib.aggagent.query.QueryResultAdapter;
 
 /**
  *  A SessionManager is a container for Sessions (q.v.), which may be created,
- *  retrieved, or destroyed using the methods of this class.  Three types of
- *  Sessions are currently supported:
- *  <ul>
- *    <li>Passive Sessions -- which report new results only when prompted</li>
- *    <li>PushSessions -- which actively report new data when it arrives</li>
- *    <li>PullSessions -- which is a client-side device for prompting data flow</li>
- *  </ul>
+ *  retrieved, or destroyed using the methods of this class.  Currently, only
+ *  one type of Session is supported, that being a passive Session that reports
+ *  results only when prompted.  Support for other reporting strategies may be
+ *  provided elsewhere.
  */
 public class SessionManager {
   public static boolean debug = false;
 
-  private static long PUSH_INTERVAL = 2000;
-
   private ServerPlugInSupport spis = null;
   private HashMap sessions = new HashMap();
   private int id_counter = 0;
-
-  // maybe these could be the same?
-  private Timer pullTimer = new Timer();
-  private Timer pushTimer = new Timer();
 
   public SessionManager (ServerPlugInSupport s) {
     spis = s;
@@ -50,40 +41,6 @@ public class SessionManager {
     s.start(spis, p);
 
     sessions.put(k, s);
-
-    return k;
-  }
-
-  public String addPushSession (
-      UnaryPredicate p, IncrementFormat f, URL url, String queryId)
-  {
-    return addPushSession(p, f, url, queryId, PUSH_INTERVAL);
-  }
-
-  public String addPushSession (UnaryPredicate p, IncrementFormat f, URL url,
-      String queryId, long interval)
-  {
-    String k = String.valueOf(id_counter++);
-    PushSession s = new PushSession(k, queryId, url, f);
-    s.setTimingModel(new PushTimingModel(pushTimer, s, interval));
-    s.start(spis, p);
-
-    sessions.put(k, s);
-
-    return k;
-  }
-
-  public String addPullSession (String requesterId, QueryResultAdapter qra,
-                                BlackboardService bs, NameService nameServer)
-  {
-    String k = String.valueOf(id_counter++);
-    PullSession s = new PullSession(k, requesterId, qra, bs, nameServer);
-    sessions.put(k, s);
-    if (qra.getQuery().getPullRate() >= 0)
-    {
-      long waitPeriod = (long)(qra.getQuery().getPullRate() * 1000);
-      pullTimer.scheduleAtFixedRate(s.getTimerTask(), 0, waitPeriod);
-    }
 
     return k;
   }
