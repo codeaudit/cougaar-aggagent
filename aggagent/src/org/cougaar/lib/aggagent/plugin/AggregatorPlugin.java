@@ -48,7 +48,10 @@ public class AggregatorPlugin extends SimplifiedPlugIn
     private ConnectionManager myConnectionManager = null;
 
     public long INITIAL_WAKE_UP_INTERVAL = 10000;
-    public long POLL_INTERVAL = 20000; // miliseconds
+
+    // DEFAULT POLL RATE IN miliseconds
+    // Plan is to have poll rates settable on individual queries
+    public long POLL_INTERVAL = 5000;
 
     /**
          NO SUBSCRIPTIONS FOR NOW
@@ -69,6 +72,16 @@ public class AggregatorPlugin extends SimplifiedPlugIn
            **/
            ConfigFileName = getStringParameter("file=", getParameters().elements(),
                                   Configs.AGGREGATOR_DEFAULT_CONNECTION_CONFIG_FILE_NAME);
+
+           String def_poll_rate = getStringParameter("default_poll_rate=", getParameters().elements(),
+                                  "5000");
+
+           if( def_poll_rate != null) {
+               long value = Long.parseLong(def_poll_rate);
+               System.out.println("\nAggregatorPlugin setting Default Poll Rate to: " + value + "\n");
+               POLL_INTERVAL = value;
+           }
+
 
           //
           // Cant do this here, apparently hookup to society (nameserver) not ready
