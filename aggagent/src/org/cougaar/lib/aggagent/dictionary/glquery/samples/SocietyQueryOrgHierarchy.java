@@ -83,10 +83,11 @@ public class SocietyQueryOrgHierarchy extends CustomQueryBaseAdapter
                  String orgName = org.getItemIdentificationPG().getNomenclature();
                  RelationshipSchedule schedule = org.getRelationshipSchedule();
 
-                 for (Iterator schedIter = schedule.iterator();
-                      schedIter.hasNext();)
+                 Object[] rsobjs = schedule.toArray();
+
+                 for (int j=0; j< rsobjs.length; j++ )
                  {
-                      Relationship relationship = (Relationship)schedIter.next();
+                      Relationship relationship = (Relationship)rsobjs[j];
 
                       // We already know it's the SELF org
                       if ((relationship.getRoleA().equals(Constants.Role.SELF)) ||
