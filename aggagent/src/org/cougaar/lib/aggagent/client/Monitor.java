@@ -131,24 +131,24 @@ import org.cougaar.lib.aggagent.util.XmlUtils;
             }
           }
           catch (Exception e) {
+            e.printStackTrace();
             System.out.println("Error reading from keep alive.\n" +
                                "Exiting monitor with request:\n" +
                                monitorRequest);
           } finally {
-            // close input stream to shutdown keep alive psp connection.
-            if (i != null)
-            {
-              try {
-                i.close();
-              } catch (Exception e) {/* I tried */}
-            }
-
             // send message to servlet to cancel keep alive
             if (sessionId != null)
             {
               String cancelSessionURL =
                   serverURL + "&CANCEL_SESSION_ID=" + sessionId;
               XmlUtils.requestString(cancelSessionURL, null);
+            }
+
+            // ensure that nothing is left unread
+            try {
+              while (i.read() != -1) {}
+            } catch (Exception e) {
+              e.printStackTrace();
             }
 
             // notify canceler that deed has been done
