@@ -1,0 +1,160 @@
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+Version 0.4 ChangeList
+
+
+
+1. ) Explicit  KeepAlive "generic psp" data conduits set up.  Implicit Policy-driven switching (based on pollInterval)
+   between non-KeepAlive and KeepAlive coming later.
+
+1.a) Explicit id of KeepAlive conduits
+   example below.   First query entry uses _KA extension to Generic PSP URL
+   this indicates KeepAlive.  
+
+   <source name="3ID" ignore="true">
+      <pollInterval>1000</pollInterval>  <!-- not used yet -->
+      <pspquery>/alpine/demo/GENERIC_KA.PSP?QUERY_SIMPLE_TASK</pspquery>
+   </source>
+
+   <source name="3ID">
+       <pollInterval>1000</pollInterval>  <!-- not used yet -->
+       <pspquery>/alpine/demo/GENERIC.PSP?QUERY_SIMPLE_TASK</pspquery>
+   </source>
+
+1.b ) New KeepAlive "Generic Reader Writer PSPs" need to be included with
+      Society clusters with KA conduit support.
+
+    Example below.  First entry is non-KA, 2nd is KA.
+
+  <element type="alp.ui.planserver.NamedPSP">
+  <Classname>alp.ui.aggserver.psp.PSP_GenericReaderWriter</Classname>
+  <PSPName>alpine/demo/GENERIC.PSP</PSPName>
+  </element>
+
+  <element type="alp.ui.planserver.NamedPSP">
+  <Classname>alp.ui.aggserver.psp.PSP_GenericReaderWriter_KeepAlive</Classname>
+  <PSPName>agg/demo/GENERIC_KA.PSP</PSPName>
+  </element>
+
+2.) SAX  "transformer" "plugins" supported added to  GenericQueryXML configuration.  
+    Example, the following entry defines glquery uses "[sax content handler].[predicate]"
+    tuple vs. [xsl].[predicate] pattern.   If [sax] is specified, xsl is turned off.
+    The SAX Content Handler must implement the BContentHandler specialization of SAX
+    ContentHandler API.
+
+      <glquery>
+          <keyname>QUERY_SIMPLE_TASK_SAX</keyname>
+          <sax>alp.ui.aggserver.bsax.samples.SampleHandler_1</sax>
+          <predicate>
+               <instanceof>org.cougaar.domain.planning.ldm.plan.Task</instanceof>  <!-- mutually exclusive w/domnode -->
+          </predicate>
+          <adapter>mil.darpa.log.alpine.ui.psp.xmlservice.GenericQueryXML</adapter>
+      </glquery>
+
+
+3.) Query entries in aggregator configs.xml can be "marked" -- 
+   to simplify turning on/off queries using a single query configuration file.
+
+   eg. 
+
+   <source ignore="true" />     => ignore this query
+   <source ignore="false" />    => use this query
+   <source />                   => default = false: use this query.
+
+
+4.) Connection parser "plugin" infrastructure added.  KeepAlive specialty 
+    "connection probe" plugin included.
+    Generally, not intended for use by UI app developers directly, but enables much greater 
+    flexibility in customizing aggs to diverse data sources. 
+    Easy customization of "connection probes" to filter/ gauge (monitor) connections.
+
+5.) Enhanced "Trace -- Display Blackboard Contents" UI for diagnostics support.  
+    Now, selection of 
+    Agg Agent Blackboard item allows you to inspect contents. 
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////
+Version 0.3 ChangeList
+
+-) Updated alp_workspace to Cougaar 6.8
+
+-) Updated GLDictionary loader to permit loading of non-XSL GLQuery primitives 
+   (developer java "glquery plugins" allowed now -- pattern provided).
+   Provided one example thread.    See new Document:  "GLPrimitivesNotes" document (Section 2) 
+   for details.
+
+
+-) Agg Agent Admin UI updated to offer both XML and HTMLized XML display of results from "Simple Task"
+   and "Simple Asset" illustration threads.   XML output requires using IE browser, HTMLIzed form is
+   not as pretty, but can run under Netscape.
+
+     +) update of UI canned Queries menu 
+
+-) Fixed bug where Connection Manager failed to add redirect extension to URL.   So all connections
+    were to base cluster (port 5555) without redirect.
+
+-) No longer need to hard code and compile GL Dictionary keys, eg. 
+              static final String GLQ_KEY_QUERY_SIMPLE_ALL    = "QUERY_SIMPLE_ALL";
+  
+   keys are now automatically generated from config file entries, eg:
+             <keyname>QUERY_SIMPLE_TASK</keyname>
+
+-) Updated docs section:  
+
+      +) updated screen shots and updated:   "AggServerNotes2" =>  "AggAgentOperationsNotes"
+      +) new document:  GLPrimitivesNotes
+     
+
+
+////////////////////////////////////////////////////////////////////////////////////////////
+Version 0.2 ChangeList
+11/22/00
+
+-) Now, Generic PSP "dictionaries" are loaded from XML script.   In the current illustration system,
+   2 configuration scripts are used:
+
+   /alp_workspace/alp/configs/glprimitives.agg.cluster.xml
+   /alp_workspace/configs/minitestconfig/glprimitives.society.cluster.xml
+
+   The Agg Agent is configured to use the first.
+   All Minitestconfig clusters use the latter.
+
+-) 1 Document updated.  1 New Document:
+
+   alp_workspace/doc/AggServerNotes2   => Updated Agg Agent Operational notes
+   alp_workspace/doc/TransformerNotes =>  Aggregation Agent Transformer Plugin Dev Notes.
+   
+-) Update "TRACE.PSP"  Admin/Demo UI for Aggregation AGent:
+
+   **>  Displays additional XML config scripts from menu.
+   **> XML Config scripts are HTMLized before display.  Therefore these displays will
+       now work on Netscape browsers.
+
+
+-) re-enabled XSL transform code at Agg Agent Generic PSP.   Accidentally disabled for testing.
+
+-) added 2 *different* XSL scripts for use by Agg Agent with the 
+   "simple Task" and "simple Asset" illustration threads.
+
+   Now.  Simple Task Thread configured to:
+
+   1.a) Society Cluster transform output from Generic PSP using 
+                task.simple.1.xsl
+   1.b) Agg Agent Generic PSP further transforms "simple tasks" using 
+                task.simple.agg.1.xsl
+
+   Now.  Simple Asset Thread configured to:
+
+   1.a) Society Cluster transform output from Generic PSP using 
+                asset.simple.1.xsl
+   1.b) Agg Agent Generic PSP further transforms "simple tasks" using 
+                asset.simple.agg.1.xsl
+
+   To the careful inspector, one will note that while the "data" is identical, the 
+   structure of XML is different between transforms.   The Society clusters xsl maps
+   data into ATTRIBUTE nodes, while Agg Agent, uses children element nodes.   This was 
+   done for illustration purposes.
+
+
+
