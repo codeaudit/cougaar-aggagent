@@ -15,6 +15,7 @@ import org.cougaar.core.mts.Message;
 import org.cougaar.core.mts.MessageAddress;
 import org.cougaar.core.plugin.*;
 import org.cougaar.core.service.NamingService;
+import org.cougaar.core.service.MessageTransportService;
 import org.cougaar.lib.planserver.server.FDSProxy;
 import org.cougaar.lib.planserver.server.NameService;
 import org.cougaar.lib.planserver.server.ProxyMapAdapter;

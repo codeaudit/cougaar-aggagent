@@ -8,8 +8,8 @@ import org.cougaar.core.domain.*;
 import org.cougaar.core.blackboard.*;
 import org.cougaar.core.mts.Message;
 import org.cougaar.core.mts.MessageAddress;
+import org.cougaar.core.service.BlackboardService;
 import org.cougaar.util.*;
-import org.cougaar.core.blackboard.*;
 
 /**
  *  <p>
