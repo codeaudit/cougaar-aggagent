@@ -69,7 +69,7 @@ public class ServletSession extends RemoteSession
         data = new RemoteBlackboardSubscription(b, p);
         sms.setSubscriptionListener(data.getSubscription(), this);
       } finally {
-        b.closeTransaction(false);
+        b.closeTransactionDontReset();
       }
     }
   }
