@@ -21,7 +21,7 @@ import org.cougaar.lib.aggagent.util.XmlUtils;
    * monitoring.
    *
    * Maintains a collection of monitored objects and keeps them updated based
-   * on changes on the assessment agent's blackboard.  To react to these
+   * on changes on the aggregation agent's blackboard.  To react to these
    * changes either:
    * <UL>
    * <LI>add update listener(s) to the monitor class and receive events for
@@ -34,14 +34,14 @@ import org.cougaar.lib.aggagent.util.XmlUtils;
   {
     /**
      * PULL_METHOD is an update method in which the client periodically pulls
-     * incremental updates from passive session on assessment agent.  A new
+     * incremental updates from passive session on aggregation agent.  A new
      * connection is created with each pull.
      */
     public static final int PULL_METHOD = 0;
 
     /**
      * KEEP_ALIVE_METHOD is an update method in which the client creates a keep
-     * alive session with assessment agent.  Incremental updates are pushed to
+     * alive session with aggregation agent.  Incremental updates are pushed to
      * the client over this pipe.
      */
     public static final int KEEP_ALIVE_METHOD = 1;
@@ -130,21 +130,21 @@ import org.cougaar.lib.aggagent.util.XmlUtils;
       };
 
     /**
-     * Create a new monitor to monitor a set of objects on the assessment
+     * Create a new monitor to monitor a set of objects on the aggregation
      * agent.  Each monitor is used to monitor a single type of object
      * (e.g. AlertMonitor, ResultSetMonitor).
      *
-     * @param serverURL    assessment agent cluster's text URL
-     * @param monitorTag   magic text string used to tell assessment PSP what
+     * @param serverURL    aggregation agent cluster's text URL
+     * @param monitorTag   magic text string used to tell aggregation PSP what
      *                     type of objects are being monitored.
      *                     (e.g. "alert", "result_set")
      * @param updateMethod method used to keep monitored objects updated
      *                     PULL_METHOD - periodically pull incremental updates
-     *                                   from passive session on assessment
+     *                                   from passive session on aggregation
      *                                   agent.  Create new connection with
      *                                   each pull.
      *                      KEEP_ALIVE_METHOD - create keep alive session
-     *                                   with assessment agent.  Incremental
+     *                                   with aggregation agent.  Incremental
      *                                   updates are pushed to the client
      *                                   over this pipe.
      */
@@ -156,7 +156,7 @@ import org.cougaar.lib.aggagent.util.XmlUtils;
     }
 
     /**
-     * Change mode to monitor all objects on the assessment agent that are of
+     * Change mode to monitor all objects on the aggregation agent that are of
      * the type that this monitor handles.  Without calling this method, only
      * a defined set of objects are monitored (see monitorObject method).
      */
@@ -172,7 +172,7 @@ import org.cougaar.lib.aggagent.util.XmlUtils;
      * roughly equivalent to adding an update listener to each of the
      * currently monitored objects.  But, when monitor all objects is turned
      * on, this can also be used to discover newly added objects on the
-     * assessment agent's blackboard (via objectAdded listener call).
+     * aggregation agent's blackboard (via objectAdded listener call).
      *
      * @param ul update listener to add to entire monitor.
      */
@@ -209,7 +209,7 @@ import org.cougaar.lib.aggagent.util.XmlUtils;
      * being updated by this monitor.
      *
      * @param identifier   an object that uniquely identifies an object on the
-     *                     assessment agent.  Must be able to use this object
+     *                     aggregation agent.  Must be able to use this object
      *                     as a hashtable key (i.e. must have proper equals()
      *                     and hashcode() methods).
      *
@@ -223,10 +223,10 @@ import org.cougaar.lib.aggagent.util.XmlUtils;
 
     /**
      * Get the timer task to use to periodically pull incremental updates from
-     * the assessment agent.
+     * the aggregation agent.
      *
      * @return the timer task to use to periodically pull incremental updates
-     * from the assessment agent.  Returns null if monitor is not configured to
+     * from the aggregation agent.  Returns null if monitor is not configured to
      * use the pull update method.
      */
     public TimerTask getPullTask()
@@ -260,7 +260,7 @@ import org.cougaar.lib.aggagent.util.XmlUtils;
      * given identifier.
      *
      * @param identifier   an object that uniquely identifies an object on the
-     *                     assessment agent.  Must be able to use this object
+     *                     aggregation agent.  Must be able to use this object
      *                     as a hashtable key (i.e. must have proper equals()
      *                     and hashcode() methods).
      *
@@ -270,7 +270,7 @@ import org.cougaar.lib.aggagent.util.XmlUtils;
 
     /**
      * Must be defined by subclasses to define what should be done when an
-     * update event (either add or change) is reported by the assessment agent
+     * update event (either add or change) is reported by the aggregation agent
      * to a object described by the given xml element tree.
      *
      * @param monitoredElement xml element tree that describes the updated
@@ -282,7 +282,7 @@ import org.cougaar.lib.aggagent.util.XmlUtils;
 
     /**
      * Must be defined by subclasses to define what should be done when a
-     * remove event is reported by the assessment agent to a object described
+     * remove event is reported by the aggregation agent to a object described
      * by the given xml element tree.
      *
      * @param monitoredElement xml element tree that describes the removed
@@ -298,13 +298,13 @@ import org.cougaar.lib.aggagent.util.XmlUtils;
      * object becomes live.
      *
      * @param identifier   an object that uniquely identifies an object on the
-     *                     assessment agent.  Must be able to use this object
+     *                     aggregation agent.  Must be able to use this object
      *                     as a hashtable key (i.e. must have proper equals()
      *                     and hashcode() methods).
      * @param monitoredObj a valid object for this type of monitor.
      *
      * @return a live object that is actively being updated to match a subject
-     *         object on the assessment agent.
+     *         object on the aggregation agent.
      */
     protected Object monitorObject(Object identifier, Object monitoredObj)
     {
@@ -326,7 +326,7 @@ import org.cougaar.lib.aggagent.util.XmlUtils;
      *  object is still on the log plan).
      *
      * @param identifier   an object that uniquely identifies an object on the
-     *                     assessment agent.  Must be able to use this object
+     *                     aggregation agent.  Must be able to use this object
      *                     as a hashtable key (i.e. must have proper equals()
      *                     and hashcode() methods).
      *
@@ -344,12 +344,12 @@ import org.cougaar.lib.aggagent.util.XmlUtils;
      * Get a specific object being updated by this monitor.
      *
      * @param identifier   an object that uniquely identifies an object on the
-     *                     assessment agent.  Must be able to use this object
+     *                     aggregation agent.  Must be able to use this object
      *                     as a hashtable key (i.e. must have proper equals()
      *                     and hashcode() methods).
      *
      * @return a live object that is actively being updated to match a subject
-     *         object on the assessment agent.
+     *         object on the aggregation agent.
      */
     protected Object getMonitoredObject(Object identifier)
     {

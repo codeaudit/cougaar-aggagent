@@ -5,10 +5,10 @@ import org.cougaar.lib.aggagent.query.AlertDescriptor;
 
   /**
    * Provides support for event driven monitoring of active Alert(s) on the
-   * assessment agent.
+   * aggregation agent.
    *
    * Maintains a collection of monitored alerts and keeps them updated
-   * based on changes on the assessment agent's blackboard.  To react to these
+   * based on changes on the aggregation agent's blackboard.  To react to these
    * changes either:
    * <UL>
    * <LI>add update listener(s) to this monitor class and receive events for
@@ -25,18 +25,18 @@ import org.cougaar.lib.aggagent.query.AlertDescriptor;
     }
 
     /**
-     * Monitor an alert managed by the assessment agent.  Returns a 'live'
+     * Monitor an alert managed by the aggregation agent.  Returns a 'live'
      * alert descriptor for a given persistent query. Update listeners can be
      * added to this live object to react to changes to that object.  If
      * monitor is not set to monitor-all-objects, this alert is added to
      * this monitor's set of monitored objects.
      *
-     * @param queryId   id of query result adapter on assessment agent that is
+     * @param queryId   id of query result adapter on aggregation agent that is
      *                  maintaining this alert.
      * @param alertName name of alert to monitor
      *
      * @return a live alert descriptor that is actively being updated to match
-     *         a subject alert on the assessment agent.
+     *         a subject alert on the aggregation agent.
      */
     public AlertDescriptor monitorAlert(String queryId, String alertName)
     {
@@ -55,7 +55,7 @@ import org.cougaar.lib.aggagent.query.AlertDescriptor;
      * (old live alert object will die, but new one will take it's place
      *  if that alert is still on the log plan).
      *
-     * @param queryId   id of query result adapter on assessment agent that is
+     * @param queryId   id of query result adapter on aggregation agent that is
      *                  maintaining this alert.
      * @param alertName name of alert to monitor
      *
@@ -72,7 +72,7 @@ import org.cougaar.lib.aggagent.query.AlertDescriptor;
      * Returns true if an alert matching the given identifiers is currently
      * being updated by this monitor.
      *
-     * @param queryId   id of query result adapter on assessment agent that is
+     * @param queryId   id of query result adapter on aggregation agent that is
      *                  maintaining this alert.
      * @param alertName name of alert to monitor
      *
@@ -89,7 +89,7 @@ import org.cougaar.lib.aggagent.query.AlertDescriptor;
      * Provides a xml representation of a given alert identifier.
      *
      * @param identifier an object that uniquely identifies an alert on the
-     *                   assessment agent.
+     *                   aggregation agent.
      *
      * @return a xml representation of given alert identifier.
      */
@@ -102,7 +102,7 @@ import org.cougaar.lib.aggagent.query.AlertDescriptor;
 
     /**
      * Called when a update event (either add or change) is reported by the
-     * assessment agent to an alert described by the given xml element
+     * aggregation agent to an alert described by the given xml element
      * tree.
      *
      * @param monitoredElement xml element tree that describes the updated
@@ -122,7 +122,7 @@ import org.cougaar.lib.aggagent.query.AlertDescriptor;
     }
 
     /**
-     * Called when a remove event is reported by the assessment agent to an
+     * Called when a remove event is reported by the aggregation agent to an
      * alert described by the given xml element tree.
      *
      * @param monitoredElement xml element tree that describes the removed
