@@ -137,6 +137,12 @@ public class QueryResultAdapter implements XmlTransferable, Serializable {
       return null;
     }
 
+    public void removeAlert (Alert a) {
+      synchronized (alerts) {
+        alerts.remove(a);
+      }
+    }
+
     /**
      *  Notify the registered Alerts that new information has become available
      *  for this query.  They will then examine the result set and respond as
