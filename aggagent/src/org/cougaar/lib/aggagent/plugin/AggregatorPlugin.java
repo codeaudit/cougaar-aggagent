@@ -9,6 +9,8 @@
  */
 package org.cougaar.lib.aggagent.plugin;
 
+import org.cougaar.core.naming.NamingService;
+
 import java.util.Hashtable;
 import java.util.Enumeration;
 import java.util.Vector;
@@ -112,9 +114,26 @@ public class AggregatorPlugin extends SimplifiedPlugIn
     private DOMParser myDOMParser = new DOMParser();   // reuse parser instance...
 
 
+   private NamingService theNamingService;
+
+   public void setNamingService(NamingService aNamingService) {
+      theNamingService = aNamingService;
+   }
+
+   public NamingService getNamingService() {
+      return theNamingService;
+   }
+
+/**
+  public PlanServer(int port, int maxConnections, ServerPlugInSupport sps)
+  {
+    super(port, maxConnections, sps.getClusterIDAsString());
+    myNameServiceProvider = new ProxyMapAdapter(new FDSProxy(sps.getNamingService()));
+
+ * **/
     public void execute() {
         if( first_time ){
-           FDSProxy fds = new FDSProxy();
+           FDSProxy fds = new FDSProxy(theNamingService);
            NameService myNameServiceProvider = new ProxyMapAdapter( fds );
            myConnectionManager = new ConnectionManager(
                    new ConnectionLogger("connxion" + this.getClusterIdentifier().cleanToString() + ".html"),

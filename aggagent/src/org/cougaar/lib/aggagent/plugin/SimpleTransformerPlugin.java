@@ -46,7 +46,6 @@ import org.cougaar.lib.planserver.RuntimePSPException;
 import org.cougaar.lib.planserver.PlanServiceContext;
 import org.cougaar.lib.planserver.PlanServiceUtilities;
 import org.cougaar.core.plugin.SimplifiedPlugIn;
-import org.cougaar.lib.planserver.server.FDSProxy;
 import org.cougaar.lib.planserver.server.NameService;
 import org.cougaar.lib.planserver.server.ProxyMapAdapter;
 
@@ -105,7 +104,7 @@ public class SimpleTransformerPlugin extends SimplifiedPlugIn
     public void execute() {
 
        long currTime= System.currentTimeMillis();
-       
+
        Enumeration en = mySubscription.getAddedList();
         while( en.hasMoreElements() ){
             Object obj = en.nextElement();
