@@ -112,14 +112,14 @@ implements Relay.Source, Relay.Target, XMLizable
     return SimpleRelayFactory.INSTANCE;
   }
 
-  public boolean updateResponse(
+  public int updateResponse(
       MessageAddress t, Object response) {
     // assert response != null
     if (!(response.equals(this.response))) {
       this.response = response;
-      return true;
+      return Relay.RESPONSE_CHANGE;
     }
-    return false;
+    return Relay.NO_CHANGE;
   }
 
   // Target interface
@@ -132,13 +132,13 @@ implements Relay.Source, Relay.Target, XMLizable
     return response;
   }
 
-  public boolean updateContent(Object content, Token token) {
+  public int updateContent(Object content, Token token) {
     // assert content != null
     if (!(content.equals(this.content))) {
       this.content = content;
-      return true;
+      return CONTENT_CHANGE;
     }
-    return false;
+    return NO_CHANGE;
   }
 
   // XMLizable method for UI, other clients
