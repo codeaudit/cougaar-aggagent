@@ -10,7 +10,7 @@ set DEVPATH=c:\alp\aggagent\classes
 
 set BASELIB=%COUGAAR_INSTALL_PATH%\lib
 set SYSLIB=%COUGAAR_INSTALL_PATH%\sys
-set EXECLASS=org.cougaar.core.society.Node
+set EXECLASS=org.cougaar.core.node.Node
 rem set FLAGS=-Dorg.cougaar.class.path=%BASELIB%\*.jar
 set NODEARGS=-c -n %NODE%
 

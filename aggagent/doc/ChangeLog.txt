@@ -209,7 +209,7 @@ src/org/cougaar/lib/aggagent/psp
 
 2.) AGG AGENT NOW USE XMLSERVICE COMPONENT BEHIND XMLObjectProvider Interface.  GenericQueryXML currently uses default XML Service:
 
-"org.cougaar.domain.mlm.ui.psp.xmlservice.XMLPlanObjectProvider"
+"org.cougaar.mlm.ui.psp.xmlservice.XMLPlanObjectProvider"
 
 
 #########################################################################
@@ -300,7 +300,7 @@ Version 0.4 ChangeList
           <keyname>QUERY_SIMPLE_TASK_SAX</keyname>
           <sax>alp.ui.aggserver.bsax.samples.SampleHandler_1</sax>
           <predicate>
-               <instanceof>org.cougaar.domain.planning.ldm.plan.Task</instanceof>  <!-- mutually exclusive w/domnode -->
+               <instanceof>org.cougaar.planning.ldm.plan.Task</instanceof>  <!-- mutually exclusive w/domnode -->
           </predicate>
           <adapter>mil.darpa.log.alpine.ui.psp.xmlservice.GenericQueryXML</adapter>
       </glquery>

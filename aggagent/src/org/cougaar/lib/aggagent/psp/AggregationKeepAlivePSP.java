@@ -12,7 +12,11 @@ import org.cougaar.lib.planserver.PSP_BaseAdapter;
 import org.cougaar.lib.planserver.ServerPlugInSupport;
 import org.cougaar.lib.planserver.UISubscriber;
 import org.cougaar.util.UnaryPredicate;
-import org.cougaar.core.cluster.*;
+import org.cougaar.core.agent.*;
+import org.cougaar.core.domain.*;
+import org.cougaar.core.blackboard.*;
+import org.cougaar.core.mts.Message;
+import org.cougaar.core.mts.MessageAddress;
 
 import org.cougaar.lib.aggagent.session.IncrementFormat;
 import org.cougaar.lib.aggagent.session.XmlIncrement;

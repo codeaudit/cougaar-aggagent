@@ -8,8 +8,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Vector;
 
-import org.cougaar.core.cluster.IncrementalSubscription;
-import org.cougaar.core.cluster.Subscription;
+import org.cougaar.core.blackboard.IncrementalSubscription;
+import org.cougaar.core.blackboard.Subscription;
 import org.cougaar.lib.planserver.PlanServiceContext;
 import org.cougaar.lib.planserver.ServerPlugInSupport;
 import org.cougaar.lib.planserver.UISubscriber;

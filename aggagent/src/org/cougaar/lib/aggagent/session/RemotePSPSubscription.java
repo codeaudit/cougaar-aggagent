@@ -2,7 +2,11 @@ package org.cougaar.lib.aggagent.session;
 
 import org.cougaar.lib.planserver.*;
 import org.cougaar.util.*;
-import org.cougaar.core.cluster.*;
+import org.cougaar.core.agent.*;
+import org.cougaar.core.domain.*;
+import org.cougaar.core.blackboard.*;
+import org.cougaar.core.mts.Message;
+import org.cougaar.core.mts.MessageAddress;
 
 /**
  *  A RemotePSPSubscription is a type of RemoteBlackboardSubscription that is

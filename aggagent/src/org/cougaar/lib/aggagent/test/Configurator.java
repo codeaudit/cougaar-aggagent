@@ -119,7 +119,7 @@ public class Configurator {
   {
     PrintStream out = new PrintStream(new FileOutputStream(f));
     out.println("[ Cluster ]");
-    out.println("class = org.cougaar.core.cluster.ClusterImpl");
+    out.println("class = org.cougaar.core.agent.ClusterImpl");
     out.println("uic = UIC/" + name);
     out.println();
     out.println("[ PlugIns ]");
@@ -193,7 +193,7 @@ public class Configurator {
     out.println();
     out.println("set NODE=" + nodeName);
     out.println();
-    out.println("set EXECLASS=org.cougaar.core.society.Node");
+    out.println("set EXECLASS=org.cougaar.core.node.Node");
     out.println("set NODEARGS=-c -n %NODE%");
     out.println();
     out.println("set BJPATH=" + config.aggagentCp);

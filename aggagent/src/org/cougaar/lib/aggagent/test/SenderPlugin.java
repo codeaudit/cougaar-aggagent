@@ -1,10 +1,10 @@
 
 package org.cougaar.lib.aggagent.test;
 
-import org.cougaar.core.cluster.Alarm;
-import org.cougaar.core.cluster.ClusterIdentifier;
-import org.cougaar.core.society.Message;
-import org.cougaar.core.society.MessageAddress;
+import org.cougaar.core.agent.service.alarm.Alarm;
+import org.cougaar.core.agent.ClusterIdentifier;
+import org.cougaar.core.mts.Message;
+import org.cougaar.core.mts.MessageAddress;
 
 /**
  *  This is an example demonstrating the use of the MessageTransportService.

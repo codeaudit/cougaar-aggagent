@@ -11,10 +11,14 @@ import org.cougaar.lib.aggagent.query.*;
 import org.cougaar.lib.aggagent.session.*;
 
 import org.cougaar.util.*;
-import org.cougaar.core.society.*;
+import org.cougaar.core.node.*;
 import org.cougaar.core.mts.*;
 import org.cougaar.core.component.*;
-import org.cougaar.core.cluster.*;
+import org.cougaar.core.agent.*;
+import org.cougaar.core.domain.*;
+import org.cougaar.core.blackboard.*;
+import org.cougaar.core.mts.Message;
+import org.cougaar.core.mts.MessageAddress;
 
 
 public class RemoteSubscriptionPlugIn extends AggregationPlugIn implements MessageTransportClient

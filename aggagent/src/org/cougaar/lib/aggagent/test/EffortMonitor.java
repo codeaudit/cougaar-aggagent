@@ -2,7 +2,7 @@ package org.cougaar.lib.aggagent.test;
 
 import java.util.*;
 
-import org.cougaar.core.cluster.IncrementalSubscription;
+import org.cougaar.core.blackboard.IncrementalSubscription;
 import org.cougaar.core.plugin.SimplePlugIn;
 import org.cougaar.util.UnaryPredicate;
 

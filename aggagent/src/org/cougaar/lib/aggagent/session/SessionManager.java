@@ -4,7 +4,7 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
-import org.cougaar.core.blackboard.BlackboardService;
+import org.cougaar.core.service.BlackboardService;
 import org.cougaar.lib.planserver.ServerPlugInSupport;
 import org.cougaar.lib.planserver.server.NameService;
 import org.cougaar.util.UnaryPredicate;

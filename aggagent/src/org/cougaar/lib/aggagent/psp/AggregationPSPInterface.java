@@ -3,8 +3,8 @@ package org.cougaar.lib.aggagent.psp;
 import java.io.PrintStream;
 import java.util.*;
 
-import org.cougaar.core.cluster.IncrementalSubscription;
-import org.cougaar.core.cluster.Subscription;
+import org.cougaar.core.blackboard.IncrementalSubscription;
+import org.cougaar.core.blackboard.Subscription;
 import org.cougaar.lib.planserver.PlanServiceContext;
 import org.cougaar.lib.planserver.ServerPlugInSupport;
 import org.cougaar.lib.planserver.UISubscriber;

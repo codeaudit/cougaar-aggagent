@@ -329,7 +329,7 @@ public class AggregationPSPClient
 
   /**
    * Get the value of a system property from the aggregation agent's
-   * environment. (e.g. "org.cougaar.core.cluster.startTime")
+   * environment. (e.g. "org.cougaar.core.agent.startTime")
    *
    * @param propertyName the name of the property.
    * @return the value of the property.

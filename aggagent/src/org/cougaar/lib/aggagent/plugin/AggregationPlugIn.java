@@ -8,9 +8,13 @@ import org.w3c.dom.*;
 import org.apache.xerces.parsers.DOMParser;
 import org.xml.sax.InputSource;
 
-import org.cougaar.core.cluster.*;
+import org.cougaar.core.agent.*;
+import org.cougaar.core.domain.*;
+import org.cougaar.core.blackboard.*;
+import org.cougaar.core.mts.Message;
+import org.cougaar.core.mts.MessageAddress;
 import org.cougaar.core.plugin.*;
-import org.cougaar.core.naming.NamingService;
+import org.cougaar.core.service.NamingService;
 import org.cougaar.lib.planserver.server.FDSProxy;
 import org.cougaar.lib.planserver.server.NameService;
 import org.cougaar.lib.planserver.server.ProxyMapAdapter;
@@ -22,8 +26,8 @@ import org.cougaar.lib.aggagent.util.Const;
 import org.cougaar.lib.aggagent.util.Enum.*;
 import org.cougaar.lib.aggagent.util.InverseSax;
 import org.cougaar.lib.aggagent.util.XmlUtils;
-import org.cougaar.core.society.Message;
-import org.cougaar.core.society.MessageAddress;
+import org.cougaar.core.mts.Message;
+import org.cougaar.core.mts.MessageAddress;
 import org.cougaar.core.mts.*;
 import org.cougaar.core.component.*;
 
