@@ -23,12 +23,11 @@ XML Encoders:
 ; Number cycle value monitor
 (begin
   (import "org.cougaar.lib.aggagent.query.ResultSetDataAtom")
-  (lambda (nc ps)
+  (lambda (nc out)
     (let ((data_atom (ResultSetDataAtom.)))
       (.addIdentifier data_atom "length" (.getLength nc))
       (.addValue      data_atom "value"  (.getValue nc))
-      (.println ps (.toXML data_atom))
-      (.flush ps))))
+      (.add out data_atom))))
 
 --[JPython]--
 
@@ -50,19 +49,12 @@ IncrementFormats:
 (begin
   (import "java.io.PrintStream")
   (import "org.cougaar.lib.aggagent.query.ResultSetDataAtom")
-  (lambda (out rs key qId cId)
+  (lambda (out sacc)
     (let
-      ((ps (PrintStream. out))
-       (header (string-append "<update session_key=\"" key "\" query_id=\"" qId "\" cluster_id=\"" cId "\">"))
-       (dataAtom (ResultSetDataAtom.)))
-      (.println ps header)
-      (.println ps "<added>")
+        ((dataAtom (ResultSetDataAtom.)))
       (.addIdentifier dataAtom "name"  "NumberOfCycles")
-      (.addValue      dataAtom "value" (.size (.getMembership rs)))
-      (.println ps (.toXML dataAtom))
-      (.println ps "</added>")
-      (.println ps "</update>")
-      (.flush ps))))
+      (.addValue      dataAtom "value" (.size (.getMembership sacc)))
+      (.add out dataAtom))))
 
 
 --[JPython]--
