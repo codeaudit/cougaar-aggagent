@@ -1,7 +1,74 @@
 
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+Version 0.5 ChangeList
+
+1.) Repackaged to match Cougaar 7.0 PACKAGES/MODULES.
+
+AGG AGENT CVS MODULE LAYOUT:
+
+doc
+src
+src/org
+src/org/cougaar
+src/org/cougaar/lib
+src/org/cougaar/lib/aggagent
+src/org/cougaar/lib/aggagent/bsax
+src/org/cougaar/lib/aggagent/connect
+src/org/cougaar/lib/aggagent/dictionary
+src/org/cougaar/lib/aggagent/dictionary/glquery
+src/org/cougaar/lib/aggagent/dictionary/glquery/samples
+src/org/cougaar/lib/aggagent/dictionary/glupdate
+src/org/cougaar/lib/aggagent/ldm
+src/org/cougaar/lib/aggagent/plugin
+src/org/cougaar/lib/aggagent/psp
+
+2.) AGG AGENT NOW USE XMLSERVICE COMPONENT BEHIND XMLObjectProvider Interface.  GenericQueryXML currently uses default XML Service:
+
+"org.cougaar.domain.mlm.ui.psp.xmlservice.XMLPlanObjectProvider"
+
+
+#########################################################################
+
+package org.cougaar.core.util;
+
+public interface XMLObjectProvider
+{
+     //
+     // Add object to internal DOM Document.
+     // Most legacy XMLObjectProviders assume obj is XMLizable 
+     //
+     public void addPlanObject(Object obj);
+
+     //
+     // Print DOM Document to System.out
+     // Shorthand -- for diagnostics
+     //
+     public void printDocument();
+
+
+     // @deprecated
+     public void writeDocumentToFile(String pathname);
+
+     //
+     // write DOM Document to named output stream
+     //
+     public void writeDocument(OutputStream stream);
+
+     //
+     // @return Document:  reference to internal document instance
+     //
+     public Document getDocumentRef();
+     //
+     // Reset this ObjectProvider state to pristine.
+     // So this ObjectProvider can be reused
+     //
+     public void reset();
+}
+
+
 /////////////////////////////////////////////////////////////////////////////////////////////
 Version 0.4 ChangeList
-
 
 
 1. ) Explicit  KeepAlive "generic psp" data conduits set up.  Implicit Policy-driven switching (based on pollInterval)
