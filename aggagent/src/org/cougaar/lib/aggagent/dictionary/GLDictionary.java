@@ -186,7 +186,7 @@ public class GLDictionary extends DictionaryBase
                  if( xsl_file_path != null )
                  {
                      File xslf = new File( xsl_file_path);
-                     System.out.println("XSL FILE ATTEMPTED READ:" + xslf.getAbsolutePath() );
+                     // System.out.println("XSL FILE ATTEMPTED READ:" + xslf.getAbsolutePath() );
                      FileReader fr = new FileReader(xslf);
                      StringBuffer sbuf  = new StringBuffer();
                      int sz=0;
@@ -263,7 +263,7 @@ public class GLDictionary extends DictionaryBase
                 int count=0;
                 while( it.hasNext() ){
                     String k = (String)it.next();
-                    System.out.println("[GLDictionary]  lookupXSLByString(), lookup: k=" + k + ", name=" + name);
+                    // System.out.println("[GLDictionary]  lookupXSLByString(), lookup: k=" + k + ", name=" + name);
                     if(k.equals(name) )return (StringBuffer)(myXSLEntries.entrySet().toArray()[count]);
                     count  ++;
                 }
@@ -302,7 +302,7 @@ public class GLDictionary extends DictionaryBase
                   while(itk.hasNext())
                   { // for each keyword
                         String k = (String)itk.next();
-                        System.out.print("[GLDictionary] matched on KEY: " + k);
+                        // System.out.print("[GLDictionary] matched on KEY: " + k);
 
                         if( (mode==MATCH_MODE_QUERY) && k.equals(GLPrimitives.GLQ_KEY_QUERY_PLAN_WILDCARD) ) {
                             // Automatically accept this
@@ -317,7 +317,7 @@ public class GLDictionary extends DictionaryBase
                   }
                   // check if matched all keywords...
                   if( match == true) {
-                           System.out.println(">>>>FOUND ENTRY!");
+                           // System.out.println(">>>>FOUND ENTRY!");
                            return (GenericLogic)ge.entry; // FOUND ONE!!!
                   }
            }
@@ -391,8 +391,8 @@ public class GLDictionary extends DictionaryBase
         temp_loader_char_buf = new char[512];
 
         NodeList nl = doc.getElementsByTagName(gl_primitive_type);
-        System.out.println("[GLDictionary] GL primitive type to be loaded=" + gl_primitive_type
-                           + ", number of XML Entries=" + nl.getLength() );
+        // System.out.println("[GLDictionary] GL primitive type to be loaded=" + gl_primitive_type
+        //                    + ", number of XML Entries=" + nl.getLength() );
         int size = nl.getLength();
         for(int i = 0; i< size; i++)
         {
@@ -424,11 +424,11 @@ public class GLDictionary extends DictionaryBase
                 if( (instv==null) && (domv==null) && (twv==null)) {
                        instv = "java.lang.Object";
                 }
-                System.out.println("[GLDictionary] Predicate defined:  constraints={instv="   +
-                                   instv + ", domv=" + domv + ", twv=" + twv + "}");
+                // System.out.println("[GLDictionary] Predicate defined:  constraints={instv="   +
+                //                    instv + ", domv=" + domv + ", twv=" + twv + "}");
             } else {
-                 System.err.println("[GLDictionary] parseXMLConfigFile error:  no predicate element found in XML");
-                 System.err.println("\tkeyname=" + keyname + ",\n\tadapter=" + adapter + "\n\txsl="+xsl);
+                 // System.err.println("[GLDictionary] parseXMLConfigFile error:  no predicate element found in XML");
+                 // System.err.println("\tkeyname=" + keyname + ",\n\tadapter=" + adapter + "\n\txsl="+xsl);
             }
 
             UnaryPredicate upred = null;
@@ -438,12 +438,12 @@ public class GLDictionary extends DictionaryBase
             if (twv != null) { numPreds++; }
             //if( (instv == null) && (domv == null) && (twv==null) ) {
             if( numPreds == 0 ) {
-                 System.err.println("[GLDictionary] parseXMLConfigFile error:  no PREDICATE defined for entry");
-                 System.err.println("\tkeyname=" + keyname + ",\n\tadapter=" + adapter + "\n\txsl="+xsl);
+                 // System.err.println("[GLDictionary] parseXMLConfigFile error:  no PREDICATE defined for entry");
+                 // System.err.println("\tkeyname=" + keyname + ",\n\tadapter=" + adapter + "\n\txsl="+xsl);
             }
             else if( numPreds > 1  ) {
-                 System.err.println("[GLDictionary] parseXMLConfigFile error: ambiguous PREDICATE defintion for entry");
-                 System.err.println("\tkeyname=" + keyname + ",\n\tadapter=" + adapter + "\n\txsl="+xsl);
+                 // System.err.println("[GLDictionary] parseXMLConfigFile error: ambiguous PREDICATE defintion for entry");
+                 // System.err.println("\tkeyname=" + keyname + ",\n\tadapter=" + adapter + "\n\txsl="+xsl);
             }
             else if( (instv != null ) ) {
                 upred = GLUnaryPredicates.getInstanceOfPredicate(instv);
