@@ -10,9 +10,15 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class ResultSetDataAtom
-{
+import org.cougaar.lib.aggagent.session.XmlTransferable;
+import org.cougaar.lib.aggagent.util.XmlUtils;
+
+public class ResultSetDataAtom implements XmlTransferable {
   public static String DATA_ATOM_TAG = "data_atom";
+  private static String ID_TAG = "id";
+  private static String VALUE_TAG = "value";
+  private static String NAME_ATT = "name";
+  private static String VALUE_ATT = "value";
 
   private Object lock = new Object();
 
@@ -53,17 +59,17 @@ public class ResultSetDataAtom
 
   public ResultSetDataAtom(Element root)
   {
-    NodeList nl = root.getElementsByTagName("id");
+    NodeList nl = root.getElementsByTagName(ID_TAG);
     for (int i = 0; i < nl.getLength(); i++)
     {
       Element e = (Element)nl.item(i);
-      addIdentifier(e.getAttribute("name"), e.getAttribute("value"));
+      addIdentifier(e.getAttribute(NAME_ATT), e.getAttribute(VALUE_ATT));
     }
-    nl = root.getElementsByTagName("value");
+    nl = root.getElementsByTagName(VALUE_TAG);
     for (int i = 0; i < nl.getLength(); i++)
     {
       Element e = (Element)nl.item(i);
-      addValue(e.getAttribute("name"), e.getAttribute("value"));
+      addValue(e.getAttribute(NAME_ATT), e.getAttribute(VALUE_ATT));
     }
   }
 
@@ -158,19 +164,14 @@ public class ResultSetDataAtom
     return s.toString();
   }
 
-  public String toXML()
-  {
+  public String toXml () {
     StringBuffer xml = new StringBuffer();
 
     synchronized (lock) {
-      xml.append("<");
-      xml.append(DATA_ATOM_TAG);
-      xml.append(">\n");
-      xml.append(createNameValueTags("id", identifiers.entrySet().iterator()));
-      xml.append(createNameValueTags("value", values.entrySet().iterator()));
-      xml.append("</");
-      xml.append(DATA_ATOM_TAG);
-      xml.append(">\n");
+      XmlUtils.appendOpenTag(DATA_ATOM_TAG, xml);
+      appendNameValueTags(ID_TAG, identifiers.entrySet().iterator(), xml);
+      appendNameValueTags(VALUE_TAG, values.entrySet().iterator(), xml);
+      XmlUtils.appendCloseTag(DATA_ATOM_TAG, xml);
     }
 
     return xml.toString();
@@ -193,23 +194,15 @@ public class ResultSetDataAtom
     return s.toString();
   }
 
-  private String createNameValueTags(String tagName, Iterator i)
-  {
-    StringBuffer s = new StringBuffer();
-
-    while(i.hasNext())
-    {
+  private void appendNameValueTags (String tag, Iterator i, StringBuffer s) {
+    while (i.hasNext()) {
       Map.Entry me = (Map.Entry)i.next();
       s.append("  <");
-      s.append(tagName);
-      s.append(" name = \"");
-      s.append(me.getKey());
-      s.append("\" value = \"");
-      s.append(me.getValue());
-      s.append("\" />\n");
+      s.append(tag);
+      XmlUtils.appendAttribute(NAME_ATT, me.getKey().toString(), s);
+      XmlUtils.appendAttribute(VALUE_ATT, me.getValue().toString(), s);
+      s.append("/>\n");
     }
-
-    return s.toString();
   }
 
   /**
