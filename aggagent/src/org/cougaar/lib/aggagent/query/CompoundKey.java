@@ -1,11 +1,12 @@
 
 package org.cougaar.lib.aggagent.query;
 
+import java.io.Serializable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-public class CompoundKey {
+public class CompoundKey implements Serializable {
   private String[] keys = null;
   private String stringVal = null;
 
