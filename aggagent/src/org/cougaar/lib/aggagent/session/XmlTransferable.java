@@ -9,5 +9,8 @@ package org.cougaar.lib.aggagent.session;
  *  clients.
  */
 public interface XmlTransferable {
+  /**
+   *  Convert this XmlTransferable Object to its XML representation.
+   */
   public String toXml ();
 }
