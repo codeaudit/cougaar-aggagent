@@ -188,9 +188,19 @@ public class AggregationQuery implements Serializable {
         sourceClusters.add(clusterID);
     }
 
+    public void removeSourceCluster(String clusterID)
+    {
+        sourceClusters.remove(clusterID);
+    }
+
     public Enumeration getSourceClusters()
     {
         return sourceClusters.elements();
+    }
+
+    public Vector getSourceClustersVector()
+    {
+        return new Vector(sourceClusters);
     }
 
     public ScriptSpec getPredicateSpec () {

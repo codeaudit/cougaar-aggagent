@@ -35,6 +35,7 @@ import org.cougaar.lib.aggagent.query.QueryResultAdapter;
 import org.cougaar.lib.aggagent.session.RemoteBlackboardSubscription;
 import org.cougaar.lib.aggagent.session.SessionManager;
 import org.cougaar.lib.aggagent.query.AggregationResultSet;
+import org.cougaar.lib.aggagent.query.AggregationQuery;
 
 public abstract class AggregationServletInterface
 {
@@ -279,6 +280,20 @@ public abstract class AggregationServletInterface
     }
   }
 
+  // Update the query on the blackboard using the given Agg Query
+  protected void updateQuery (QueryResultAdapter q, AggregationQuery newQuery)
+  {
+    q.updateClusters(newQuery.getSourceClustersVector());
+    try {
+      blackboard.openTransaction();
+      blackboard.publishChange(q);
+    } catch (Exception e) {
+      e.printStackTrace();
+    } finally {
+      blackboard.closeTransaction();
+    }
+  }
+
   /**
    * Get QueryResultAdapter for given query id;
    * return null if query is not found.
@@ -302,6 +317,21 @@ public abstract class AggregationServletInterface
     // remove all queries matching query id
     while (qi.hasNext())
       removeQuery((QueryResultAdapter) qi.next());
+  }
+
+  // find the query matching the specified ID and remove it from the logplan
+  protected void findAndUpdateQuery (String queryId, AggregationQuery aq)
+  {
+    // find query adapter on log plan
+    blackboard.openTransaction();
+    Collection qs = blackboard.query(new QuerySeeker(queryId));
+    blackboard.closeTransaction();
+    Iterator qi = qs.iterator();
+
+    // remove all queries matching query id
+    while (qi.hasNext()) {
+      updateQuery((QueryResultAdapter) qi.next(), aq);
+    }
   }
 
   protected void printQueryReportPage (QueryResultAdapter qra, PrintWriter out){

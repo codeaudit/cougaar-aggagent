@@ -38,6 +38,8 @@ import org.cougaar.lib.aggagent.query.AggregationResultSet;
 import org.cougaar.lib.aggagent.query.QueryResultAdapter;
 import org.cougaar.lib.aggagent.util.Enum.*;
 import org.cougaar.lib.aggagent.util.XmlUtils;
+import org.cougaar.util.log.Logging;
+import org.cougaar.util.log.Logger;
 
 /**
  * The AggregationPSPClient provides a client-side communication abstraction
@@ -64,7 +66,8 @@ public class AggregationClient
   private String aggregationURL = null;
   private String keepAliveURL = null;
   private Timer pullTimer = new Timer();
-
+  private Logger logger;
+  
   /**
    * Create a new client interface to a specific Aggregation Agent.
    *
@@ -78,6 +81,8 @@ public class AggregationClient
   public AggregationClient(String clusterURL, String aggregationName,
                            String keepAliveName)
   {
+    logger = Logging.getLogger(this);
+
     aggregationURL =
         clusterURL + "/" + aggregationName + "?THICK_CLIENT=1";
     keepAliveURL = clusterURL + "/" + keepAliveName + "?KEEP_ALIVE=1";
@@ -160,7 +165,6 @@ public class AggregationClient
   {
     Object response = null;
     String taggedURL = aggregationURL + "&CREATE_QUERY=1";
-
     if (aq.getType() == QueryType.PERSISTENT)
     {
       response = XmlUtils.requestString(taggedURL, aq.toXml()).trim();
@@ -170,7 +174,6 @@ public class AggregationClient
       Element root = XmlUtils.requestXML(taggedURL, aq.toXml());
       response = new AggregationResultSet(root);
     }
-
     return response;
   }
 
@@ -250,6 +253,23 @@ public class AggregationClient
     String loadedURL =
         aggregationURL + "&CANCEL_QUERY=1&QUERY_ID=" + queryId;
     String response = XmlUtils.requestString(loadedURL, null);
+    return response.equals("0");
+  }
+
+  /**
+   * Send an update to an active persistent query.  Updates query on
+   * aggregation agent's blackboard.  
+   *
+   * @param qra the query result adapter to be updated.
+   *
+   * @return true if successful; false otherwise
+   */
+  public boolean updateQuery(QueryResultAdapter qra)
+  {
+    
+    String loadedURL =
+        aggregationURL + "&UPDATE_QUERY=1&QUERY_ID=" + qra.getID();
+    String response = XmlUtils.requestString(loadedURL, qra.getQuery().toXml().trim());
     return response.equals("0");
   }
 

@@ -82,6 +82,8 @@ public class AggregationXMLInterface extends AggregationServletInterface
       getResultSet(request, out);
     else if (request.getParameter("CANCEL_QUERY") != null)
       removeQueryForThick(request, out);
+    else if (request.getParameter("UPDATE_QUERY") != null)
+      updateQueryForThick(request, out);
     else if (request.getParameter("CANCEL_ALERT") != null)
       removeAlert(request, out);
     else if (request.getParameter("CREATE_PASSIVE_SESSION") != null)
@@ -228,6 +230,25 @@ public class AggregationXMLInterface extends AggregationServletInterface
     String queryId = request.getParameter("QUERY_ID");
     findAndRemoveQuery(queryId);
     out.println("0");
+  }
+
+  /**
+   * update query with given query and query id
+   */
+  private void updateQueryForThick (HttpServletRequest request, PrintWriter out)
+  {
+    try { 
+      String queryId = request.getParameter("QUERY_ID");
+      Element root = XmlUtils.parse(request.getInputStream());
+      AggregationQuery aq = new AggregationQuery(root);
+      findAndUpdateQuery(queryId, aq);
+      out.println("0");
+    }
+    catch (Exception e)
+    {
+      e.printStackTrace();
+      out.println(-1);
+    }
   }
 
   /**

@@ -30,6 +30,7 @@ import org.cougaar.lib.aggagent.session.XmlTransferable;
 import org.cougaar.lib.aggagent.util.InverseSax;
 
 import org.cougaar.core.util.UID;
+import org.cougaar.core.util.UniqueObject;
 
 /**
  *  This adapter contains a query and links to some associated structures.
@@ -44,6 +45,8 @@ public class QueryResultAdapter implements XmlTransferable, Serializable {
     private AggregationQuery aQuery = null;
     private AggregationResultSet rawResultSet = null;
     private List alerts = new LinkedList();
+    private Vector addedClusters = new Vector();
+    private Vector removedClusters = new Vector();
 
     private Aggregator agg;
     private AggregationResultSet aggResultSet;
@@ -111,6 +114,79 @@ public class QueryResultAdapter implements XmlTransferable, Serializable {
     }
 
     /**
+     *  Reconcile new cluster list with current list.  Updates the Agg Query and the result sets
+     */
+    public void updateClusters(Vector newClusters) {
+      Iterator iter = aQuery.getSourceClustersVector().iterator();
+      while (iter.hasNext()) {
+        String clusterId = (String) iter.next();
+        // if it's in the query, but not the new list, remove it from the query.
+        // otherwise, remove it from the list of new clusters.  All the clusters remaining
+        // in that list will be added to the query at the end.
+        if (!newClusters.contains(clusterId))
+          removeCluster(clusterId);
+        else
+          newClusters.remove(clusterId);
+      }
+      iter = newClusters.iterator();
+      while (iter.hasNext()) {
+        String clusterId = (String) iter.next();
+        addCluster(clusterId);
+      }
+    }
+    
+    /**
+     *  Add a cluster to the query.
+     */
+    public void addCluster(String clusterId) {
+      synchronized (addedClusters) {
+        addedClusters.add(clusterId);
+        aQuery.addSourceCluster(clusterId);
+      }
+    }
+    
+    /**
+     *  Remove a cluster from the query.  Will also clean the cluster out of the result sets.
+     */
+    public void removeCluster(String clusterId) {
+      synchronized (removedClusters) {
+        removedClusters.add(clusterId);
+        aQuery.removeSourceCluster(clusterId);
+        if (rawResultSet != null)
+          rawResultSet.removeClusterId(clusterId);
+        if (aggResultSet != null)
+          aggResultSet.removeClusterId(clusterId);
+      }
+    }
+
+    /**
+     *  Retrieve the Vector of clusters that have been added to this
+     *  QRA after it was created.  This will reset the list of added clusters
+     *  when it is called
+     */
+    public Vector getAndResetAddedClusters() {
+      Vector retVec = null;
+      synchronized (addedClusters) {
+        retVec = new Vector(addedClusters);
+        addedClusters.clear();
+      }      
+      return retVec;
+    }
+
+    /**
+     *  Retrieve the Vector of clusters that have been removed from this
+     *  QRA after it was created.  This will reset the list of removed clusters
+     *  when it is called
+     */
+    public Vector getAndResetRemovedClusters() {
+      Vector retVec = null;
+      synchronized (removedClusters) {
+        retVec = new Vector(removedClusters);
+        removedClusters.clear();
+      }      
+      return retVec;
+    }
+     /**
      *  Use the local Aggregator (if there is one) to derive an aggregated
      *  result set from the raw data supplied by the query.  If no Aggregator
      *  is present, then the call is ignored.

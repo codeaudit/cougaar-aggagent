@@ -83,17 +83,19 @@ public class AggregationPlugin extends ComponentPlugin
 
     checkNewMessages();
     checkNewQueries();
+    checkUpdatedQueries();
     checkRemovedQueries();
-
-
   }
 
   private void checkNewMessages() {
     // Only the changed messages are interesting.
     // The old ones will be deleted.
+    // We need to ignore the ones that have *already* been deleted, though.
+    Collection removedARs = messageSub.getRemovedCollection();
     for(Enumeration e = messageSub.getChangedList(); e.hasMoreElements();)
     {
-      receiveMessage((AggRelay)e.nextElement());
+      if (!removedARs.contains(e))
+        receiveMessage((AggRelay)e.nextElement());
     }
   }
 
@@ -144,6 +146,56 @@ public class AggregationPlugin extends ComponentPlugin
     }
   }
 
+  private void checkUpdatedQueries() {
+    for(Enumeration e = querySub.getChangedList(); e.hasMoreElements();)
+    {
+      QueryResultAdapter qra = (QueryResultAdapter)e.nextElement();
+      AggregationQuery aq = qra.getQuery();
+      String queryId = qra.getID();
+
+      try {
+        // ignore update of transient queries
+        if (qra.getQuery().getType() == QueryType.PERSISTENT) {
+          Vector removedClusters = qra.getAndResetRemovedClusters();
+          // remove the old cluster relays
+          if (removedClusters != null && !removedClusters.isEmpty()) {
+            Iterator iter = messageSub.getCollection().iterator();
+            while(iter.hasNext()) {
+                AggRelay ar = (AggRelay) iter.next();
+                XMLMessage xmsg = (XMLMessage)ar.getContent();
+                Element root = XmlUtils.parse(xmsg.getText());
+                String this_query_id = root.getAttribute("query_id");
+                Iterator targets = ar.getTargets().iterator();
+                while (targets.hasNext()) {
+                  String this_cluster_id = targets.next().toString();
+                  if (queryId.equals(this_query_id) && removedClusters.contains(this_cluster_id)) {
+                    getBlackboardService().publishRemove(ar);
+                  }
+                }
+            }
+            if (log.isDebugEnabled()) log.debug("("+me+")Updating remote session "+qra.getID());
+          }
+          Vector addedClusters = qra.getAndResetAddedClusters();
+          // add the new cluster relays
+          if (addedClusters != null && !addedClusters.isEmpty()) {
+            if (log.isDebugEnabled()) log.debug("("+me+")Updating remote session "+qra.getID());
+            Enumeration newClusters = addedClusters.elements();
+            while (newClusters.hasMoreElements()) {
+              String clusterId = (String) newClusters.nextElement();
+              if (aq.getUpdateMethod() == UpdateMethod.PUSH) {
+                requestPushSession(queryId, clusterId, qra);
+              } else {
+                requestPullSession(queryId, clusterId, qra);
+              }
+            }
+          }
+        }
+      }  catch (Exception ioe) {
+        if (log.isErrorEnabled()) log.error("AggPlugin:("+me+"):error updating session"+ioe);
+      }
+    }
+  }
+  
   private void checkRemovedQueries() {
     for (Enumeration e = querySub.getRemovedList(); e.hasMoreElements();)
     {
@@ -218,7 +270,7 @@ public class AggregationPlugin extends ComponentPlugin
   private TimerTask getTimerTask(QueryResultAdapter qra) {
     return new PullTimerTask(qra);
   }
-
+    
   private void cancelRemoteSession(String queryId) {
       // todo: this is horribly inefficient.
       try {
@@ -274,7 +326,6 @@ public class AggregationPlugin extends ComponentPlugin
 
         // publish changes to blackboard
         getBlackboardService().publishChange(qra);
-        
         // Am I done with thie relay?
         if (qra.getQuery().getType().equals(QueryType.TRANSIENT))
             getBlackboardService().publishRemove(relay);

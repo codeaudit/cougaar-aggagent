@@ -33,6 +33,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.Enumeration;
+import java.util.Vector;
+
 
 import org.cougaar.lib.aggagent.session.UpdateDelta;
 import org.cougaar.lib.aggagent.session.XmlTransferable;
@@ -113,6 +116,15 @@ public class AggregationResultSet implements XmlTransferable, Serializable {
     return query;
   }
 
+  /**
+   *  Returns the list of clusters contained in this result set
+   */
+  public Enumeration getClusters() {
+    // return as an enumeration so that elements cannot be removed
+    Vector keys = new Vector(clusterTable.keySet());
+    return keys.elements();
+  }
+  
   /**
    * Set an exception message for a cluster that occured when attempting
    * to update this result set (or setup query).
@@ -235,6 +247,17 @@ public class AggregationResultSet implements XmlTransferable, Serializable {
         update(agentId, delta.getChangedList());
         remove(agentId, delta.getRemovedList());
       }
+    }
+  }
+
+  /**
+   *  Used to completely remove the data associated with a specific agent from the
+   *  result set.
+   */
+   
+  protected void removeClusterId (String clusterId) {
+    synchronized (lock) {
+      clusterTable.remove(clusterId);
     }
   }
 
