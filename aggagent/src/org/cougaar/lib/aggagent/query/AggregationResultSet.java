@@ -25,6 +25,11 @@ public class AggregationResultSet implements XmlTransferable {
   public static String RESULT_SET_TAG = "result_set";
   public static String QUERY_ID_ATT = "query_id";
 
+  private static String EXCEPTION_TAG = "resultset_exception";
+  private static String CLUSTER_ID_ATT = "clusterId";
+  private static String CLUSTER_TAG = "cluster";
+  private static String ID_ATT = "id";
+
   private static String CLUSTER_IDENTIFIER = "cluster";
 
   private Object lock = new Object();
@@ -48,19 +53,19 @@ public class AggregationResultSet implements XmlTransferable {
    */
   public AggregationResultSet(Element root)
   {
-    NodeList nl = root.getElementsByTagName("resultset_exception");
+    NodeList nl = root.getElementsByTagName(EXCEPTION_TAG);
     for (int i = 0; i < nl.getLength(); i++)
     {
       Element exceptionElement = (Element)nl.item(i);
-      String clusterId = exceptionElement.getAttribute("clusterId");
+      String clusterId = exceptionElement.getAttribute(CLUSTER_ID_ATT);
       String exceptionDescription = XmlUtils.getElementText(exceptionElement);
       exceptionMap.put(clusterId, exceptionDescription);
     }
 
-    nl = root.getElementsByTagName("cluster");
+    nl = root.getElementsByTagName(CLUSTER_TAG);
     for (int i = 0; i < nl.getLength(); i++) {
       Element cluster = (Element) nl.item(i);
-      String cid = cluster.getAttribute("id");
+      String cid = cluster.getAttribute(ID_ATT);
       createAtomsByAgent(cid, cluster);
     }
   }
@@ -308,18 +313,20 @@ public class AggregationResultSet implements XmlTransferable {
     synchronized (lock) {
       for (Iterator i = exceptionMap.entrySet().iterator(); i.hasNext(); ) {
         Map.Entry entry = (Map.Entry) i.next();
-        s.append("<resultset_exception clusterId=\"");
-        s.append(entry.getKey().toString());
-        s.append("\">\n");
+        s.append("<");
+        s.append(EXCEPTION_TAG);
+        XmlUtils.appendAttribute(CLUSTER_ID_ATT, entry.getKey().toString(), s);
+        s.append(">\n");
         s.append(XmlUtils.replaceIllegalChars(entry.getValue().toString()));
-        s.append("\n</resultset_exception>\n");
+        XmlUtils.appendCloseTag(EXCEPTION_TAG, s);
       }
 
       for (Iterator i = clusterTable.entrySet().iterator(); i.hasNext(); ) {
         Map.Entry table = (Map.Entry) i.next();
-        s.append("<cluster id=\"");
-        s.append(table.getKey());
-        s.append("\">\n");
+        s.append("<");
+        s.append(CLUSTER_TAG);
+        XmlUtils.appendAttribute(ID_ATT, table.getKey().toString(), s);
+        s.append(">\n");
         for (Iterator j = ((Map) table.getValue()).entrySet().iterator();
             j.hasNext(); )
         {
@@ -327,7 +334,7 @@ public class AggregationResultSet implements XmlTransferable {
           s.append(new ResultSetDataAtom(idNames, (CompoundKey) entry.getKey(),
             (Map) entry.getValue()).toXml());
         }
-        s.append("</cluster>\n");
+        XmlUtils.appendCloseTag(CLUSTER_TAG, s);
       }
     }
 

@@ -33,6 +33,13 @@ import org.cougaar.lib.aggagent.util.Enum.*;
  */
 public class AggregationQuery
 {
+    public static String QUERY_TAG = "query";
+    private static String TYPE_ATT = "type";
+    private static String UPDATE_ATT = "update_method";
+    private static String PULL_RATE_ATT = "pull_rate";
+    private static String NAME_ATT = "name";
+    private static String CLUSTER_TAG = "source_cluster";
+
     private QueryType queryType = QueryType.TRANSIENT;
     private UpdateMethod updateMethod = UpdateMethod.PUSH;
     private int pullRate = -1; // wait period in sec.(if neg., don't auto-pull)
@@ -64,13 +71,13 @@ public class AggregationQuery
      */
     public AggregationQuery(Element root)
     {
-      queryType = QueryType.fromString(root.getAttribute("type"));
+      queryType = QueryType.fromString(root.getAttribute(TYPE_ATT));
       updateMethod =
-        UpdateMethod.fromString(root.getAttribute("update_method"));
-      pullRate = Integer.parseInt(root.getAttribute("pull_rate"));
-      userDefinedName = root.getAttribute("name");
+        UpdateMethod.fromString(root.getAttribute(UPDATE_ATT));
+      pullRate = Integer.parseInt(root.getAttribute(PULL_RATE_ATT));
+      userDefinedName = root.getAttribute(NAME_ATT);
 
-      NodeList nl = root.getElementsByTagName("source_cluster");
+      NodeList nl = root.getElementsByTagName(CLUSTER_TAG);
       for (int i = 0; i < nl.getLength(); i++)
       {
         addSourceCluster(nl.item(i).getFirstChild().getNodeValue().trim());
@@ -158,24 +165,26 @@ public class AggregationQuery
       aggSpec = ss;
     }
 
-    public String toXML()
-    {
-        StringBuffer xml = new StringBuffer();
-        xml.append("<query type=\"" + queryType + "\"");
-        xml.append(" update_method=\"" + updateMethod + "\"");
-        xml.append(" pull_rate=\"" + pullRate + "\"");
-        xml.append(" name=\"" + userDefinedName + "\">\n");
-        for (int i = 0; i < sourceClusters.size(); i++)
-        {
-            xml.append("<source_cluster>");
-            xml.append(sourceClusters.elementAt(i));
-            xml.append("</source_cluster>\n");
-        }
-        xml.append(scriptXML());
-        xml.append(aggXML());
-        xml.append("</query>\n");
+    public String toXML () {
+      StringBuffer xml = new StringBuffer();
+      xml.append("<");
+      xml.append(QUERY_TAG);
+      XmlUtils.appendAttribute(TYPE_ATT, queryType.toString(), xml);
+      XmlUtils.appendAttribute(UPDATE_ATT, updateMethod.toString(), xml);
+      XmlUtils.appendAttribute(PULL_RATE_ATT, String.valueOf(pullRate), xml);
+      XmlUtils.appendAttribute(NAME_ATT, userDefinedName, xml);
+      xml.append(">\n");
 
-        return xml.toString();
+      for (int i = 0; i < sourceClusters.size(); i++) {
+        XmlUtils.appendOpenTag(CLUSTER_TAG, xml, false);
+        xml.append(sourceClusters.elementAt(i));
+        XmlUtils.appendCloseTag(CLUSTER_TAG, xml);
+      }
+      xml.append(scriptXML());
+      xml.append(aggXML());
+      XmlUtils.appendCloseTag(QUERY_TAG, xml);
+
+      return xml.toString();
     }
 
     /**
