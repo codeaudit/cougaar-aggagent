@@ -61,6 +61,8 @@ public class AggregationXMLInterface extends AggregationPSPInterface
       cancelPassiveSession(ahi, out);
     else if (ahi.hasParameter("REQUEST_UPDATE"))
       requestUpdate(ahi, out);
+    else if (ahi.hasParameter("CHECK_URL"))
+      checkUrl(out);
 
     out.flush();
   }
@@ -255,6 +257,14 @@ public class AggregationXMLInterface extends AggregationPSPInterface
     String sessionId = in.getParameter("SESSION_ID");
     man.cancelSession(sessionId);
     out.println("done");
+  }
+
+  /**
+   * check my url.  If I received this message, tell client that URL is ok.
+   */
+  private void checkUrl(PrintStream out)
+  {
+    out.println("url ok");
   }
 
   /**
