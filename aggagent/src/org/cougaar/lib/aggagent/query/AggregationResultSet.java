@@ -121,8 +121,8 @@ public class AggregationResultSet implements XmlTransferable, Serializable {
     StringBuffer s = new StringBuffer();
     for (Iterator i = exceptionMap.values().iterator(); i.hasNext();)
     {
-      s.append(i.next().toString());
-      s.append("-----------------------------");
+      s.append(i.next().toString()+"\n");
+      s.append("-----------------------------\n");
     }
     return s.toString();
   }

@@ -40,10 +40,13 @@ public class AggregationQuery implements Serializable {
     private static String PULL_RATE_ATT = "pull_rate";
     private static String NAME_ATT = "name";
     private static String CLUSTER_TAG = "source_cluster";
+    private static String TIMEOUT_TAG = "timeout";
 
     private QueryType queryType = QueryType.TRANSIENT;
     private UpdateMethod updateMethod = UpdateMethod.PUSH;
     private int pullRate = -1; // wait period in sec.(if neg., don't auto-pull)
+    private long timeout = 0; // period of tim to wait for transient queries.  0 means wait forever
+    private boolean timeoutSupplied = false; // True iff  a timeout is set explicitly
     private Vector sourceClusters = new Vector();
 
     private ScriptSpec predicateSpec = null;
@@ -83,6 +86,18 @@ public class AggregationQuery implements Serializable {
       {
         addSourceCluster(nl.item(i).getFirstChild().getNodeValue().trim());
       }
+
+      nl = root.getElementsByTagName(TIMEOUT_TAG);
+      if (nl.getLength() > 0) {
+        String timeoutStr = nl.item(0).getFirstChild().getNodeValue().trim();
+        try {
+          timeout = Long.parseLong(timeoutStr);
+          timeoutSupplied = true;
+        } catch (NumberFormatException nfe) {
+          System.err.println("WARNING: Expecting number for timeout, but received " + timeoutStr);
+          System.err.println("    will use default value");
+        }
+      } 
 
       nl = root.getElementsByTagName(ScriptType.UNARY_PREDICATE.toString());
       if (nl.getLength() > 0)
@@ -130,6 +145,22 @@ public class AggregationQuery implements Serializable {
     public int getPullRate()
     {
       return pullRate;
+    }
+
+    public void setTimeout(long timeout)
+    {
+      this.timeout = timeout;
+      timeoutSupplied = true;
+    }
+
+    public long getTimeout()
+    {
+      return timeout;
+    }
+
+    public boolean timeoutSupplied()
+    {
+      return timeoutSupplied;
     }
 
     public void addSourceCluster(String clusterID)
@@ -181,6 +212,9 @@ public class AggregationQuery implements Serializable {
 
       for (int i = 0; i < sourceClusters.size(); i++)
         doc.addTextElement(CLUSTER_TAG, sourceClusters.elementAt(i).toString());
+
+      if (timeout != 0)
+        doc.addTextElement(TIMEOUT_TAG, String.valueOf(timeout));
 
       includeScriptXml(doc);
       if (aggSpec != null)

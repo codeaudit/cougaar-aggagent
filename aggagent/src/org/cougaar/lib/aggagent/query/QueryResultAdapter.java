@@ -9,12 +9,17 @@ import org.cougaar.lib.aggagent.session.UpdateDelta;
 import org.cougaar.lib.aggagent.session.XmlTransferable;
 import org.cougaar.lib.aggagent.util.InverseSax;
 
+import org.cougaar.core.util.XMLizable;
+import org.cougaar.core.util.XMLize;
+import org.cougaar.core.util.UID;
+
 /**
  *  This adapter contains a query and links to some associated structures.
  */
-public class QueryResultAdapter implements XmlTransferable, Serializable {
+public class QueryResultAdapter implements XmlTransferable, Serializable, XMLizable {
     public static String QUERY_RESULT_TAG = "query_result_adapter";
     public static String ID_ATT = "id";
+    UID uid;
 
     private static int uniqueIdCounter = 0;
     private String id = null;
@@ -103,6 +108,20 @@ public class QueryResultAdapter implements XmlTransferable, Serializable {
         }
         aggResultSet.replaceAggregated(atoms);
       }
+    }
+
+    public boolean allClustersResponded() {
+      if (rawResultSet == null)
+        return false;
+      
+      Set responded = rawResultSet.getRespondingClusters();
+
+      Enumeration enum = getQuery().getSourceClusters();
+      while (enum.hasMoreElements())
+        if (!responded.contains(enum.nextElement()))
+          return false;
+
+      return true;
     }
 
     /**
@@ -224,5 +243,22 @@ public class QueryResultAdapter implements XmlTransferable, Serializable {
       for (Iterator i = alerts.iterator(); i.hasNext(); )
         (new AlertDescriptor((Alert) i.next())).includeXml(doc);
       doc.endElement();
+    }
+    
+    // XMLizable method for UI, other clients
+    public org.w3c.dom.Element getXML(org.w3c.dom.Document doc) {
+      return XMLize.getPlanObjectXML(this, doc);
+    }
+    
+    /*
+    *** UniqueObject interface
+     */
+
+    public void setUID(UID uid) {
+      throw new RuntimeException("Attempt to change UID");
+    }
+
+    public UID getUID() {
+      return uid;
     }
 }
