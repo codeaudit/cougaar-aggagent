@@ -36,7 +36,6 @@ public class AggregationPSP
       PlanServiceUtilities psu)
       throws Exception
   {
-System.out.println("AggPSP: execute");
     synchronized (lock) {
       if (first_call)
         makeSubscription(psc);
