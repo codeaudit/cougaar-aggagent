@@ -35,7 +35,7 @@ public class AggregationResultSet implements XmlTransferable, Serializable {
   private static String CLUSTER_IDENTIFIER = "cluster";
   private static String AGGREGATED_IDENTIFIER = "aggregated";
 
-  private Object lock = new Object();
+  private Object lock = new Serializable(){};
 
   private QueryResultAdapter query = null;
   private List idNames = new LinkedList();

@@ -2,6 +2,7 @@ package org.cougaar.lib.aggagent.query;
 
 import org.w3c.dom.*;
 
+import java.io.Serializable;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -14,14 +15,14 @@ import org.cougaar.lib.aggagent.session.XmlTransferable;
 import org.cougaar.lib.aggagent.util.InverseSax;
 // import org.cougaar.lib.aggagent.util.XmlUtils;
 
-public class ResultSetDataAtom implements XmlTransferable {
+public class ResultSetDataAtom implements XmlTransferable, Serializable {
   public static String DATA_ATOM_TAG = "data_atom";
   private static String ID_TAG = "id";
   private static String VALUE_TAG = "value";
   private static String NAME_ATT = "name";
   private static String VALUE_ATT = "value";
 
-  private Object lock = new Object();
+  private Object lock = new Serializable(){};
 
   // the aggregation of all the identifiers defines how these values
   // should be managed.  Sample identifiers:  "org", "time", "metric", "item"
