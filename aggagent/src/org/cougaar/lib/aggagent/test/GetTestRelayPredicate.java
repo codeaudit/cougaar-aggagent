@@ -33,7 +33,6 @@ package org.cougaar.lib.aggagent.test;
 
 /**
  *
- * @author  wwright
  */
 public class GetTestRelayPredicate implements org.cougaar.util.UnaryPredicate {
     
