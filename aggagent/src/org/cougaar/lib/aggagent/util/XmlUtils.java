@@ -253,8 +253,20 @@ public class XmlUtils {
   }
 
   public static void appendOpenTag (String n, StringBuffer buf) {
+    appendOpenTag(n, buf, true);
+  }
+
+  public static void appendOpenTag (String n, StringBuffer buf, boolean cr) {
     buf.append("<");
     buf.append(n);
-    buf.append(">\n");
+    buf.append(">");
+    if (cr)
+      buf.append("\n");
+  }
+
+  public static void appendTextElement (String n, String t, StringBuffer buf) {
+    appendOpenTag(n, buf, false);
+    buf.append(replaceIllegalChars(t));
+    appendCloseTag(n, buf);
   }
 }
