@@ -6,7 +6,7 @@ import org.python.core.PyInteger;
 import org.python.core.PyObject;
 import org.python.util.PythonInterpreter;
 
-import org.cougaar.lib.aggagent.query.UpdateDelta;
+import org.cougaar.lib.aggagent.session.UpdateDelta;
 import org.cougaar.lib.aggagent.session.IncrementFormat;
 import org.cougaar.lib.aggagent.session.SubscriptionAccess;
 

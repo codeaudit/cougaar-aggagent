@@ -4,7 +4,7 @@ import java.io.*;
 import java.util.*;
 
 import org.cougaar.lib.aggagent.plugin.Const;
-import org.cougaar.lib.aggagent.query.UpdateDelta;
+import org.cougaar.lib.aggagent.session.UpdateDelta;
 
 public class XmlIncrement implements IncrementFormat {
   private XMLEncoder xmlEncoder = null;

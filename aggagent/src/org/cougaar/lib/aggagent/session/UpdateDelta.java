@@ -1,5 +1,5 @@
 
-package org.cougaar.lib.aggagent.query;
+package org.cougaar.lib.aggagent.session;
 
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -7,7 +7,8 @@ import java.util.List;
 
 import org.w3c.dom.*;
 
-import org.cougaar.lib.aggagent.session.XmlTransferable;
+import org.cougaar.lib.aggagent.query.CompoundKey;
+import org.cougaar.lib.aggagent.query.ResultSetDataAtom;
 import org.cougaar.lib.aggagent.util.XmlUtils;
 
 /**
@@ -73,6 +74,8 @@ public class UpdateDelta {
     }
   }
 
+  // This operation presumes that elements are ResultSetDataAtoms, which may
+  // not be true.  Other implementations of XmlTransferable exist.
   private static void loadAtoms (List l, NodeList bunches) {
     if (bunches.getLength() == 0)
       return;

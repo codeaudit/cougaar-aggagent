@@ -4,7 +4,7 @@ package org.cougaar.lib.aggagent.script;
 import silk.Procedure;
 import silk.SI;
 
-import org.cougaar.lib.aggagent.query.UpdateDelta;
+import org.cougaar.lib.aggagent.session.UpdateDelta;
 import org.cougaar.lib.aggagent.session.IncrementFormat;
 import org.cougaar.lib.aggagent.session.SubscriptionAccess;
 

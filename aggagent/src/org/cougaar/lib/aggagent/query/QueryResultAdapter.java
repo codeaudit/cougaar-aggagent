@@ -4,6 +4,7 @@ import org.w3c.dom.*;
 
 import java.util.*;
 
+import org.cougaar.lib.aggagent.session.UpdateDelta;
 import org.cougaar.lib.aggagent.session.XmlTransferable;
 import org.cougaar.lib.aggagent.util.XmlUtils;
 

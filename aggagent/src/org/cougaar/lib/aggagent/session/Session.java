@@ -7,7 +7,7 @@ import org.cougaar.core.cluster.*;
 import org.cougaar.lib.planserver.*;
 import org.cougaar.util.UnaryPredicate;
 
-import org.cougaar.lib.aggagent.query.UpdateDelta;
+import org.cougaar.lib.aggagent.session.UpdateDelta;
 import org.cougaar.lib.aggagent.util.XmlUtils;
 
 /**
