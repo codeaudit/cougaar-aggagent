@@ -69,11 +69,6 @@ public abstract class BlackboardServletComponent extends ComponentPlugin
   private ServletService servletService = null;
 
   /**
-   * Agent identifier for the Agent that loaded this Component.
-   */
-  protected MessageAddress agentId;
-
-  /**
    * Needed since this servlet needs to be able to acquire a list of all
    * available agents.
    */
@@ -181,7 +176,6 @@ public abstract class BlackboardServletComponent extends ComponentPlugin
   public void setBindingSite(BindingSite bs) {
     super.setBindingSite(bs);
     this.serviceBroker = bs.getServiceBroker();
-    this.agentId = getAgentIdentifier();
   }
 
   /**
