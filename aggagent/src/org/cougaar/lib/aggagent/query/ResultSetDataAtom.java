@@ -88,6 +88,13 @@ public class ResultSetDataAtom
     }
   }
 
+  public Object removeValue(Object name)
+  {
+    synchronized (lock) {
+      return values.remove(name);
+    }
+  }
+
   public Object getValue(Object name)
   {
     synchronized (lock) {
@@ -106,6 +113,13 @@ public class ResultSetDataAtom
   {
     synchronized (lock) {
       identifiers.put(idName, idValue);
+    }
+  }
+
+  public Object removeIdentifier(Object idName)
+  {
+    synchronized (lock) {
+      return identifiers.remove(idName);
     }
   }
 
