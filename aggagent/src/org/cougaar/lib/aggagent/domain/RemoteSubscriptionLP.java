@@ -22,11 +22,15 @@ package org.cougaar.lib.aggagent.domain;
 
 import org.cougaar.core.mts.MessageAddress;
 
-import org.cougaar.core.blackboard.*;
 import org.cougaar.core.agent.*;
-import org.cougaar.planning.ldm.plan.*;
+import org.cougaar.core.blackboard.*;
+import org.cougaar.core.domain.EnvelopeLogicProvider;
+import org.cougaar.core.domain.LogPlanLogicProvider;
+import org.cougaar.core.domain.MessageLogicProvider;
+import org.cougaar.core.util.*;
 import org.cougaar.util.*;
 import org.cougaar.core.util.*;
+import org.cougaar.planning.ldm.plan.*;
 import java.util.*;
 
 /**

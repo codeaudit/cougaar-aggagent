@@ -24,53 +24,39 @@ package org.cougaar.lib.aggagent.domain;
 
 import java.util.*;
 
-import org.cougaar.core.blackboard.BlackboardServesLogicProvider;
 import org.cougaar.core.agent.ClusterServesLogicProvider;
+
 import org.cougaar.core.blackboard.LogPlan;
-import org.cougaar.core.blackboard.LogPlanServesLogicProvider;
 import org.cougaar.core.blackboard.XPlanServesBlackboard;
-import org.cougaar.core.domain.Domain;
-import org.cougaar.core.domain.Factory;
-import org.cougaar.core.domain.LDMServesPlugin;
+
+import org.cougaar.core.component.BindingSite;
+
+import org.cougaar.core.domain.DomainAdapter;
+import org.cougaar.core.domain.DomainBindingSite;
+
+import org.cougaar.core.service.LoggingService;
+
 import org.cougaar.util.log.*;
 
 /**
  * This COUGAAR Domain package definition supports the aggregation agent functionality.
  **/
-public class AggDomain implements Domain {
+public class AggDomain extends DomainAdapter {
+  private static final String AGGAGENT_NAME = "aggagent".intern();
   private boolean debug;
+
   public AggDomain() {
     if (debug) System.out.println("Construct Aggregation domain");
   }
 
+  public String getDomainName() {
+    return AGGAGENT_NAME;
+  }
+
   public void initialize() {
+    super.initialize();
     // register COUGAAR Verbs, etc... maybe just put 'em in the factory or somesuch
     if (debug) System.out.println("Initilized Aggregation domain");
-  }
-
-  public Factory getFactory(LDMServesPlugin ldm) {
-    if (debug) System.out.println("Aggregation domain:: get factory");
-    return new AggFactory(ldm);
-  }
-
-  public XPlanServesBlackboard createXPlan(Collection existingXPlans) {
-    if (debug) System.out.println("Aggregation domain:: createXPlan");
-    for (Iterator plans = existingXPlans.iterator(); plans.hasNext(); ) {
-      XPlanServesBlackboard xPlan = (XPlanServesBlackboard) plans.next();
-      if (xPlan instanceof LogPlan) return xPlan;
-    }
-    return new LogPlan();
-  }
-
-  public Collection createLogicProviders(BlackboardServesLogicProvider alpplan,
-                                         ClusterServesLogicProvider cluster) {
-    if (debug) System.out.println("Aggregation domain:: createLogicProviders");
-
-    ArrayList l = new ArrayList(1); // don't let this be too small.
-    LogPlanServesLogicProvider logplan = (LogPlanServesLogicProvider) alpplan;
-
-    l.add(new RemoteSubscriptionLP(logplan, cluster));
-    return l;
   }
 
   public Collection getAliases() {
@@ -80,4 +66,63 @@ public class AggDomain implements Domain {
     l.add("aggregation");
     return l;
   }
+
+  protected void loadFactory() {
+    DomainBindingSite bindingSite = (DomainBindingSite) getBindingSite();
+
+    if (bindingSite == null) {
+      throw new RuntimeException("Binding site for the domain has not be set.\n" +
+                                 "Unable to initialize domain Factory without a binding site.");
+    } 
+
+    getLoggingService().debug("Aggregation domain:: loadfactory");
+
+    setFactory(new AggFactory(bindingSite.getClusterServesLogicProvider().getLDM()));
+  }
+
+  protected void loadXPlan() {
+    DomainBindingSite bindingSite = (DomainBindingSite) getBindingSite();
+
+    if (bindingSite == null) {
+      throw new RuntimeException("Binding site for the domain has not be set.\n" +
+                                 "Unable to initialize domain XPlan without a binding site.");
+    } 
+
+    getLoggingService().debug("Aggregation domain:: loadXPlan");
+
+    Collection xPlans = bindingSite.getXPlans();
+    LogPlan logPlan = null;
+    
+    for (Iterator iterator = xPlans.iterator(); iterator.hasNext();) {
+      XPlanServesBlackboard  xPlan = (XPlanServesBlackboard) iterator.next();
+      if (xPlan instanceof LogPlan) {
+        // Note that this means there are 2 paths to the plan.
+        // Is this okay?
+        logPlan = (LogPlan) logPlan;
+        break;
+      }
+    }
+    
+    if (logPlan == null) {
+      logPlan = new LogPlan();
+    }
+    
+    setXPlan(logPlan);
+  }
+
+  protected void loadLPs() {
+    DomainBindingSite bindingSite = (DomainBindingSite) getBindingSite();
+
+    if (bindingSite == null) {
+      throw new RuntimeException("Binding site for the domain has not be set.\n" +
+                                 "Unable to initialize domain LPs without a binding site.");
+    } 
+
+    getLoggingService().debug("Aggregation domain:: loadLPs");
+    ClusterServesLogicProvider cluster = bindingSite.getClusterServesLogicProvider();
+    LogPlan logPlan = (LogPlan) getXPlan();
+
+    addLogicProvider(new RemoteSubscriptionLP(logPlan, cluster));
+  }
+
 }
